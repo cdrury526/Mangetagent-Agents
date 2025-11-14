@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Plus, Trash2, Mail, Phone, Building } from 'lucide-react';
+import { Plus, Trash2, Mail, Phone, Building, UserPlus } from 'lucide-react';
 import { useTransactionContacts } from '../../hooks/useTransactionContacts';
 import { useContacts } from '../../hooks/useContacts';
 import { useAuth } from '../../contexts/AuthContext';
 import { AddContactModal } from './AddContactModal';
+import { NewContactModal } from './NewContactModal';
 
 interface ContactsTabProps {
   transactionId: string;
@@ -15,6 +16,7 @@ export function ContactsTab({ transactionId }: ContactsTabProps) {
     useTransactionContacts(transactionId);
   const { contacts: allContacts, refetch: refetchContacts } = useContacts(user?.id);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showNewContactModal, setShowNewContactModal] = useState(false);
 
   const handleRemoveContact = async (id: string) => {
     if (!confirm('Remove this contact from the transaction?')) return;
@@ -33,16 +35,25 @@ export function ContactsTab({ transactionId }: ContactsTabProps) {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-medium text-gray-900">Transaction Contacts</h3>
-        <button
-          onClick={() => {
-            refetchContacts();
-            setShowAddModal(true);
-          }}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Contact
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => {
+              refetchContacts();
+              setShowAddModal(true);
+            }}
+            className="flex items-center px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Existing
+          </button>
+          <button
+            onClick={() => setShowNewContactModal(true)}
+            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <UserPlus className="w-4 h-4 mr-2" />
+            Create New
+          </button>
+        </div>
       </div>
 
       {showAddModal && (
@@ -51,6 +62,16 @@ export function ContactsTab({ transactionId }: ContactsTabProps) {
           allContacts={allContacts}
           existingContactIds={transactionContacts.map((tc) => tc.contact_id)}
           onClose={() => setShowAddModal(false)}
+        />
+      )}
+
+      {showNewContactModal && (
+        <NewContactModal
+          transactionId={transactionId}
+          onClose={() => setShowNewContactModal(false)}
+          onSuccess={() => {
+            refetchContacts();
+          }}
         />
       )}
 
