@@ -10,6 +10,7 @@ import { Contacts } from './pages/agent/Contacts';
 import { Tasks } from './pages/agent/Tasks';
 import { Settings } from './pages/agent/Settings';
 import TransactionDetail from './pages/agent/TransactionDetail';
+import Documents from './pages/agent/Documents';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { session, loading } = useAuth();
@@ -106,6 +107,14 @@ function App() {
             element={
               <PrivateRoute>
                 <Tasks />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/documents"
+            element={
+              <PrivateRoute>
+                <Documents />
               </PrivateRoute>
             }
           />

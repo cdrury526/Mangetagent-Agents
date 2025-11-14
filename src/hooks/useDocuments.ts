@@ -8,27 +8,26 @@ export function useDocuments(transactionId: string | undefined) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!transactionId) {
-      setLoading(false);
-      return;
-    }
-
     fetchDocuments();
 
-    const channel = supabase
-      .channel('documents-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
+    const channelConfig = transactionId
+      ? {
+          event: '*' as const,
           schema: 'public',
           table: 'documents',
           filter: `transaction_id=eq.${transactionId}`,
-        },
-        () => {
-          fetchDocuments();
         }
-      )
+      : {
+          event: '*' as const,
+          schema: 'public',
+          table: 'documents',
+        };
+
+    const channel = supabase
+      .channel('documents-changes')
+      .on('postgres_changes', channelConfig, () => {
+        fetchDocuments();
+      })
       .subscribe();
 
     return () => {
@@ -39,12 +38,26 @@ export function useDocuments(transactionId: string | undefined) {
   async function fetchDocuments() {
     try {
       setLoading(true);
-      const { data, error: fetchError } = await supabase
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setDocuments([]);
+        setLoading(false);
+        return;
+      }
+
+      let query = supabase
         .from('documents')
         .select('*')
-        .eq('transaction_id', transactionId)
+        .eq('agent_id', user.id)
         .eq('archived', false)
         .order('created_at', { ascending: false });
+
+      if (transactionId) {
+        query = query.eq('transaction_id', transactionId);
+      }
+
+      const { data, error: fetchError } = await query;
 
       if (fetchError) throw fetchError;
       setDocuments(data || []);
