@@ -130,6 +130,8 @@ export function DatePicker({
                 --rdp-day_button-height: 40px;
                 --rdp-day_button-width: 40px;
                 --rdp-day_button-border-radius: 8px;
+                --rdp-day_button-border: 2px solid transparent;
+                --rdp-today-color: #2563eb;
                 font-family: inherit;
               }
 
@@ -205,9 +207,9 @@ export function DatePicker({
               }
 
               .date-picker-calendar .rdp-day_today:not(.rdp-day_selected) .rdp-day_button {
-                border: 2px solid #2563eb;
+                border: 2px solid #2563eb !important;
                 font-weight: 600;
-                color: #2563eb;
+                color: #2563eb !important;
               }
 
               .date-picker-calendar .rdp-day_outside .rdp-day_button {
