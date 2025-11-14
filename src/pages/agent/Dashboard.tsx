@@ -140,35 +140,40 @@ export function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Link
             to="/transactions"
-            className="group relative overflow-hidden bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl p-6 text-white shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all"
+            className="group relative overflow-hidden bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg p-4 text-white shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30 transition-all"
           >
-            <div className="relative z-10">
-              <Plus className="w-8 h-8 mb-3" />
-              <p className="text-lg font-bold">New Transaction</p>
-              <p className="text-blue-100 text-sm mt-1">Create a new deal</p>
+            <div className="flex items-center gap-3">
+              <Plus className="w-5 h-5" />
+              <div>
+                <p className="font-semibold">New Transaction</p>
+                <p className="text-blue-100 text-xs mt-0.5">Create a new deal</p>
+              </div>
             </div>
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-5 rounded-full -mr-16 -mt-16" />
           </Link>
 
           <Link
             to="/contacts"
-            className="group relative overflow-hidden bg-white border-2 border-slate-200 hover:border-slate-300 rounded-xl p-6 transition-all"
+            className="group relative overflow-hidden bg-white border border-slate-200 hover:border-slate-300 rounded-lg p-4 transition-all hover:shadow-sm"
           >
-            <div className="relative z-10">
-              <Plus className="w-8 h-8 mb-3 text-slate-600" />
-              <p className="text-lg font-bold text-slate-900">Add Contact</p>
-              <p className="text-slate-600 text-sm mt-1">Build your network</p>
+            <div className="flex items-center gap-3">
+              <Plus className="w-5 h-5 text-slate-600" />
+              <div>
+                <p className="font-semibold text-slate-900">Add Contact</p>
+                <p className="text-slate-600 text-xs mt-0.5">Build your network</p>
+              </div>
             </div>
           </Link>
 
           <Link
             to="/documents"
-            className="group relative overflow-hidden bg-white border-2 border-slate-200 hover:border-slate-300 rounded-xl p-6 transition-all"
+            className="group relative overflow-hidden bg-white border border-slate-200 hover:border-slate-300 rounded-lg p-4 transition-all hover:shadow-sm"
           >
-            <div className="relative z-10">
-              <Plus className="w-8 h-8 mb-3 text-slate-600" />
-              <p className="text-lg font-bold text-slate-900">Upload Document</p>
-              <p className="text-slate-600 text-sm mt-1">Manage files</p>
+            <div className="flex items-center gap-3">
+              <Plus className="w-5 h-5 text-slate-600" />
+              <div>
+                <p className="font-semibold text-slate-900">Upload Document</p>
+                <p className="text-slate-600 text-xs mt-0.5">Manage files</p>
+              </div>
             </div>
           </Link>
         </div>
