@@ -4,10 +4,12 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useSubscription } from '../../hooks/useSubscription';
 import { supabase } from '../../lib/supabase';
 import { Profile } from '../../types/database';
-import { Save, AlertCircle, CheckCircle2, User, Briefcase, CreditCard, ExternalLink } from 'lucide-react';
+import { Save, AlertCircle, CheckCircle2, User, Briefcase, CreditCard, ExternalLink, FileSignature, Plus } from 'lucide-react';
 import { FormInput } from '../../components/forms/FormInput';
 import { openGeneralPortal } from '../../utils/stripePortal';
 import { formatPhoneNumber } from '../../utils/phoneFormatter';
+import { SenderIdentityList } from '../../components/boldsign/SenderIdentityList';
+import { SenderIdentityForm } from '../../components/boldsign/SenderIdentityForm';
 
 export function Settings() {
   const { user, profile, refreshProfile } = useAuth();
@@ -22,6 +24,7 @@ export function Settings() {
   const [managingSubscription, setManagingSubscription] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [showIdentityForm, setShowIdentityForm] = useState(false);
 
   const handleManageSubscription = async () => {
     if (!user) {
@@ -190,6 +193,41 @@ export function Settings() {
             </button>
           </div>
         </form>
+
+        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+          <div className="bg-gradient-to-r from-orange-50 to-amber-50 px-6 py-4 border-b border-slate-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <FileSignature className="w-5 h-5 text-orange-600 mr-2" />
+                <h2 className="text-lg font-semibold text-slate-900">E-Signature Sender Identities</h2>
+              </div>
+              {!showIdentityForm && (
+                <button
+                  onClick={() => setShowIdentityForm(true)}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-medium transition-all"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Identity
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="p-6">
+            {showIdentityForm ? (
+              <SenderIdentityForm
+                onSuccess={() => {
+                  setShowIdentityForm(false);
+                  setSuccess(true);
+                  setTimeout(() => setSuccess(false), 3000);
+                }}
+                onCancel={() => setShowIdentityForm(false)}
+              />
+            ) : (
+              <SenderIdentityList />
+            )}
+          </div>
+        </div>
 
         <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
           <div className="bg-gradient-to-r from-blue-50 to-cyan-50 px-6 py-4 border-b border-slate-200">
