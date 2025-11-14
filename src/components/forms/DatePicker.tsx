@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { DayPicker } from 'react-day-picker';
+import 'react-day-picker/src/style.css';
 import { format, parse } from 'date-fns';
 import { Calendar, X, ChevronLeft, ChevronRight } from 'lucide-react';
 
@@ -121,21 +122,23 @@ export function DatePicker({
         {isOpen && !disabled && (
           <div className="absolute z-50 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg p-3">
             <style>{`
-              .date-picker-calendar {
+              .date-picker-calendar.rdp-root {
                 --rdp-accent-color: #2563eb;
+                --rdp-accent-background-color: #eff6ff;
+                --rdp-day-height: 40px;
+                --rdp-day-width: 40px;
+                --rdp-day_button-height: 40px;
+                --rdp-day_button-width: 40px;
+                --rdp-day_button-border-radius: 8px;
                 font-family: inherit;
               }
 
-              .date-picker-calendar .rdp-month {
-                width: 100%;
-              }
-
-              .date-picker-calendar .rdp-caption {
+              .date-picker-calendar .rdp-month_caption {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                padding: 0;
-                margin-bottom: 1rem;
+                height: 40px;
+                margin-bottom: 0.5rem;
               }
 
               .date-picker-calendar .rdp-caption_label {
@@ -153,7 +156,6 @@ export function DatePicker({
               .date-picker-calendar .rdp-button_next {
                 width: 2rem;
                 height: 2rem;
-                padding: 0;
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
@@ -165,81 +167,58 @@ export function DatePicker({
                 transition: background-color 0.15s;
               }
 
-              .date-picker-calendar .rdp-button_previous:hover,
-              .date-picker-calendar .rdp-button_next:hover {
+              .date-picker-calendar .rdp-button_previous:hover:not(:disabled),
+              .date-picker-calendar .rdp-button_next:hover:not(:disabled) {
                 background: #eff6ff;
               }
 
-              .date-picker-calendar .rdp-button_previous svg,
-              .date-picker-calendar .rdp-button_next svg {
+              .date-picker-calendar .rdp-chevron {
                 width: 1.25rem;
                 height: 1.25rem;
-              }
-
-              .date-picker-calendar .rdp-month_caption {
-                margin-bottom: 0.5rem;
-              }
-
-              .date-picker-calendar .rdp-weekdays {
-                display: table-header-group;
               }
 
               .date-picker-calendar .rdp-weekday {
                 font-size: 0.75rem;
                 font-weight: 500;
                 color: #6b7280;
-                width: 2.5rem;
-                height: 2.5rem;
-                text-align: center;
-                padding: 0;
+                text-transform: uppercase;
               }
 
-              .date-picker-calendar .rdp-week {
-                display: table-row;
-              }
-
-              .date-picker-calendar .rdp-day {
-                width: 2.5rem;
-                height: 2.5rem;
-                padding: 0;
+              .date-picker-calendar .rdp-day_button {
                 font-size: 0.875rem;
-                border-radius: 0.5rem;
-                border: none;
-                background: transparent;
                 color: #111827;
-                cursor: pointer;
-                transition: all 0.15s;
+                font-weight: 400;
               }
 
-              .date-picker-calendar .rdp-day:hover:not(.rdp-day_disabled):not(.rdp-day_selected) {
+              .date-picker-calendar .rdp-day_button:hover:not([disabled]):not(.rdp-day_selected .rdp-day_button) {
                 background: #f3f4f6;
               }
 
-              .date-picker-calendar .rdp-day_selected {
-                background: var(--rdp-accent-color) !important;
-                color: white !important;
+              .date-picker-calendar .rdp-day_selected .rdp-day_button {
+                background: var(--rdp-accent-color);
+                color: white;
                 font-weight: 600;
               }
 
-              .date-picker-calendar .rdp-day_selected:hover {
-                background: #1d4ed8 !important;
+              .date-picker-calendar .rdp-day_selected .rdp-day_button:hover {
+                background: #1d4ed8;
               }
 
-              .date-picker-calendar .rdp-day_today:not(.rdp-day_selected) {
+              .date-picker-calendar .rdp-day_today:not(.rdp-day_selected) .rdp-day_button {
                 background: #f3f4f6;
                 font-weight: 600;
               }
 
-              .date-picker-calendar .rdp-day_outside {
+              .date-picker-calendar .rdp-day_outside .rdp-day_button {
                 color: #d1d5db;
               }
 
-              .date-picker-calendar .rdp-day_disabled {
+              .date-picker-calendar .rdp-day_button:disabled {
                 color: #d1d5db;
                 cursor: not-allowed;
               }
 
-              .date-picker-calendar .rdp-day_disabled:hover {
+              .date-picker-calendar .rdp-day_button:disabled:hover {
                 background: transparent;
               }
             `}</style>
@@ -252,9 +231,9 @@ export function DatePicker({
               components={{
                 Chevron: (props) => {
                   if (props.orientation === 'left') {
-                    return <ChevronLeft className="w-4 h-4" />;
+                    return <ChevronLeft className="rdp-chevron" />;
                   }
-                  return <ChevronRight className="w-4 h-4" />;
+                  return <ChevronRight className="rdp-chevron" />;
                 },
               }}
             />
