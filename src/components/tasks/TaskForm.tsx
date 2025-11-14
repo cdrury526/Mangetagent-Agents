@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
 import { TransactionSelector } from './TransactionSelector';
+import { DatePicker } from '../forms/DatePicker';
 import type { Task } from '../../types/database';
 
 interface TaskFormProps {
@@ -138,17 +139,11 @@ export function TaskForm({
                 </select>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Due Date
-                </label>
-                <input
-                  type="date"
-                  value={formData.due_date}
-                  onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
+              <DatePicker
+                label="Due Date"
+                value={formData.due_date}
+                onChange={(value) => setFormData({ ...formData, due_date: value })}
+              />
             </>
           )}
 

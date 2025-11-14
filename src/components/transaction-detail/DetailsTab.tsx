@@ -7,6 +7,7 @@ import { FormTextarea } from '../forms/FormTextarea';
 import { FormToggle } from '../forms/FormToggle';
 import { AddressAutocomplete } from '../forms/AddressAutocomplete';
 import { CurrencyInput } from '../forms/CurrencyInput';
+import { DatePicker } from '../forms/DatePicker';
 import { ProgressBar, SectionProgress } from '../ui/ProgressBar';
 import { calculateCompletionPercentage, calculateSectionCompletion, formatRelativeTime } from '../../utils/transactionUtils';
 
@@ -287,23 +288,20 @@ export function DetailsTab({ transaction, onUpdate }: DetailsTabProps) {
                   collapsed={collapsedGroups['pre-contract']}
                   onToggle={() => toggleGroup('pre-contract')}
                 >
-                  <FormInput
+                  <DatePicker
                     label="Representation Agreement Signed"
-                    type="date"
                     value={formData.representation_agreement_signed || ''}
-                    onChange={(e) => updateField('representation_agreement_signed', e.target.value || null)}
+                    onChange={(value) => updateField('representation_agreement_signed', value || null)}
                   />
-                  <FormInput
+                  <DatePicker
                     label="Listing Agreement Signed"
-                    type="date"
                     value={formData.listing_agreement_signed || ''}
-                    onChange={(e) => updateField('listing_agreement_signed', e.target.value || null)}
+                    onChange={(value) => updateField('listing_agreement_signed', value || null)}
                   />
-                  <FormInput
+                  <DatePicker
                     label="Listing Date"
-                    type="date"
                     value={formData.listing_date || ''}
-                    onChange={(e) => updateField('listing_date', e.target.value || null)}
+                    onChange={(value) => updateField('listing_date', value || null)}
                   />
                 </DateGroup>
 
@@ -315,23 +313,20 @@ export function DetailsTab({ transaction, onUpdate }: DetailsTabProps) {
                   collapsed={collapsedGroups['contract']}
                   onToggle={() => toggleGroup('contract')}
                 >
-                  <FormInput
+                  <DatePicker
                     label="Offer Received"
-                    type="date"
                     value={formData.offer_received_date || ''}
-                    onChange={(e) => updateField('offer_received_date', e.target.value || null)}
+                    onChange={(value) => updateField('offer_received_date', value || null)}
                   />
-                  <FormInput
+                  <DatePicker
                     label="Offer Accepted"
-                    type="date"
                     value={formData.offer_accepted_date || ''}
-                    onChange={(e) => updateField('offer_accepted_date', e.target.value || null)}
+                    onChange={(value) => updateField('offer_accepted_date', value || null)}
                   />
-                  <FormInput
+                  <DatePicker
                     label="Contract Accepted"
-                    type="date"
                     value={formData.contract_accepted_date || ''}
-                    onChange={(e) => updateField('contract_accepted_date', e.target.value || null)}
+                    onChange={(value) => updateField('contract_accepted_date', value || null)}
                   />
                 </DateGroup>
 
@@ -343,29 +338,25 @@ export function DetailsTab({ transaction, onUpdate }: DetailsTabProps) {
                   collapsed={collapsedGroups['inspection']}
                   onToggle={() => toggleGroup('inspection')}
                 >
-                  <FormInput
+                  <DatePicker
                     label="Inspection Date"
-                    type="date"
                     value={formData.inspection_date || ''}
-                    onChange={(e) => updateField('inspection_date', e.target.value || null)}
+                    onChange={(value) => updateField('inspection_date', value || null)}
                   />
-                  <FormInput
+                  <DatePicker
                     label="Inspection Period End"
-                    type="date"
                     value={formData.inspection_period_end || ''}
-                    onChange={(e) => updateField('inspection_period_end', e.target.value || null)}
+                    onChange={(value) => updateField('inspection_period_end', value || null)}
                   />
-                  <FormInput
+                  <DatePicker
                     label="Appraisal Ordered"
-                    type="date"
                     value={formData.appraisal_ordered_date || ''}
-                    onChange={(e) => updateField('appraisal_ordered_date', e.target.value || null)}
+                    onChange={(value) => updateField('appraisal_ordered_date', value || null)}
                   />
-                  <FormInput
+                  <DatePicker
                     label="Appraisal Received"
-                    type="date"
                     value={formData.appraisal_received_date || ''}
-                    onChange={(e) => updateField('appraisal_received_date', e.target.value || null)}
+                    onChange={(value) => updateField('appraisal_received_date', value || null)}
                   />
                 </DateGroup>
 
@@ -377,17 +368,15 @@ export function DetailsTab({ transaction, onUpdate }: DetailsTabProps) {
                   collapsed={collapsedGroups['financing']}
                   onToggle={() => toggleGroup('financing')}
                 >
-                  <FormInput
+                  <DatePicker
                     label="Financing Contingency Deadline"
-                    type="date"
                     value={formData.financing_contingency_deadline || ''}
-                    onChange={(e) => updateField('financing_contingency_deadline', e.target.value || null)}
+                    onChange={(value) => updateField('financing_contingency_deadline', value || null)}
                   />
-                  <FormInput
+                  <DatePicker
                     label="Buyer Financing Approval"
-                    type="date"
                     value={formData.buyer_financing_approval || ''}
-                    onChange={(e) => updateField('buyer_financing_approval', e.target.value || null)}
+                    onChange={(value) => updateField('buyer_financing_approval', value || null)}
                   />
                 </DateGroup>
 
@@ -399,29 +388,25 @@ export function DetailsTab({ transaction, onUpdate }: DetailsTabProps) {
                   collapsed={collapsedGroups['closing']}
                   onToggle={() => toggleGroup('closing')}
                 >
-                  <FormInput
+                  <DatePicker
                     label="Estimated Close Date"
-                    type="date"
                     value={formData.estimated_close_date || ''}
-                    onChange={(e) => updateField('estimated_close_date', e.target.value || null)}
+                    onChange={(value) => updateField('estimated_close_date', value || null)}
                   />
-                  <FormInput
+                  <DatePicker
                     label="Actual Close Date"
-                    type="date"
                     value={formData.actual_close_date || ''}
-                    onChange={(e) => updateField('actual_close_date', e.target.value || null)}
+                    onChange={(value) => updateField('actual_close_date', value || null)}
                   />
-                  <FormInput
+                  <DatePicker
                     label="Possession Date"
-                    type="date"
                     value={formData.possession_date || ''}
-                    onChange={(e) => updateField('possession_date', e.target.value || null)}
+                    onChange={(value) => updateField('possession_date', value || null)}
                   />
-                  <FormInput
+                  <DatePicker
                     label="Move Out Date"
-                    type="date"
                     value={formData.move_out_date || ''}
-                    onChange={(e) => updateField('move_out_date', e.target.value || null)}
+                    onChange={(value) => updateField('move_out_date', value || null)}
                   />
                 </DateGroup>
               </div>
