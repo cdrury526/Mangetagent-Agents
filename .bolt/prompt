@@ -1,0 +1,157 @@
+# MagnetAgent Project Knowledge
+
+## Project Overview
+This is a real estate transaction management system built for agents to track deals, manage contacts, handle documents, and monitor tasks through completion.
+
+## Design Philosophy
+For all designs I ask you to make, have them be beautiful, not cookie cutter. Make webpages that are fully featured and worthy for production.
+
+IMPORTANT: NEVER use purple, indigo, or similar violet hues unless specifically requested. Use professional colors like blues, grays, and greens that suit a real estate business application.
+
+## Tech Stack
+- **Frontend:** React 18 + TypeScript + Vite
+- **Styling:** Tailwind CSS (utility-first approach)
+- **Icons:** Lucide React (ONLY - do not install other icon libraries)
+- **Database:** Supabase (PostgreSQL with Row Level Security)
+- **Authentication:** Supabase Auth (email/password)
+- **Payments:** Stripe (subscriptions and customer portal)
+- **Routing:** React Router v6
+
+## Documentation Files
+Before making changes, ALWAYS review these files:
+
+1. **API_DOCUMENTATION.md** - Complete API endpoint documentation
+   - Stripe webhook, checkout, and portal endpoints
+   - Request/response examples
+   - Authentication requirements
+   - Error handling
+
+2. **COMPONENT_DOCUMENTATION_TEMPLATE.md** - Template for documenting new components
+   - Use this when creating new reusable components
+   - Ensures consistency across documentation
+
+3. **COMPONENTS_DOCUMENTATION.md** - Existing component library
+   - Button, Input, Card, Alert, ProgressBar components
+   - Usage examples, accessibility guidelines, props
+   - ALWAYS use these existing components before creating new ones
+
+## Code Architecture
+
+### Component Structure
+- **UI Components:** `/src/components/ui/` - Reusable, documented components
+- **Feature Components:** `/src/components/` - Feature-specific components
+- **Pages:** `/src/pages/` and `/src/pages/agent/` - Route components
+- **Hooks:** `/src/hooks/` - Custom React hooks for data fetching
+- **Utils:** `/src/utils/` - Helper functions and utilities
+- **Types:** `/src/types/` - TypeScript type definitions
+
+### Database Schema
+Key tables:
+- `profiles` - User/agent profiles with broker_split_rate
+- `transactions` - Real estate transactions with section completion tracking
+- `contacts` - Contact management
+- `transaction_contacts` - Many-to-many relationship
+- `tasks` - Task management with subtasks
+- `documents` - Document storage references
+- `stripe_customers` - Stripe customer mapping
+- `stripe_subscriptions` - Subscription status tracking
+
+## Development Guidelines
+
+### Component Creation
+1. Check COMPONENTS_DOCUMENTATION.md for existing components
+2. Reuse existing components whenever possible
+3. If creating new components, follow COMPONENT_DOCUMENTATION_TEMPLATE.md
+4. Use Tailwind for all styling
+5. Ensure accessibility (ARIA labels, keyboard navigation)
+6. Make components responsive by default
+
+### Database Operations
+- ALWAYS use Supabase for data persistence
+- ALWAYS enable Row Level Security (RLS) on new tables
+- Use `maybeSingle()` for single row queries (not `single()`)
+- Follow migration format with detailed comments
+- Never use `DROP` or destructive operations that lose data
+
+### Authentication
+- Use Supabase Auth (email/password by default)
+- Authentication context available at `/src/contexts/AuthContext.tsx`
+- Protected routes use ProtectedRoute component
+
+### API/Edge Functions
+- Located in `/supabase/functions/`
+- Must include CORS headers for all responses
+- Handle OPTIONS preflight requests
+- Use npm: or jsr: prefixes for imports
+- Wrap in try/catch blocks
+
+### Styling Standards
+- Use Tailwind utility classes exclusively
+- Follow 8px spacing system
+- Maintain consistent color palette (primary: blue, success: green, error: red, warning: yellow)
+- Ensure WCAG AA contrast ratios minimum
+- Mobile-first responsive design
+
+### Best Practices
+- Keep files under 300 lines when possible
+- Use TypeScript for type safety
+- Write descriptive variable and function names
+- Follow single responsibility principle
+- Test on multiple screen sizes
+- Optimize for performance (lazy loading, memoization when needed)
+
+## Common Patterns
+
+### Data Fetching Hook Pattern
+```typescript
+// See existing hooks in /src/hooks/
+export function useResource() {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch, create, update, delete functions
+  // Return { data, loading, error, operations }
+}
+Form Handling
+Use controlled components with React state
+Use existing Input, Button, FormSelect components
+Validate before submission
+Show loading states during async operations
+Display error messages using Alert component
+Modal Pattern
+
+const [isOpen, setIsOpen] = useState(false);
+// Use modal with overlay, close on escape/click outside
+Testing & Building
+Run npm run build after changes to verify build succeeds
+Check for TypeScript errors with npm run typecheck
+Ensure no console errors in development
+Payment Integration (Stripe)
+Subscription tiers: Free, Monthly
+Checkout flow through Stripe hosted pages
+Customer portal for subscription management
+Webhook handling for subscription updates
+NEVER hardcode Stripe price IDs in code comments
+File Organization
+Group related functionality in directories
+Separate concerns (UI, logic, data fetching)
+Co-locate tests with components
+Keep utility functions pure and testable
+Don't Do This
+Don't install additional UI libraries (use Tailwind + existing components)
+Don't install other icon libraries (use Lucide React only)
+Don't create new components without checking existing ones first
+Don't skip documentation updates when modifying components
+Don't use inline styles (use Tailwind classes)
+Don't commit console.log statements
+Don't skip RLS policies on new tables
+Don't use destructive database operations
+When Adding New Features
+Check if existing components can be reused
+Review API_DOCUMENTATION.md to understand available endpoints
+Follow established patterns from similar features
+Update documentation if you create new components or endpoints
+Test authentication and authorization
+Verify responsive design at multiple breakpoints
+Run build to ensure no errors
