@@ -206,7 +206,7 @@ export function DatePicker({
                 background: #1d4ed8;
               }
 
-              .date-picker-calendar .rdp-day_today:not(.rdp-day_selected) .rdp-day_button {
+              .date-picker-calendar .rdp-today:not(.rdp-day_selected) .rdp-day_button {
                 border: 2px solid #2563eb !important;
                 font-weight: 600;
                 color: #2563eb !important;
