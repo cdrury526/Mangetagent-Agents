@@ -76,7 +76,7 @@ export function NewContactModal({ transactionId, onClose, onSuccess }: NewContac
       email: formData.get('email') as string || null,
       phone: cleanedPhone || null,
       company: formData.get('company') as string || null,
-      business_name: formData.get('business_name') as string || null,
+      business_name: null,
       address_line_1: addressLine1 || null,
       address_line_2: formData.get('address_line_2') as string || null,
       city: city || null,
@@ -181,27 +181,15 @@ export function NewContactModal({ transactionId, onClose, onSuccess }: NewContac
             </div>
 
             {selectedContactType !== 'buyer' && selectedContactType !== 'seller' && (
-              <>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Company</label>
-                  <input
-                    type="text"
-                    name="company"
-                    placeholder="Acme Corp"
-                    className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Business Name</label>
-                  <input
-                    type="text"
-                    name="business_name"
-                    placeholder="ABC Title Services"
-                    className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-              </>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Company</label>
+                <input
+                  type="text"
+                  name="company"
+                  placeholder="Acme Corp"
+                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
             )}
 
             <div className="md:col-span-2">
