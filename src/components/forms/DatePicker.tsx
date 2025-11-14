@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from 'react';
 import { DayPicker } from 'react-day-picker';
 import { format, parse } from 'date-fns';
 import { Calendar, X, ChevronLeft, ChevronRight } from 'lucide-react';
-import 'react-day-picker/dist/style.css';
 
 interface DatePickerProps {
   label?: string;
@@ -120,80 +119,122 @@ export function DatePicker({
         </button>
 
         {isOpen && !disabled && (
-          <div className="absolute z-50 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg p-3">
+          <div className="absolute z-50 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg p-3 calendar-container">
             <style>{`
-              .rdp-custom {
-                --rdp-cell-size: 36px;
+              .calendar-container .rdp {
+                --rdp-cell-size: 40px;
                 --rdp-accent-color: #2563eb;
-              }
-              .rdp-custom .rdp-months {
-                display: flex;
-              }
-              .rdp-custom .rdp-month {
+                --rdp-background-color: #2563eb;
                 margin: 0;
               }
-              .rdp-custom .rdp-caption {
+
+              .calendar-container .rdp-months {
+                display: flex;
+                justify-content: center;
+              }
+
+              .calendar-container .rdp-month {
+                margin: 0;
+              }
+
+              .calendar-container .rdp-caption {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                padding: 0 0 12px 0;
+                margin-bottom: 12px;
               }
-              .rdp-custom .rdp-caption_label {
+
+              .calendar-container .rdp-caption_label {
                 font-size: 14px;
-                font-weight: 500;
+                font-weight: 600;
                 color: #111827;
               }
-              .rdp-custom .rdp-nav {
+
+              .calendar-container .rdp-nav {
                 display: flex;
                 gap: 4px;
               }
-              .rdp-custom .rdp-nav_button {
+
+              .calendar-container .rdp-nav_button {
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
-                width: 28px;
-                height: 28px;
+                width: 32px;
+                height: 32px;
                 padding: 0;
-                border: 1px solid #d1d5db;
+                border: none;
                 border-radius: 6px;
                 background: transparent;
-                color: #6b7280;
+                color: #2563eb;
                 cursor: pointer;
-                transition: all 0.15s;
+                transition: background-color 0.15s;
               }
-              .rdp-custom .rdp-nav_button:hover {
-                background: #f3f4f6;
-                color: #111827;
+
+              .calendar-container .rdp-nav_button:hover:not(:disabled) {
+                background: #eff6ff;
               }
-              .rdp-custom .rdp-nav_button svg {
-                width: 16px;
-                height: 16px;
+
+              .calendar-container .rdp-nav_button:disabled {
+                opacity: 0.3;
+                cursor: not-allowed;
               }
-              .rdp-custom .rdp-table {
+
+              .calendar-container .rdp-nav_button svg {
+                width: 20px;
+                height: 20px;
+              }
+
+              .calendar-container .rdp-table {
                 width: 100%;
                 border-collapse: collapse;
+                table-layout: fixed;
               }
-              .rdp-custom .rdp-head_cell {
+
+              .calendar-container .rdp-head {
+                margin-bottom: 4px;
+              }
+
+              .calendar-container .rdp-head_row {
+                display: grid;
+                grid-template-columns: repeat(7, 1fr);
+              }
+
+              .calendar-container .rdp-head_cell {
                 width: var(--rdp-cell-size);
                 height: var(--rdp-cell-size);
-                text-align: center;
                 font-size: 12px;
-                font-weight: 400;
+                font-weight: 500;
                 color: #6b7280;
+                text-align: center;
+                vertical-align: middle;
+                padding: 0;
               }
-              .rdp-custom .rdp-cell {
+
+              .calendar-container .rdp-tbody {
+                border: 0;
+              }
+
+              .calendar-container .rdp-row {
+                display: grid;
+                grid-template-columns: repeat(7, 1fr);
+                margin-top: 2px;
+              }
+
+              .calendar-container .rdp-cell {
                 width: var(--rdp-cell-size);
                 height: var(--rdp-cell-size);
                 text-align: center;
                 padding: 0;
+                position: relative;
               }
-              .rdp-custom .rdp-day {
+
+              .calendar-container .rdp-day {
                 width: var(--rdp-cell-size);
                 height: var(--rdp-cell-size);
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
-                border-radius: 6px;
+                border-radius: 8px;
                 font-size: 14px;
                 font-weight: 400;
                 color: #111827;
@@ -201,32 +242,42 @@ export function DatePicker({
                 transition: all 0.15s;
                 border: none;
                 background: transparent;
+                padding: 0;
               }
-              .rdp-custom .rdp-day:hover:not(.rdp-day_selected):not(.rdp-day_disabled) {
+
+              .calendar-container .rdp-day:hover:not(.rdp-day_selected):not(.rdp-day_disabled):not(.rdp-day_outside) {
                 background: #f3f4f6;
               }
-              .rdp-custom .rdp-day_selected {
+
+              .calendar-container .rdp-day_selected {
                 background: var(--rdp-accent-color) !important;
                 color: white !important;
                 font-weight: 500;
               }
-              .rdp-custom .rdp-day_today:not(.rdp-day_selected) {
+
+              .calendar-container .rdp-day_today:not(.rdp-day_selected) {
                 background: #f3f4f6;
-                font-weight: 500;
+                font-weight: 600;
               }
-              .rdp-custom .rdp-day_outside {
+
+              .calendar-container .rdp-day_outside {
                 color: #d1d5db;
               }
-              .rdp-custom .rdp-day_disabled {
+
+              .calendar-container .rdp-day_disabled {
                 color: #d1d5db;
                 cursor: not-allowed;
+              }
+
+              .calendar-container .rdp-day_disabled:hover {
+                background: transparent;
               }
             `}</style>
             <DayPicker
               mode="single"
               selected={selectedDate}
               onSelect={handleDateSelect}
-              className="rdp-custom"
+              showOutsideDays
               components={{
                 IconLeft: () => <ChevronLeft />,
                 IconRight: () => <ChevronRight />,
