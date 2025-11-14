@@ -39,14 +39,14 @@ export function AddContactModal({
   };
 
   const contactTypes = [
-    'buyer',
-    'seller',
-    'lender',
-    'title_company',
-    'inspector',
-    'appraiser',
-    'realtor',
-    'other',
+    { value: 'buyer', label: 'Buyer' },
+    { value: 'seller', label: 'Seller' },
+    { value: 'lender', label: 'Lender' },
+    { value: 'title_company', label: 'Title Company' },
+    { value: 'inspector', label: 'Inspector' },
+    { value: 'appraiser', label: 'Appraiser' },
+    { value: 'realtor', label: 'Realtor' },
+    { value: 'other', label: 'Other' },
   ];
 
   return (
@@ -99,8 +99,8 @@ export function AddContactModal({
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   {contactTypes.map((type) => (
-                    <option key={type} value={type}>
-                      {type.replace(/_/g, ' ')}
+                    <option key={type.value} value={type.value}>
+                      {type.label}
                     </option>
                   ))}
                 </select>
