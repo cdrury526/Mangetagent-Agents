@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { DayPicker } from 'react-day-picker';
 import { format, parse } from 'date-fns';
-import { Calendar, X } from 'lucide-react';
+import { Calendar, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import 'react-day-picker/dist/style.css';
 
 interface DatePickerProps {
@@ -120,36 +120,116 @@ export function DatePicker({
         </button>
 
         {isOpen && !disabled && (
-          <div className="absolute z-50 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg">
+          <div className="absolute z-50 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg p-3">
+            <style>{`
+              .rdp-custom {
+                --rdp-cell-size: 36px;
+                --rdp-accent-color: #2563eb;
+              }
+              .rdp-custom .rdp-months {
+                display: flex;
+              }
+              .rdp-custom .rdp-month {
+                margin: 0;
+              }
+              .rdp-custom .rdp-caption {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0 0 12px 0;
+              }
+              .rdp-custom .rdp-caption_label {
+                font-size: 14px;
+                font-weight: 500;
+                color: #111827;
+              }
+              .rdp-custom .rdp-nav {
+                display: flex;
+                gap: 4px;
+              }
+              .rdp-custom .rdp-nav_button {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 28px;
+                height: 28px;
+                padding: 0;
+                border: 1px solid #d1d5db;
+                border-radius: 6px;
+                background: transparent;
+                color: #6b7280;
+                cursor: pointer;
+                transition: all 0.15s;
+              }
+              .rdp-custom .rdp-nav_button:hover {
+                background: #f3f4f6;
+                color: #111827;
+              }
+              .rdp-custom .rdp-nav_button svg {
+                width: 16px;
+                height: 16px;
+              }
+              .rdp-custom .rdp-table {
+                width: 100%;
+                border-collapse: collapse;
+              }
+              .rdp-custom .rdp-head_cell {
+                width: var(--rdp-cell-size);
+                height: var(--rdp-cell-size);
+                text-align: center;
+                font-size: 12px;
+                font-weight: 400;
+                color: #6b7280;
+              }
+              .rdp-custom .rdp-cell {
+                width: var(--rdp-cell-size);
+                height: var(--rdp-cell-size);
+                text-align: center;
+                padding: 0;
+              }
+              .rdp-custom .rdp-day {
+                width: var(--rdp-cell-size);
+                height: var(--rdp-cell-size);
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 6px;
+                font-size: 14px;
+                font-weight: 400;
+                color: #111827;
+                cursor: pointer;
+                transition: all 0.15s;
+                border: none;
+                background: transparent;
+              }
+              .rdp-custom .rdp-day:hover:not(.rdp-day_selected):not(.rdp-day_disabled) {
+                background: #f3f4f6;
+              }
+              .rdp-custom .rdp-day_selected {
+                background: var(--rdp-accent-color) !important;
+                color: white !important;
+                font-weight: 500;
+              }
+              .rdp-custom .rdp-day_today:not(.rdp-day_selected) {
+                background: #f3f4f6;
+                font-weight: 500;
+              }
+              .rdp-custom .rdp-day_outside {
+                color: #d1d5db;
+              }
+              .rdp-custom .rdp-day_disabled {
+                color: #d1d5db;
+                cursor: not-allowed;
+              }
+            `}</style>
             <DayPicker
               mode="single"
               selected={selectedDate}
               onSelect={handleDateSelect}
-              className="p-3"
-              classNames={{
-                months: 'flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0',
-                month: 'space-y-4',
-                caption: 'flex justify-center pt-1 relative items-center',
-                caption_label: 'text-sm font-medium',
-                nav: 'space-x-1 flex items-center',
-                nav_button:
-                  'h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 inline-flex items-center justify-center rounded-md border border-gray-300 hover:bg-gray-50',
-                nav_button_previous: 'absolute left-1',
-                nav_button_next: 'absolute right-1',
-                table: 'w-full border-collapse space-y-1',
-                head_row: 'flex',
-                head_cell: 'text-gray-500 rounded-md w-9 font-normal text-[0.8rem]',
-                row: 'flex w-full mt-2',
-                cell: 'text-center text-sm p-0 relative [&:has([aria-selected])]:bg-blue-100 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20',
-                day: 'h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-gray-100 rounded-md inline-flex items-center justify-center',
-                day_selected:
-                  'bg-blue-600 text-white hover:bg-blue-700 hover:text-white focus:bg-blue-600 focus:text-white',
-                day_today: 'bg-gray-100 text-gray-900',
-                day_outside: 'text-gray-400 opacity-50',
-                day_disabled: 'text-gray-400 opacity-50',
-                day_range_middle:
-                  'aria-selected:bg-gray-100 aria-selected:text-gray-900',
-                day_hidden: 'invisible',
+              className="rdp-custom"
+              components={{
+                IconLeft: () => <ChevronLeft />,
+                IconRight: () => <ChevronRight />,
               }}
             />
           </div>
