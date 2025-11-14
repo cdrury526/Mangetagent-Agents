@@ -76,11 +76,26 @@ export function Contacts() {
     const form = e.currentTarget;
     const formData = new FormData(form);
 
+    const firstName = formData.get('first_name') as string;
+    const lastName = formData.get('last_name') as string;
+
+    if (!firstName || firstName.trim() === '') {
+      setError('First Name is required');
+      setSubmitting(false);
+      return;
+    }
+
+    if (!lastName || lastName.trim() === '') {
+      setError('Last Name is required');
+      setSubmitting(false);
+      return;
+    }
+
     const contactData = {
       agent_id: user!.id,
       type: formData.get('type') as ContactType,
-      first_name: formData.get('first_name') as string,
-      last_name: formData.get('last_name') as string || null,
+      first_name: firstName.trim(),
+      last_name: lastName.trim(),
       email: formData.get('email') as string || null,
       phone: formData.get('phone') as string || null,
       company: formData.get('company') as string || null,
@@ -310,10 +325,11 @@ export function Contacts() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Last Name</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Last Name *</label>
                   <input
                     type="text"
                     name="last_name"
+                    required
                     defaultValue={editingContactData?.last_name || ''}
                     placeholder="Doe"
                     className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
