@@ -121,15 +121,15 @@ export function Dashboard() {
             return (
               <div
                 key={card.label}
-                className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${card.bgColor} border border-slate-200 p-6 transition-all hover:shadow-md`}
+                className={`relative overflow-hidden rounded-xl bg-gradient-to-br ${card.bgColor} border border-slate-200 p-4 transition-all hover:shadow-md`}
               >
-                <div className="flex flex-col h-full">
-                  <p className="text-sm font-medium text-slate-600 mb-2">{card.label}</p>
-                  <p className="text-3xl font-bold text-slate-900 mb-4">{card.value}</p>
-                  <div className="mt-auto">
-                    <div className={`p-3 rounded-xl bg-gradient-to-br ${card.color} shadow-lg w-fit`}>
-                      <Icon className="w-6 h-6 text-white" />
-                    </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-medium text-slate-600 mb-1">{card.label}</p>
+                    <p className="text-2xl font-bold text-slate-900">{card.value}</p>
+                  </div>
+                  <div className={`p-2.5 rounded-lg bg-gradient-to-br ${card.color} shadow-lg`}>
+                    <Icon className="w-5 h-5 text-white" />
                   </div>
                 </div>
               </div>
