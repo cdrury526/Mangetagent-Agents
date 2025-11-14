@@ -1,6 +1,10 @@
 import { useState } from 'react';
-import { Plus, FileText, Download, Trash2, Eye, EyeOff } from 'lucide-react';
+import { Plus, FileText, Download, Trash2, Eye, EyeOff, FileSignature } from 'lucide-react';
 import { useDocuments } from '../../hooks/useDocuments';
+import { useBoldSignDocuments } from '../../hooks/useBoldSignDocuments';
+import { SendDocumentModal } from '../boldsign/SendDocumentModal';
+import { DocumentStatusBadge } from '../boldsign/DocumentStatusBadge';
+import { Document } from '../../types/database';
 
 interface DocumentsTabProps {
   transactionId: string;
@@ -8,7 +12,9 @@ interface DocumentsTabProps {
 
 export function DocumentsTab({ transactionId }: DocumentsTabProps) {
   const { documents, loading, deleteDocument, updateDocument } = useDocuments(transactionId);
+  const { documents: boldSignDocs } = useBoldSignDocuments(transactionId);
   const [filter, setFilter] = useState<string>('all');
+  const [sendModalDoc, setSendModalDoc] = useState<Document | null>(null);
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this document?')) return;
@@ -80,15 +86,33 @@ export function DocumentsTab({ transactionId }: DocumentsTabProps) {
         </div>
       ) : (
         <div className="space-y-2">
-          {filteredDocuments.map((doc) => (
-            <DocumentItem
-              key={doc.id}
-              document={doc}
-              onDelete={handleDelete}
-              onToggleVisibility={handleToggleVisibility}
-            />
-          ))}
+          {filteredDocuments.map((doc) => {
+            const boldSignDoc = boldSignDocs.find(bsd => bsd.document_id === doc.id);
+            return (
+              <DocumentItem
+                key={doc.id}
+                document={doc}
+                boldSignDoc={boldSignDoc}
+                transactionId={transactionId}
+                onDelete={handleDelete}
+                onToggleVisibility={handleToggleVisibility}
+                onSendForSignature={() => setSendModalDoc(doc)}
+              />
+            );
+          })}
         </div>
+      )}
+
+      {sendModalDoc && (
+        <SendDocumentModal
+          document={sendModalDoc}
+          transactionId={transactionId}
+          onClose={() => setSendModalDoc(null)}
+          onSuccess={() => {
+            setSendModalDoc(null);
+            alert('Document sent for signature successfully!');
+          }}
+        />
       )}
     </div>
   );
@@ -96,11 +120,14 @@ export function DocumentsTab({ transactionId }: DocumentsTabProps) {
 
 interface DocumentItemProps {
   document: any;
+  boldSignDoc?: any;
+  transactionId: string;
   onDelete: (id: string) => void;
   onToggleVisibility: (id: string, currentValue: boolean) => void;
+  onSendForSignature: () => void;
 }
 
-function DocumentItem({ document, onDelete, onToggleVisibility }: DocumentItemProps) {
+function DocumentItem({ document, boldSignDoc, transactionId, onDelete, onToggleVisibility, onSendForSignature }: DocumentItemProps) {
   const formatFileSize = (bytes: number | null) => {
     if (!bytes) return 'Unknown size';
     if (bytes < 1024) return `${bytes} B`;
@@ -128,11 +155,23 @@ function DocumentItem({ document, onDelete, onToggleVisibility }: DocumentItemPr
             <span className="capitalize">{document.type.replace(/_/g, ' ')}</span>
             <span>{formatFileSize(document.size_bytes)}</span>
             <span>Uploaded {formatDate(document.created_at)}</span>
+            {boldSignDoc && (
+              <DocumentStatusBadge status={boldSignDoc.status} />
+            )}
           </div>
         </div>
       </div>
 
       <div className="flex items-center space-x-2 ml-4">
+        {!boldSignDoc && (
+          <button
+            onClick={onSendForSignature}
+            className="p-2 text-gray-400 hover:text-orange-600 rounded hover:bg-orange-50 transition-colors"
+            title="Send for signature"
+          >
+            <FileSignature className="w-4 h-4" />
+          </button>
+        )}
         <button
           onClick={() => onToggleVisibility(document.id, document.visible_to_client)}
           className={`p-2 rounded transition-colors ${
