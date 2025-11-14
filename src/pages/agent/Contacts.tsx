@@ -31,6 +31,7 @@ export function Contacts() {
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
   const [zip, setZip] = useState('');
+  const [selectedContactType, setSelectedContactType] = useState<ContactType | ''>('');
 
   const filtered = contacts.filter((contact) => {
     const matchType = filterType === 'all' || contact.type === filterType;
@@ -50,6 +51,7 @@ export function Contacts() {
       setCity(contact.city || '');
       setState(contact.state || '');
       setZip(contact.zip || '');
+      setSelectedContactType(contact.type);
     }
     setEditingContact(contactId);
     setShowModal(true);
@@ -63,6 +65,7 @@ export function Contacts() {
     setCity('');
     setState('');
     setZip('');
+    setSelectedContactType('');
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -322,7 +325,8 @@ export function Contacts() {
                   <select
                     name="type"
                     required
-                    defaultValue={editingContactData?.type}
+                    value={selectedContactType}
+                    onChange={(e) => setSelectedContactType(e.target.value as ContactType)}
                     className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="">Select type...</option>
@@ -356,27 +360,31 @@ export function Contacts() {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Company</label>
-                  <input
-                    type="text"
-                    name="company"
-                    defaultValue={editingContactData?.company || ''}
-                    placeholder="Acme Corp"
-                    className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
+                {selectedContactType !== 'buyer' && selectedContactType !== 'seller' && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Company</label>
+                      <input
+                        type="text"
+                        name="company"
+                        defaultValue={editingContactData?.company || ''}
+                        placeholder="Acme Corp"
+                        className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
 
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Business Name</label>
-                  <input
-                    type="text"
-                    name="business_name"
-                    defaultValue={editingContactData?.business_name || ''}
-                    placeholder="ABC Title Services"
-                    className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Business Name</label>
+                      <input
+                        type="text"
+                        name="business_name"
+                        defaultValue={editingContactData?.business_name || ''}
+                        placeholder="ABC Title Services"
+                        className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                  </>
+                )}
 
                 <div className="md:col-span-2">
                   <AddressAutocomplete
