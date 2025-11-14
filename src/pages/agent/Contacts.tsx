@@ -5,6 +5,7 @@ import { useContacts } from '../../hooks/useContacts';
 import { ContactType } from '../../types/database';
 import { Plus, Search, Star, Mail, Phone, Building, X, AlertCircle, Trash2, Edit } from 'lucide-react';
 import { AddressAutocomplete } from '../../components/forms/AddressAutocomplete';
+import { formatPhoneNumber } from '../../utils/phoneFormatter';
 
 const CONTACT_TYPES: { value: ContactType; label: string }[] = [
   { value: 'buyer', label: 'Buyer' },
@@ -32,6 +33,7 @@ export function Contacts() {
   const [state, setState] = useState('');
   const [zip, setZip] = useState('');
   const [selectedContactType, setSelectedContactType] = useState<ContactType | ''>('');
+  const [phoneNumber, setPhoneNumber] = useState('');
 
   const filtered = contacts.filter((contact) => {
     const matchType = filterType === 'all' || contact.type === filterType;
@@ -52,6 +54,7 @@ export function Contacts() {
       setState(contact.state || '');
       setZip(contact.zip || '');
       setSelectedContactType(contact.type);
+      setPhoneNumber(contact.phone ? formatPhoneNumber(contact.phone) : '');
     }
     setEditingContact(contactId);
     setShowModal(true);
@@ -66,6 +69,7 @@ export function Contacts() {
     setState('');
     setZip('');
     setSelectedContactType('');
+    setPhoneNumber('');
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -91,13 +95,15 @@ export function Contacts() {
       return;
     }
 
+    const cleanedPhone = phoneNumber.replace(/\D/g, '');
+
     const contactData = {
       agent_id: user!.id,
       type: formData.get('type') as ContactType,
       first_name: firstName.trim(),
       last_name: lastName.trim(),
       email: formData.get('email') as string || null,
-      phone: formData.get('phone') as string || null,
+      phone: cleanedPhone || null,
       company: formData.get('company') as string || null,
       business_name: formData.get('business_name') as string || null,
       address_line_1: addressLine1 || null,
@@ -370,8 +376,10 @@ export function Contacts() {
                   <input
                     type="tel"
                     name="phone"
-                    defaultValue={editingContactData?.phone || ''}
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(formatPhoneNumber(e.target.value))}
                     placeholder="(555) 123-4567"
+                    maxLength={14}
                     className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>

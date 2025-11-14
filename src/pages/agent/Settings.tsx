@@ -7,13 +7,14 @@ import { Profile } from '../../types/database';
 import { Save, AlertCircle, CheckCircle2, User, Briefcase, CreditCard, ExternalLink } from 'lucide-react';
 import { FormInput } from '../../components/forms/FormInput';
 import { openGeneralPortal } from '../../utils/stripePortal';
+import { formatPhoneNumber } from '../../utils/phoneFormatter';
 
 export function Settings() {
   const { user, profile, refreshProfile } = useAuth();
   const { subscription, isActive } = useSubscription();
   const [formData, setFormData] = useState<Partial<Profile>>({
     name: profile?.name || '',
-    phone: profile?.phone || '',
+    phone: profile?.phone ? formatPhoneNumber(profile.phone) : '',
     broker_name: profile?.broker_name || '',
     broker_split_rate: profile?.broker_split_rate ? profile.broker_split_rate * 100 : null,
   });
@@ -46,9 +47,11 @@ export function Settings() {
     setSuccess(false);
 
     try {
+      const cleanedPhone = formData.phone ? formData.phone.replace(/\D/g, '') : null;
+
       const updates: Partial<Profile> = {
         name: formData.name || null,
-        phone: formData.phone || null,
+        phone: cleanedPhone,
         broker_name: formData.broker_name || null,
         broker_split_rate:
           formData.broker_split_rate !== null && formData.broker_split_rate !== undefined
@@ -131,9 +134,10 @@ export function Settings() {
               <FormInput
                 label="Phone Number"
                 type="tel"
-                value={formData.phone || ''}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                value={formData.phone ? formatPhoneNumber(formData.phone) : ''}
+                onChange={(e) => setFormData({ ...formData, phone: formatPhoneNumber(e.target.value) })}
                 placeholder="(555) 123-4567"
+                maxLength={14}
               />
             </div>
           </div>
