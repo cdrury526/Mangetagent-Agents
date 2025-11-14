@@ -119,157 +119,127 @@ export function DatePicker({
         </button>
 
         {isOpen && !disabled && (
-          <div className="absolute z-50 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg p-3 calendar-container">
+          <div className="absolute z-50 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg p-3">
             <style>{`
-              .calendar-container .rdp {
-                --rdp-cell-size: 40px;
+              .date-picker-calendar {
                 --rdp-accent-color: #2563eb;
-                --rdp-background-color: #2563eb;
-                margin: 0;
+                font-family: inherit;
               }
 
-              .calendar-container .rdp-months {
-                display: flex;
-                justify-content: center;
+              .date-picker-calendar .rdp-month {
+                width: 100%;
               }
 
-              .calendar-container .rdp-month {
-                margin: 0;
-              }
-
-              .calendar-container .rdp-caption {
+              .date-picker-calendar .rdp-caption {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                margin-bottom: 12px;
+                padding: 0;
+                margin-bottom: 1rem;
               }
 
-              .calendar-container .rdp-caption_label {
-                font-size: 14px;
+              .date-picker-calendar .rdp-caption_label {
+                font-size: 0.875rem;
                 font-weight: 600;
                 color: #111827;
               }
 
-              .calendar-container .rdp-nav {
+              .date-picker-calendar .rdp-nav {
                 display: flex;
-                gap: 4px;
+                gap: 0.25rem;
               }
 
-              .calendar-container .rdp-nav_button {
+              .date-picker-calendar .rdp-button_previous,
+              .date-picker-calendar .rdp-button_next {
+                width: 2rem;
+                height: 2rem;
+                padding: 0;
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
-                width: 32px;
-                height: 32px;
-                padding: 0;
                 border: none;
-                border-radius: 6px;
+                border-radius: 0.375rem;
                 background: transparent;
                 color: #2563eb;
                 cursor: pointer;
                 transition: background-color 0.15s;
               }
 
-              .calendar-container .rdp-nav_button:hover:not(:disabled) {
+              .date-picker-calendar .rdp-button_previous:hover,
+              .date-picker-calendar .rdp-button_next:hover {
                 background: #eff6ff;
               }
 
-              .calendar-container .rdp-nav_button:disabled {
-                opacity: 0.3;
-                cursor: not-allowed;
+              .date-picker-calendar .rdp-button_previous svg,
+              .date-picker-calendar .rdp-button_next svg {
+                width: 1.25rem;
+                height: 1.25rem;
               }
 
-              .calendar-container .rdp-nav_button svg {
-                width: 20px;
-                height: 20px;
+              .date-picker-calendar .rdp-month_caption {
+                margin-bottom: 0.5rem;
               }
 
-              .calendar-container .rdp-table {
-                width: 100%;
-                border-collapse: collapse;
-                table-layout: fixed;
+              .date-picker-calendar .rdp-weekdays {
+                display: table-header-group;
               }
 
-              .calendar-container .rdp-head {
-                margin-bottom: 4px;
-              }
-
-              .calendar-container .rdp-head_row {
-                display: grid;
-                grid-template-columns: repeat(7, 1fr);
-              }
-
-              .calendar-container .rdp-head_cell {
-                width: var(--rdp-cell-size);
-                height: var(--rdp-cell-size);
-                font-size: 12px;
+              .date-picker-calendar .rdp-weekday {
+                font-size: 0.75rem;
                 font-weight: 500;
                 color: #6b7280;
-                text-align: center;
-                vertical-align: middle;
-                padding: 0;
-              }
-
-              .calendar-container .rdp-tbody {
-                border: 0;
-              }
-
-              .calendar-container .rdp-row {
-                display: grid;
-                grid-template-columns: repeat(7, 1fr);
-                margin-top: 2px;
-              }
-
-              .calendar-container .rdp-cell {
-                width: var(--rdp-cell-size);
-                height: var(--rdp-cell-size);
+                width: 2.5rem;
+                height: 2.5rem;
                 text-align: center;
                 padding: 0;
-                position: relative;
               }
 
-              .calendar-container .rdp-day {
-                width: var(--rdp-cell-size);
-                height: var(--rdp-cell-size);
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                border-radius: 8px;
-                font-size: 14px;
-                font-weight: 400;
+              .date-picker-calendar .rdp-week {
+                display: table-row;
+              }
+
+              .date-picker-calendar .rdp-day {
+                width: 2.5rem;
+                height: 2.5rem;
+                padding: 0;
+                font-size: 0.875rem;
+                border-radius: 0.5rem;
+                border: none;
+                background: transparent;
                 color: #111827;
                 cursor: pointer;
                 transition: all 0.15s;
-                border: none;
-                background: transparent;
-                padding: 0;
               }
 
-              .calendar-container .rdp-day:hover:not(.rdp-day_selected):not(.rdp-day_disabled):not(.rdp-day_outside) {
+              .date-picker-calendar .rdp-day:hover:not(.rdp-day_disabled):not(.rdp-day_selected) {
                 background: #f3f4f6;
               }
 
-              .calendar-container .rdp-day_selected {
+              .date-picker-calendar .rdp-day_selected {
                 background: var(--rdp-accent-color) !important;
                 color: white !important;
-                font-weight: 500;
+                font-weight: 600;
               }
 
-              .calendar-container .rdp-day_today:not(.rdp-day_selected) {
+              .date-picker-calendar .rdp-day_selected:hover {
+                background: #1d4ed8 !important;
+              }
+
+              .date-picker-calendar .rdp-day_today:not(.rdp-day_selected) {
                 background: #f3f4f6;
                 font-weight: 600;
               }
 
-              .calendar-container .rdp-day_outside {
+              .date-picker-calendar .rdp-day_outside {
                 color: #d1d5db;
               }
 
-              .calendar-container .rdp-day_disabled {
+              .date-picker-calendar .rdp-day_disabled {
                 color: #d1d5db;
                 cursor: not-allowed;
               }
 
-              .calendar-container .rdp-day_disabled:hover {
+              .date-picker-calendar .rdp-day_disabled:hover {
                 background: transparent;
               }
             `}</style>
@@ -278,9 +248,14 @@ export function DatePicker({
               selected={selectedDate}
               onSelect={handleDateSelect}
               showOutsideDays
+              className="date-picker-calendar"
               components={{
-                IconLeft: () => <ChevronLeft />,
-                IconRight: () => <ChevronRight />,
+                Chevron: (props) => {
+                  if (props.orientation === 'left') {
+                    return <ChevronLeft className="w-4 h-4" />;
+                  }
+                  return <ChevronRight className="w-4 h-4" />;
+                },
               }}
             />
           </div>
