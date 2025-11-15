@@ -2,28 +2,37 @@ import { useState } from 'react';
 import { BoldSignIdentity, useBoldSignIdentities } from '../../hooks/useBoldSignIdentities';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
+import { ConfirmModal } from '../ui/ConfirmModal';
 import { CheckCircle2, Mail, Briefcase, User, Trash2, AlertCircle, Star } from 'lucide-react';
 
 export function SenderIdentityList() {
   const { identities, loading, error, refresh, setDefaultIdentity, deleteIdentity } = useBoldSignIdentities();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [identityToDelete, setIdentityToDelete] = useState<BoldSignIdentity | null>(null);
 
-  const handleDelete = async (identity: BoldSignIdentity) => {
-    if (!confirm(`Are you sure you want to delete the sender identity "${identity.name}"?`)) {
-      return;
-    }
+  const handleDeleteClick = (identity: BoldSignIdentity) => {
+    setIdentityToDelete(identity);
+  };
 
-    setDeletingId(identity.id);
+  const handleConfirmDelete = async () => {
+    if (!identityToDelete) return;
+
+    setDeletingId(identityToDelete.id);
     setDeleteError(null);
 
     try {
-      await deleteIdentity(identity.id);
+      await deleteIdentity(identityToDelete.id);
+      setIdentityToDelete(null);
     } catch (err: any) {
       setDeleteError(err.message);
     } finally {
       setDeletingId(null);
     }
+  };
+
+  const handleCancelDelete = () => {
+    setIdentityToDelete(null);
   };
 
   const handleSetDefault = async (id: string) => {
@@ -83,6 +92,18 @@ export function SenderIdentityList() {
         </div>
       )}
 
+      <ConfirmModal
+        isOpen={identityToDelete !== null}
+        onClose={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        title="Delete Sender Identity"
+        message={`Are you sure you want to delete the sender identity "${identityToDelete?.name}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        isDangerous={true}
+        isLoading={deletingId !== null}
+      />
+
       {identities.map((identity) => (
         <Card key={identity.id} className="p-6">
           <div className="flex items-start justify-between">
@@ -139,7 +160,7 @@ export function SenderIdentityList() {
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => handleDelete(identity)}
+                onClick={() => handleDeleteClick(identity)}
                 disabled={deletingId === identity.id}
               >
                 <Trash2 className="w-4 h-4" />
