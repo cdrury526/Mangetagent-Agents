@@ -9,7 +9,7 @@ const BOLDSIGN_CLIENT_SECRET = Deno.env.get("BOLDSIGN_CLIENT_SECRET");
 const BOLDSIGN_API_KEY = Deno.env.get("BOLDSIGN_API_KEY"); // Fallback only
 
 // Supabase Configuration
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || Deno.env.get("SUPABASE_PROJECT_URL");
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
 // Validate required environment variables
