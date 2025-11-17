@@ -285,13 +285,14 @@ export function SendDocumentModal({ document, transactionId, onClose, onSuccess 
               <FormSelect
                 label="Expiration"
                 value={expiryDays}
+                options={[
+                  { value: '1', label: '24 hours' },
+                  { value: '3', label: '3 days' },
+                  { value: '7', label: '7 days' },
+                  { value: '30', label: '30 days' }
+                ]}
                 onChange={(e) => setExpiryDays(e.target.value)}
-              >
-                <option value="1">24 hours</option>
-                <option value="3">3 days</option>
-                <option value="7">7 days</option>
-                <option value="30">30 days</option>
-              </FormSelect>
+              />
             </div>
 
             <div className="flex justify-end gap-3 pt-4">
