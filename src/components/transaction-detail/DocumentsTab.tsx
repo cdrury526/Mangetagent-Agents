@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, FileText, Download, Trash2, Eye, EyeOff, FileSignature, ExternalLink, CheckSquare, Square } from 'lucide-react';
+import { Plus, FileText, Download, Trash2, Eye, EyeOff, FileSignature, ExternalLink, CheckSquare, Square, X } from 'lucide-react';
 import { useDocuments } from '../../hooks/useDocuments';
 import { useBoldSignDocuments } from '../../hooks/useBoldSignDocuments';
 import { SendDocumentModal } from '../boldsign/SendDocumentModal';
