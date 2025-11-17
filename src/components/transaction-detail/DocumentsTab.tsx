@@ -57,26 +57,30 @@ export function DocumentsTab({ transactionId }: DocumentsTabProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center space-x-4">
-          <h3 className="text-lg font-medium text-gray-900">Documents</h3>
-          {selectedDocs.length > 0 && (
-            <span className="text-sm text-gray-600 bg-blue-50 px-3 py-1 rounded-full">
-              {selectedDocs.length} selected
-            </span>
-          )}
-          <select
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            {documentTypes.map((type) => (
-              <option key={type.value} value={type.value}>
-                {type.label}
-              </option>
-            ))}
-          </select>
+      <div className="space-y-3">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center space-x-4">
+            <h3 className="text-lg font-medium text-gray-900">Documents</h3>
+            {selectedDocs.length > 0 && (
+              <span className="text-sm text-gray-600 bg-blue-50 px-3 py-1 rounded-full">
+                {selectedDocs.length} selected
+              </span>
+            )}
+            <select
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              {documentTypes.map((type) => (
+                <option key={type.value} value={type.value}>
+                  {type.label}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
+
+        {/* Action buttons on separate line */}
         <div className="flex items-center space-x-2">
           {selectedDocs.length > 0 && (
             <>
@@ -84,25 +88,35 @@ export function DocumentsTab({ transactionId }: DocumentsTabProps) {
                 onClick={() => {
                   setShowSendModal(true);
                 }}
-                className="flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+                className="group relative p-2.5 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+                title="Send for Signature"
               >
-                <FileSignature className="w-4 h-4 mr-2" />
-                Send for Signature
+                <FileSignature className="w-5 h-5" />
+                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-gray-900 text-white text-xs rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                  Send for Signature
+                </span>
               </button>
               <button
                 onClick={() => setSelectedDocs([])}
-                className="flex items-center px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                className="group relative p-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                title="Clear Selection"
               >
-                Clear Selection
+                <X className="w-5 h-5" />
+                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-gray-900 text-white text-xs rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                  Clear Selection
+                </span>
               </button>
             </>
           )}
           <button
             onClick={() => setShowUploadModal(true)}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="group relative p-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            title="Upload Document"
           >
-            <Plus className="w-4 h-4 mr-2" />
-            Upload Document
+            <Plus className="w-5 h-5" />
+            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-gray-900 text-white text-xs rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+              Upload Document
+            </span>
           </button>
         </div>
       </div>
