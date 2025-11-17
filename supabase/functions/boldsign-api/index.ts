@@ -180,16 +180,21 @@ async function callBoldSignAPI(
 }
 
 /**
+ * CORS headers to include in all responses
+ */
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+/**
  * Handle CORS preflight requests
  */
 function handleCORS() {
   return new Response(null, {
     status: 204,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-    },
+    headers: corsHeaders,
   });
 }
 
@@ -670,7 +675,7 @@ async function handleCreateEmbeddedRequest(params: any) {
       console.error('[createEmbeddedRequest] Missing documentUrl');
       return new Response(
         JSON.stringify({ error: 'documentUrl is required' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -678,7 +683,7 @@ async function handleCreateEmbeddedRequest(params: any) {
       console.error('[createEmbeddedRequest] Missing or invalid signers');
       return new Response(
         JSON.stringify({ error: 'At least one signer is required' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -691,7 +696,7 @@ async function handleCreateEmbeddedRequest(params: any) {
         console.error('[createEmbeddedRequest] Failed to download file:', fileResponse.status);
         return new Response(
           JSON.stringify({ error: `Failed to download document: ${fileResponse.statusText}` }),
-          { status: 400, headers: { 'Content-Type': 'application/json' } }
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
       const fileBuffer = await fileResponse.arrayBuffer();
@@ -703,7 +708,7 @@ async function handleCreateEmbeddedRequest(params: any) {
       console.error('[createEmbeddedRequest] Error downloading file:', downloadError);
       return new Response(
         JSON.stringify({ error: `Failed to process document: ${downloadError instanceof Error ? downloadError.message : 'Unknown error'}` }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -769,7 +774,7 @@ async function handleCreateEmbeddedRequest(params: any) {
           error: `Failed to parse BoldSign response: ${responseText.substring(0, 200)}`,
           status: response.status,
         }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -783,7 +788,7 @@ async function handleCreateEmbeddedRequest(params: any) {
           error: data.message || data.error || `BoldSign API error (${response.status})`,
           details: data,
         }),
-        { status: response.status, headers: { 'Content-Type': 'application/json' } }
+        { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -791,14 +796,14 @@ async function handleCreateEmbeddedRequest(params: any) {
 
     return new Response(JSON.stringify(data), {
       status: 200,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
     console.error('[createEmbeddedRequest] Caught error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
       JSON.stringify({ error: errorMessage }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 }
