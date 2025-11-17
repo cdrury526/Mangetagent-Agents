@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Plus, FileText, Download, Trash2, Eye, EyeOff, FileSignature } from 'lucide-react';
+import { Plus, FileText, Download, Trash2, Eye, EyeOff, FileSignature, ExternalLink } from 'lucide-react';
 import { useDocuments } from '../../hooks/useDocuments';
 import { useBoldSignDocuments } from '../../hooks/useBoldSignDocuments';
 import { SendDocumentModal } from '../boldsign/SendDocumentModal';
 import { DocumentStatusBadge } from '../boldsign/DocumentStatusBadge';
 import { DocumentUploadModal } from '../documents/DocumentUploadModal';
 import { Document } from '../../types/database';
+import { supabase } from '../../lib/supabase';
 
 interface DocumentsTabProps {
   transactionId: string;
@@ -155,6 +156,16 @@ function DocumentItem({ document, boldSignDoc, transactionId, onDelete, onToggle
     });
   };
 
+  const handlePreview = async () => {
+    const { data } = await supabase.storage
+      .from('documents')
+      .createSignedUrl(document.storage_path.replace('documents/', ''), 3600);
+
+    if (data?.signedUrl) {
+      window.open(data.signedUrl, '_blank');
+    }
+  };
+
   return (
     <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
       <div className="flex items-center space-x-4 flex-1 min-w-0">
@@ -194,6 +205,13 @@ function DocumentItem({ document, boldSignDoc, transactionId, onDelete, onToggle
           title={document.visible_to_client ? 'Visible to client' : 'Hidden from client'}
         >
           {document.visible_to_client ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+        </button>
+        <button
+          onClick={handlePreview}
+          className="p-2 text-gray-400 hover:text-blue-600 rounded hover:bg-blue-50 transition-colors"
+          title="Preview document"
+        >
+          <ExternalLink className="w-4 h-4" />
         </button>
         <button
           disabled
