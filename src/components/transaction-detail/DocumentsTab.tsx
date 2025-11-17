@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Plus, FileText, Download, Trash2, Eye, EyeOff, FileSignature, ExternalLink, CheckSquare, Square, X } from 'lucide-react';
+import { Plus, FileText, Download, Trash2, Eye, EyeOff, FileSignature, ExternalLink, CheckSquare, Square, X, Edit3 } from 'lucide-react';
 import { useDocuments } from '../../hooks/useDocuments';
 import { useBoldSignDocuments } from '../../hooks/useBoldSignDocuments';
 import { SendDocumentModal } from '../boldsign/SendDocumentModal';
+import { EmbeddedDocumentPreparation } from '../boldsign/EmbeddedDocumentPreparation';
 import { DocumentStatusBadge } from '../boldsign/DocumentStatusBadge';
 import { DocumentUploadModal } from '../documents/DocumentUploadModal';
 import { Document } from '../../types/database';
@@ -18,7 +19,9 @@ export function DocumentsTab({ transactionId }: DocumentsTabProps) {
   const [filter, setFilter] = useState<string>('all');
   const [selectedDocs, setSelectedDocs] = useState<Document[]>([]);
   const [showSendModal, setShowSendModal] = useState(false);
+  const [showPrepareModal, setShowPrepareModal] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [prepareSigners, setPrepareSigners] = useState<any[]>([]);
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this document?')) return;
@@ -88,13 +91,11 @@ export function DocumentsTab({ transactionId }: DocumentsTabProps) {
                 onClick={() => {
                   setShowSendModal(true);
                 }}
-                className="group relative p-2.5 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
-                title="Send for Signature"
+                className="group relative px-3 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors flex items-center gap-2"
+                title="Prepare & Send for Signature"
               >
-                <FileSignature className="w-5 h-5" />
-                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-gray-900 text-white text-xs rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                  Send for Signature
-                </span>
+                <Edit3 className="w-4 h-4" />
+                <span className="text-sm font-medium">Prepare & Send</span>
               </button>
               <button
                 onClick={() => setSelectedDocs([])}
@@ -166,6 +167,32 @@ export function DocumentsTab({ transactionId }: DocumentsTabProps) {
           onSuccess={() => {
             setShowSendModal(false);
             setSelectedDocs([]);
+            refetch();
+            alert('Documents sent for signature successfully!');
+          }}
+          onPrepareDocument={(signers) => {
+            setPrepareSigners(signers);
+            setShowSendModal(false);
+            setShowPrepareModal(true);
+          }}
+        />
+      )}
+
+      {showPrepareModal && selectedDocs.length > 0 && prepareSigners.length > 0 && (
+        <EmbeddedDocumentPreparation
+          documents={selectedDocs}
+          signers={prepareSigners}
+          transactionId={transactionId}
+          onClose={() => {
+            setShowPrepareModal(false);
+            setSelectedDocs([]);
+            setPrepareSigners([]);
+          }}
+          onSuccess={() => {
+            setShowPrepareModal(false);
+            setSelectedDocs([]);
+            setPrepareSigners([]);
+            refetch();
             alert('Documents sent for signature successfully!');
           }}
         />

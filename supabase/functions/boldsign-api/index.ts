@@ -636,6 +636,174 @@ async function handleGenerateSigningLink(params: any) {
 }
 
 /**
+ * Create embedded request URL for document preparation
+ * Allows users to place signature fields before sending
+ * BoldSign API: POST /v1/document/createEmbeddedRequestUrl
+ */
+async function handleCreateEmbeddedRequest(params: any) {
+  try {
+    const {
+      documentUrl,
+      name,
+      signers,
+      title,
+      message,
+      expiryDays = 30,
+      redirectUrl,
+      showToolbar = true,
+      showNavigationButtons = true,
+      showSendButton = true,
+      showPreviewButton = true,
+      showSaveButton = false,
+      sendViewOption = 'PreparePage',
+      showTooltip = true,
+    } = params;
+
+    console.log('[createEmbeddedRequest] Starting with params:', {
+      documentUrl: documentUrl ? documentUrl.substring(0, 100) + '...' : 'none',
+      signerCount: signers?.length || 0,
+      title,
+    });
+
+    // Validate required parameters
+    if (!documentUrl) {
+      console.error('[createEmbeddedRequest] Missing documentUrl');
+      return new Response(
+        JSON.stringify({ error: 'documentUrl is required' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!signers || !Array.isArray(signers) || signers.length === 0) {
+      console.error('[createEmbeddedRequest] Missing or invalid signers');
+      return new Response(
+        JSON.stringify({ error: 'At least one signer is required' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Download file from URL and convert to Base64
+    console.log('[createEmbeddedRequest] Downloading file from:', documentUrl.substring(0, 100) + '...');
+    let fileBase64: string;
+    try {
+      const fileResponse = await fetch(documentUrl);
+      if (!fileResponse.ok) {
+        console.error('[createEmbeddedRequest] Failed to download file:', fileResponse.status);
+        return new Response(
+          JSON.stringify({ error: `Failed to download document: ${fileResponse.statusText}` }),
+          { status: 400, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+      const fileBuffer = await fileResponse.arrayBuffer();
+      const uint8Array = new Uint8Array(fileBuffer);
+      const base64Content = encodeBase64(uint8Array);
+      fileBase64 = `data:application/pdf;base64,${base64Content}`;
+      console.log('[createEmbeddedRequest] File converted to Base64 data URI');
+    } catch (downloadError) {
+      console.error('[createEmbeddedRequest] Error downloading file:', downloadError);
+      return new Response(
+        JSON.stringify({ error: `Failed to process document: ${downloadError instanceof Error ? downloadError.message : 'Unknown error'}` }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Build payload for embedded request
+    const payload: any = {
+      title: title || name || 'Document for Signature',
+      files: [
+        {
+          fileName: name || 'document.pdf',
+          base64: fileBase64,
+        },
+      ],
+      signers: signers.map((s: any, index: number) => {
+        const fullName = [s.firstName, s.lastName].filter(Boolean).join(' ') || 'Signer';
+        return {
+          name: fullName,
+          emailAddress: s.email,
+          signerOrder: s.signerOrder || index + 1,
+          signerRole: s.signerRole || 'Signer',
+        };
+      }),
+      expiryDays,
+      // Embedded request customization
+      showToolbar,
+      showNavigationButtons,
+      showSendButton,
+      showPreviewButton,
+      showSaveButton,
+      sendViewOption,
+      showTooltip,
+    };
+
+    // Add optional fields
+    if (message) payload.message = message;
+    if (redirectUrl) payload.redirectUrl = redirectUrl;
+
+    console.log('[createEmbeddedRequest] Payload prepared:', {
+      title: payload.title,
+      signerCount: payload.signers.length,
+      showToolbar,
+      sendViewOption,
+    });
+
+    // Call BoldSign API
+    const response = await callBoldSignAPI('/document/createEmbeddedRequestUrl', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+
+    console.log('[createEmbeddedRequest] API response received', {
+      status: response.status,
+      statusText: response.statusText,
+    });
+
+    const responseText = await response.text();
+    let data: any;
+    try {
+      data = responseText ? JSON.parse(responseText) : {};
+    } catch (parseError) {
+      console.error('[createEmbeddedRequest] Failed to parse response:', parseError);
+      return new Response(
+        JSON.stringify({
+          error: `Failed to parse BoldSign response: ${responseText.substring(0, 200)}`,
+          status: response.status,
+        }),
+        { status: 500, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!response.ok) {
+      console.error('[createEmbeddedRequest] API error:', {
+        status: response.status,
+        message: data?.message || data?.error || 'Unknown error',
+      });
+      return new Response(
+        JSON.stringify({
+          error: data.message || data.error || `BoldSign API error (${response.status})`,
+          details: data,
+        }),
+        { status: response.status, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('[createEmbeddedRequest] Success! Embedded URL generated');
+
+    return new Response(JSON.stringify(data), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (error) {
+    console.error('[createEmbeddedRequest] Caught error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return new Response(
+      JSON.stringify({ error: errorMessage }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+}
+
+/**
  * Upload document to BoldSign
  * Accepts either a file (FormData) or a documentUrl to download from
  */
@@ -824,6 +992,8 @@ Deno.serve(async (req) => {
         return await handleGenerateSigningLink(params);
       case 'uploadDocument':
         return await handleUploadDocument(params);
+      case 'createEmbeddedRequest':
+        return await handleCreateEmbeddedRequest(params);
       default:
         return new Response(
           JSON.stringify({ error: `Unknown action: ${action}` }),

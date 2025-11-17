@@ -21,9 +21,10 @@ interface SendDocumentModalProps {
   transactionId: string;
   onClose: () => void;
   onSuccess: () => void;
+  onPrepareDocument?: (signers: Signer[]) => void;
 }
 
-export function SendDocumentModal({ documents, transactionId, onClose, onSuccess }: SendDocumentModalProps) {
+export function SendDocumentModal({ documents, transactionId, onClose, onSuccess, onPrepareDocument }: SendDocumentModalProps) {
   const { user, refreshProfile } = useAuth();
   const { transactionContacts } = useTransactionContacts(transactionId);
   const [orderedDocs, setOrderedDocs] = useState<Document[]>(documents);
@@ -365,13 +366,39 @@ export function SendDocumentModal({ documents, transactionId, onClose, onSuccess
               />
             </div>
 
-            <div className="flex justify-end gap-3 pt-4">
-              <Button type="button" variant="secondary" onClick={onClose}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={loading || !hasEnoughCredits}>
-                {loading ? 'Sending...' : 'Send for Signature'}
-              </Button>
+            <div className="flex justify-between items-center gap-3 pt-4">
+              <div className="flex-1">
+                {onPrepareDocument && (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => {
+                      if (signers.length === 0) {
+                        setError('Please add at least one signer before preparing the document');
+                        return;
+                      }
+                      for (const signer of signers) {
+                        if (!signer.email || !signer.firstName) {
+                          setError('All signers must have an email and first name');
+                          return;
+                        }
+                      }
+                      onPrepareDocument(signers);
+                    }}
+                    disabled={signers.length === 0}
+                  >
+                    Prepare Document
+                  </Button>
+                )}
+              </div>
+              <div className="flex gap-3">
+                <Button type="button" variant="secondary" onClick={onClose}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={loading || !hasEnoughCredits}>
+                  {loading ? 'Sending...' : 'Quick Send'}
+                </Button>
+              </div>
             </div>
           </form>
         </div>

@@ -92,3 +92,28 @@ export async function downloadSignedDocument(documentId: string) {
 
   return await response.blob();
 }
+
+export interface CreateEmbeddedRequestParams {
+  documentUrl: string;
+  name: string;
+  signers: Array<{
+    email: string;
+    firstName?: string;
+    lastName?: string;
+    signerOrder?: number;
+  }>;
+  title?: string;
+  message?: string;
+  expiryDays?: number;
+  redirectUrl?: string;
+  showToolbar?: boolean;
+  showNavigationButtons?: boolean;
+  showSendButton?: boolean;
+  showPreviewButton?: boolean;
+  sendViewOption?: string;
+  showTooltip?: boolean;
+}
+
+export async function createEmbeddedRequest(params: CreateEmbeddedRequestParams) {
+  return await callBoldSignAPI('createEmbeddedRequest', params);
+}
