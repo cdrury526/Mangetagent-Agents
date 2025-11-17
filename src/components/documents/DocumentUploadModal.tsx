@@ -103,7 +103,7 @@ export function DocumentUploadModal({
 
       for (const fileMetadata of files) {
         const fileExt = fileMetadata.file.name.split('.').pop();
-        const fileName = `${user.id}/${transactionId}/${Date.now()}-${Math.random()}.${fileExt}`;
+        const fileName = `documents/${user.id}/${transactionId}/${Date.now()}-${Math.random()}.${fileExt}`;
 
         // Upload to storage
         const { error: uploadError } = await supabase.storage
