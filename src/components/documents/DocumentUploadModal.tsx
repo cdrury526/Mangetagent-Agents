@@ -113,7 +113,10 @@ export function DocumentUploadModal({
             upsert: false,
           });
 
-        if (uploadError) throw uploadError;
+        if (uploadError) {
+          console.error('Storage upload error:', uploadError);
+          throw new Error(`Failed to upload ${fileMetadata.file.name}: ${uploadError.message}`);
+        }
 
         // Create database record
         const { error: dbError } = await supabase.from('documents').insert({
@@ -128,7 +131,10 @@ export function DocumentUploadModal({
           archived: false,
         });
 
-        if (dbError) throw dbError;
+        if (dbError) {
+          console.error('Database insert error:', dbError);
+          throw new Error(`Failed to save ${fileMetadata.name}: ${dbError.message}`);
+        }
       }
 
       onUploadComplete();
