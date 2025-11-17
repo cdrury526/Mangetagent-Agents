@@ -12,7 +12,7 @@ interface DocumentsTabProps {
 }
 
 export function DocumentsTab({ transactionId }: DocumentsTabProps) {
-  const { documents, loading, deleteDocument, updateDocument, refresh } = useDocuments(transactionId);
+  const { documents, loading, deleteDocument, updateDocument, refetch } = useDocuments(transactionId);
   const { documents: boldSignDocs } = useBoldSignDocuments(transactionId);
   const [filter, setFilter] = useState<string>('all');
   const [sendModalDoc, setSendModalDoc] = useState<Document | null>(null);
@@ -122,7 +122,7 @@ export function DocumentsTab({ transactionId }: DocumentsTabProps) {
           onClose={() => setShowUploadModal(false)}
           transactionId={transactionId}
           onUploadComplete={() => {
-            refresh();
+            refetch();
           }}
         />
       )}
