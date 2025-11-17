@@ -1,4 +1,4 @@
-import { FileText, FileSignature, CheckCircle, Clock } from 'lucide-react';
+import { FileText, Ligature as FileSignature, CheckCircle, Clock } from 'lucide-react';
 import { Document, BoldSignDocument } from '../../types/database';
 import { Card, CardContent } from '../ui/Card';
 
