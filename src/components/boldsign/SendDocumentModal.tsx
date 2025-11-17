@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Plus, Trash2, AlertCircle, Coins } from 'lucide-react';
+import { X, Plus, Trash2, AlertCircle, Coins, GripVertical, FileText } from 'lucide-react';
 import { FormInput } from '../forms/FormInput';
 import { FormSelect } from '../forms/FormSelect';
 import { Button } from '../ui/Button';
@@ -17,24 +17,27 @@ interface Signer {
 }
 
 interface SendDocumentModalProps {
-  document: Document;
+  documents: Document[];
   transactionId: string;
   onClose: () => void;
   onSuccess: () => void;
 }
 
-export function SendDocumentModal({ document, transactionId, onClose, onSuccess }: SendDocumentModalProps) {
+export function SendDocumentModal({ documents, transactionId, onClose, onSuccess }: SendDocumentModalProps) {
   const { user, refreshProfile } = useAuth();
   const { transactionContacts } = useTransactionContacts(transactionId);
+  const [orderedDocs, setOrderedDocs] = useState<Document[]>(documents);
   const [signers, setSigners] = useState<Signer[]>([]);
-  const [subject, setSubject] = useState(`Please sign: ${document.name}`);
+  const [subject, setSubject] = useState(`Please sign: ${documents.length > 1 ? `${documents.length} documents` : documents[0].name}`);
   const [message, setMessage] = useState('');
   const [expiryDays, setExpiryDays] = useState('7');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
   const CREDIT_COST_PER_DOCUMENT = 1;
-  const hasEnoughCredits = (user?.credit_balance || 0) >= CREDIT_COST_PER_DOCUMENT;
+  const totalCost = documents.length * CREDIT_COST_PER_DOCUMENT;
+  const hasEnoughCredits = (user?.credit_balance || 0) >= totalCost;
 
   const addSigner = () => {
     setSigners([...signers, {
@@ -65,6 +68,26 @@ export function SendDocumentModal({ document, transactionId, onClose, onSuccess 
     }]);
   };
 
+  const handleDragStart = (index: number) => {
+    setDraggedIndex(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === index) return;
+
+    const newDocs = [...orderedDocs];
+    const draggedDoc = newDocs[draggedIndex];
+    newDocs.splice(draggedIndex, 1);
+    newDocs.splice(index, 0, draggedDoc);
+    setOrderedDocs(newDocs);
+    setDraggedIndex(index);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -72,7 +95,7 @@ export function SendDocumentModal({ document, transactionId, onClose, onSuccess 
 
     try {
       if (!hasEnoughCredits) {
-        throw new Error(`Insufficient credits. You need ${CREDIT_COST_PER_DOCUMENT} credit(s) to send this document.`);
+        throw new Error(`Insufficient credits. You need ${totalCost} credit(s) to send ${orderedDocs.length} document(s).`);
       }
 
       if (signers.length === 0) {
@@ -89,44 +112,47 @@ export function SendDocumentModal({ document, transactionId, onClose, onSuccess 
         throw new Error('User not authenticated');
       }
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('documents')
-        .getPublicUrl(document.storage_path);
-
       const expirationDate = new Date();
       expirationDate.setDate(expirationDate.getDate() + parseInt(expiryDays));
 
-      const result = await sendDocumentForSignature({
-        documentUrl: publicUrl,
-        name: document.name,
-        signers: signers.map((s, index) => ({
-          ...s,
-          signerOrder: index + 1,
-        })),
-        emailMessage: message,
-        subject,
-        expiryDays: parseInt(expiryDays),
-      });
+      // Process each document in order
+      for (const doc of orderedDocs) {
+        const { data: { publicUrl } } = supabase.storage
+          .from('documents')
+          .getPublicUrl(doc.storage_path);
 
-      if (!result || !result.documentId) {
-        throw new Error('Failed to send document - no document ID returned');
-      }
-
-      await supabase
-        .from('bold_sign_documents')
-        .insert({
-          transaction_id: transactionId,
-          agent_id: user.id,
-          document_id: document.id,
-          bold_sign_document_id: result.documentId,
-          status: 'sent',
-          expires_at: expirationDate.toISOString(),
+        const result = await sendDocumentForSignature({
+          documentUrl: publicUrl,
+          name: doc.name,
+          signers: signers.map((s, index) => ({
+            ...s,
+            signerOrder: index + 1,
+          })),
+          emailMessage: message,
+          subject: orderedDocs.length > 1 ? `${subject} - ${doc.name}` : subject,
+          expiryDays: parseInt(expiryDays),
         });
+
+        if (!result || !result.documentId) {
+          throw new Error(`Failed to send document "${doc.name}" - no document ID returned`);
+        }
+
+        await supabase
+          .from('bold_sign_documents')
+          .insert({
+            transaction_id: transactionId,
+            agent_id: user.id,
+            document_id: doc.id,
+            bold_sign_document_id: result.documentId,
+            status: 'sent',
+            expires_at: expirationDate.toISOString(),
+          });
+      }
 
       await supabase
         .from('profiles')
         .update({
-          credit_balance: (user.credit_balance || 0) - CREDIT_COST_PER_DOCUMENT,
+          credit_balance: (user.credit_balance || 0) - totalCost,
         })
         .eq('id', user.id);
 
@@ -144,7 +170,10 @@ export function SendDocumentModal({ document, transactionId, onClose, onSuccess 
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         <div className="flex items-center justify-between p-6 border-b border-slate-200">
-          <h2 className="text-xl font-semibold text-slate-900">Send Document for Signature</h2>
+          <div>
+            <h2 className="text-xl font-semibold text-slate-900">Send for Signature</h2>
+            <p className="text-sm text-slate-600 mt-1">{orderedDocs.length} document{orderedDocs.length > 1 ? 's' : ''} selected</p>
+          </div>
           <button
             onClick={onClose}
             className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
@@ -155,6 +184,47 @@ export function SendDocumentModal({ document, transactionId, onClose, onSuccess 
 
         <div className="flex-1 overflow-y-auto p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
+            {orderedDocs.length > 1 && (
+              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                <h3 className="text-sm font-medium text-slate-900 mb-3">Document Order</h3>
+                <p className="text-xs text-slate-600 mb-3">Drag documents to reorder how they will be sent</p>
+                <div className="space-y-2">
+                  {orderedDocs.map((doc, index) => (
+                    <div
+                      key={doc.id}
+                      draggable
+                      onDragStart={() => handleDragStart(index)}
+                      onDragOver={(e) => handleDragOver(e, index)}
+                      onDragEnd={handleDragEnd}
+                      className={`flex items-center p-3 bg-white border rounded-lg cursor-move transition-all ${
+                        draggedIndex === index ? 'opacity-50 scale-95' : 'hover:border-blue-300 hover:shadow-sm'
+                      }`}
+                    >
+                      <GripVertical className="w-5 h-5 text-slate-400 mr-3 flex-shrink-0" />
+                      <FileText className="w-5 h-5 text-blue-500 mr-3 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-slate-900 truncate">{doc.name}</p>
+                        <p className="text-xs text-slate-500">{doc.type}</p>
+                      </div>
+                      <span className="text-xs font-medium text-slate-500 ml-3">#{index + 1}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {orderedDocs.length === 1 && (
+              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                <div className="flex items-center">
+                  <FileText className="w-8 h-8 text-blue-500 mr-3" />
+                  <div>
+                    <h3 className="text-sm font-medium text-slate-900">{orderedDocs[0].name}</h3>
+                    <p className="text-xs text-slate-600 mt-1">{orderedDocs[0].type}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className={`border rounded-lg p-4 flex items-start ${
               hasEnoughCredits ? 'bg-blue-50 border-blue-200' : 'bg-red-50 border-red-200'
             }`}>
@@ -171,8 +241,8 @@ export function SendDocumentModal({ document, transactionId, onClose, onSuccess 
                   hasEnoughCredits ? 'text-blue-700' : 'text-red-700'
                 }`}>
                   {hasEnoughCredits
-                    ? `This will cost ${CREDIT_COST_PER_DOCUMENT} credit. You have ${user?.credit_balance || 0} credits available.`
-                    : `You need ${CREDIT_COST_PER_DOCUMENT} credit to send this document, but you only have ${user?.credit_balance || 0} credits. Please purchase more credits to continue.`
+                    ? `This will cost ${totalCost} credit${totalCost > 1 ? 's' : ''}. You have ${user?.credit_balance || 0} credits available.`
+                    : `You need ${totalCost} credit${totalCost > 1 ? 's' : ''} to send ${orderedDocs.length} document${orderedDocs.length > 1 ? 's' : ''}, but you only have ${user?.credit_balance || 0} credits. Please purchase more credits to continue.`
                   }
                 </p>
               </div>

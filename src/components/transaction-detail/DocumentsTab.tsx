@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, FileText, Download, Trash2, Eye, EyeOff, FileSignature, ExternalLink } from 'lucide-react';
+import { Plus, FileText, Download, Trash2, Eye, EyeOff, FileSignature, ExternalLink, CheckSquare, Square } from 'lucide-react';
 import { useDocuments } from '../../hooks/useDocuments';
 import { useBoldSignDocuments } from '../../hooks/useBoldSignDocuments';
 import { SendDocumentModal } from '../boldsign/SendDocumentModal';
@@ -16,7 +16,8 @@ export function DocumentsTab({ transactionId }: DocumentsTabProps) {
   const { documents, loading, deleteDocument, updateDocument, refetch } = useDocuments(transactionId);
   const { documents: boldSignDocs } = useBoldSignDocuments(transactionId);
   const [filter, setFilter] = useState<string>('all');
-  const [sendModalDoc, setSendModalDoc] = useState<Document | null>(null);
+  const [selectedDocs, setSelectedDocs] = useState<Document[]>([]);
+  const [showSendModal, setShowSendModal] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
 
   const handleDelete = async (id: string) => {
@@ -59,6 +60,11 @@ export function DocumentsTab({ transactionId }: DocumentsTabProps) {
       <div className="flex justify-between items-center">
         <div className="flex items-center space-x-4">
           <h3 className="text-lg font-medium text-gray-900">Documents</h3>
+          {selectedDocs.length > 0 && (
+            <span className="text-sm text-gray-600 bg-blue-50 px-3 py-1 rounded-full">
+              {selectedDocs.length} selected
+            </span>
+          )}
           <select
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
@@ -71,13 +77,34 @@ export function DocumentsTab({ transactionId }: DocumentsTabProps) {
             ))}
           </select>
         </div>
-        <button
-          onClick={() => setShowUploadModal(true)}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Upload Document
-        </button>
+        <div className="flex items-center space-x-2">
+          {selectedDocs.length > 0 && (
+            <>
+              <button
+                onClick={() => {
+                  setShowSendModal(true);
+                }}
+                className="flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+              >
+                <FileSignature className="w-4 h-4 mr-2" />
+                Send for Signature
+              </button>
+              <button
+                onClick={() => setSelectedDocs([])}
+                className="flex items-center px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+              >
+                Clear Selection
+              </button>
+            </>
+          )}
+          <button
+            onClick={() => setShowUploadModal(true)}
+            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Upload Document
+          </button>
+        </div>
       </div>
 
       {filteredDocuments.length === 0 ? (
@@ -90,29 +117,42 @@ export function DocumentsTab({ transactionId }: DocumentsTabProps) {
         <div className="space-y-2">
           {filteredDocuments.map((doc) => {
             const boldSignDoc = boldSignDocs.find(bsd => bsd.document_id === doc.id);
+            const isSelected = selectedDocs.some(d => d.id === doc.id);
             return (
               <DocumentItem
                 key={doc.id}
                 document={doc}
                 boldSignDoc={boldSignDoc}
                 transactionId={transactionId}
+                isSelected={isSelected}
+                onSelect={(doc) => {
+                  if (isSelected) {
+                    setSelectedDocs(selectedDocs.filter(d => d.id !== doc.id));
+                  } else {
+                    setSelectedDocs([...selectedDocs, doc]);
+                  }
+                }}
                 onDelete={handleDelete}
                 onToggleVisibility={handleToggleVisibility}
-                onSendForSignature={() => setSendModalDoc(doc)}
+                onSendForSignature={() => setSelectedDocs([doc])}
               />
             );
           })}
         </div>
       )}
 
-      {sendModalDoc && (
+      {showSendModal && selectedDocs.length > 0 && (
         <SendDocumentModal
-          document={sendModalDoc}
+          documents={selectedDocs}
           transactionId={transactionId}
-          onClose={() => setSendModalDoc(null)}
+          onClose={() => {
+            setShowSendModal(false);
+            setSelectedDocs([]);
+          }}
           onSuccess={() => {
-            setSendModalDoc(null);
-            alert('Document sent for signature successfully!');
+            setShowSendModal(false);
+            setSelectedDocs([]);
+            alert('Documents sent for signature successfully!');
           }}
         />
       )}
@@ -135,12 +175,14 @@ interface DocumentItemProps {
   document: any;
   boldSignDoc?: any;
   transactionId: string;
+  isSelected: boolean;
+  onSelect: (doc: any) => void;
   onDelete: (id: string) => void;
   onToggleVisibility: (id: string, currentValue: boolean) => void;
   onSendForSignature: () => void;
 }
 
-function DocumentItem({ document, boldSignDoc, transactionId, onDelete, onToggleVisibility, onSendForSignature }: DocumentItemProps) {
+function DocumentItem({ document, boldSignDoc, transactionId, isSelected, onSelect, onDelete, onToggleVisibility, onSendForSignature }: DocumentItemProps) {
   const formatFileSize = (bytes: number | null) => {
     if (!bytes) return 'Unknown size';
     if (bytes < 1024) return `${bytes} B`;
@@ -188,8 +230,16 @@ function DocumentItem({ document, boldSignDoc, transactionId, onDelete, onToggle
   };
 
   return (
-    <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+    <div className={`flex items-center justify-between p-4 border rounded-lg transition-colors ${
+      isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:bg-gray-50'
+    }`}>
       <div className="flex items-center space-x-4 flex-1 min-w-0">
+        <button
+          onClick={() => onSelect(document)}
+          className="flex-shrink-0 text-gray-400 hover:text-blue-600 transition-colors"
+        >
+          {isSelected ? <CheckSquare className="w-5 h-5 text-blue-600" /> : <Square className="w-5 h-5" />}
+        </button>
         <div className="flex-shrink-0">
           <FileText className="w-8 h-8 text-blue-500" />
         </div>
@@ -209,7 +259,10 @@ function DocumentItem({ document, boldSignDoc, transactionId, onDelete, onToggle
       <div className="flex items-center space-x-2 ml-4">
         {!boldSignDoc && (
           <button
-            onClick={onSendForSignature}
+            onClick={(e) => {
+              e.stopPropagation();
+              onSendForSignature();
+            }}
             className="p-2 text-gray-400 hover:text-orange-600 rounded hover:bg-orange-50 transition-colors"
             title="Send for signature"
           >
