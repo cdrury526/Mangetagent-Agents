@@ -4,6 +4,7 @@ import { useDocuments } from '../../hooks/useDocuments';
 import { useBoldSignDocuments } from '../../hooks/useBoldSignDocuments';
 import { SendDocumentModal } from '../boldsign/SendDocumentModal';
 import { DocumentStatusBadge } from '../boldsign/DocumentStatusBadge';
+import { DocumentUploadModal } from '../documents/DocumentUploadModal';
 import { Document } from '../../types/database';
 
 interface DocumentsTabProps {
@@ -11,10 +12,11 @@ interface DocumentsTabProps {
 }
 
 export function DocumentsTab({ transactionId }: DocumentsTabProps) {
-  const { documents, loading, deleteDocument, updateDocument } = useDocuments(transactionId);
+  const { documents, loading, deleteDocument, updateDocument, refresh } = useDocuments(transactionId);
   const { documents: boldSignDocs } = useBoldSignDocuments(transactionId);
   const [filter, setFilter] = useState<string>('all');
   const [sendModalDoc, setSendModalDoc] = useState<Document | null>(null);
+  const [showUploadModal, setShowUploadModal] = useState(false);
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this document?')) return;
@@ -69,9 +71,8 @@ export function DocumentsTab({ transactionId }: DocumentsTabProps) {
           </select>
         </div>
         <button
-          disabled
-          className="flex items-center px-4 py-2 bg-gray-300 text-gray-500 rounded-lg cursor-not-allowed"
-          title="Document upload feature coming soon"
+          onClick={() => setShowUploadModal(true)}
+          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           <Plus className="w-4 h-4 mr-2" />
           Upload Document
@@ -111,6 +112,17 @@ export function DocumentsTab({ transactionId }: DocumentsTabProps) {
           onSuccess={() => {
             setSendModalDoc(null);
             alert('Document sent for signature successfully!');
+          }}
+        />
+      )}
+
+      {showUploadModal && (
+        <DocumentUploadModal
+          isOpen={showUploadModal}
+          onClose={() => setShowUploadModal(false)}
+          transactionId={transactionId}
+          onUploadComplete={() => {
+            refresh();
           }}
         />
       )}
