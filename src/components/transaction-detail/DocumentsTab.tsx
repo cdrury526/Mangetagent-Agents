@@ -157,9 +157,30 @@ function DocumentItem({ document, boldSignDoc, transactionId, onDelete, onToggle
   };
 
   const handlePreview = async () => {
-    const { data } = await supabase.storage
+    let storagePath = document.storage_path;
+
+    if (storagePath.startsWith('documents/')) {
+      storagePath = storagePath.substring('documents/'.length);
+    }
+
+    let { data, error } = await supabase.storage
       .from('documents')
-      .createSignedUrl(document.storage_path.replace('documents/', ''), 3600);
+      .createSignedUrl(storagePath, 3600);
+
+    if (error && document.storage_path.startsWith('documents/')) {
+      const { data: retryData, error: retryError } = await supabase.storage
+        .from('documents')
+        .createSignedUrl(document.storage_path, 3600);
+
+      data = retryData;
+      error = retryError;
+    }
+
+    if (error) {
+      console.error('Failed to create signed URL:', error);
+      alert('Failed to preview document. Please try again.');
+      return;
+    }
 
     if (data?.signedUrl) {
       window.open(data.signedUrl, '_blank');
