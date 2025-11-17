@@ -226,20 +226,20 @@ export function SendDocumentModal({ document, transactionId, onClose, onSuccess 
                   <FormSelect
                     label="Or add from transaction contacts"
                     value=""
+                    options={[
+                      { value: '', label: 'Select a contact...' },
+                      ...transactionContacts.map((tc) => ({
+                        value: tc.contact_id,
+                        label: `${tc.contact?.first_name} ${tc.contact?.last_name} (${tc.contact?.email})`
+                      }))
+                    ]}
                     onChange={(e) => {
                       if (e.target.value) {
                         addContactAsSigner(e.target.value);
                         e.target.value = '';
                       }
                     }}
-                  >
-                    <option value="">Select a contact...</option>
-                    {transactionContacts.map((tc) => (
-                      <option key={tc.id} value={tc.contact_id}>
-                        {tc.contact?.first_name} {tc.contact?.last_name} ({tc.contact?.email})
-                      </option>
-                    ))}
-                  </FormSelect>
+                  />
                 </div>
               )}
 
