@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Plus, Trash2, AlertCircle } from 'lucide-react';
+import { X, Plus, Trash2, AlertCircle, Coins } from 'lucide-react';
 import { FormInput } from '../forms/FormInput';
 import { FormSelect } from '../forms/FormSelect';
 import { Button } from '../ui/Button';
@@ -7,6 +7,7 @@ import { useTransactionContacts } from '../../hooks/useTransactionContacts';
 import { sendDocumentForSignature } from '../../actions/boldsign';
 import { supabase } from '../../lib/supabase';
 import { Document } from '../../types/database';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface Signer {
   email: string;
@@ -23,6 +24,7 @@ interface SendDocumentModalProps {
 }
 
 export function SendDocumentModal({ document, transactionId, onClose, onSuccess }: SendDocumentModalProps) {
+  const { user, refreshProfile } = useAuth();
   const { contacts } = useTransactionContacts(transactionId);
   const [signers, setSigners] = useState<Signer[]>([]);
   const [subject, setSubject] = useState(`Please sign: ${document.name}`);
@@ -30,6 +32,9 @@ export function SendDocumentModal({ document, transactionId, onClose, onSuccess 
   const [expiryDays, setExpiryDays] = useState('7');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const CREDIT_COST_PER_DOCUMENT = 1;
+  const hasEnoughCredits = (user?.credit_balance || 0) >= CREDIT_COST_PER_DOCUMENT;
 
   const addSigner = () => {
     setSigners([...signers, {
@@ -66,6 +71,10 @@ export function SendDocumentModal({ document, transactionId, onClose, onSuccess 
     setError(null);
 
     try {
+      if (!hasEnoughCredits) {
+        throw new Error(`Insufficient credits. You need ${CREDIT_COST_PER_DOCUMENT} credit(s) to send this document.`);
+      }
+
       if (signers.length === 0) {
         throw new Error('Please add at least one signer');
       }
@@ -76,11 +85,18 @@ export function SendDocumentModal({ document, transactionId, onClose, onSuccess 
         }
       }
 
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
       const { data: { publicUrl } } = supabase.storage
         .from('documents')
         .getPublicUrl(document.storage_path);
 
-      await sendDocumentForSignature({
+      const expirationDate = new Date();
+      expirationDate.setDate(expirationDate.getDate() + parseInt(expiryDays));
+
+      const result = await sendDocumentForSignature({
         documentUrl: publicUrl,
         name: document.name,
         signers: signers.map((s, index) => ({
@@ -91,6 +107,30 @@ export function SendDocumentModal({ document, transactionId, onClose, onSuccess 
         subject,
         expiryDays: parseInt(expiryDays),
       });
+
+      if (!result || !result.documentId) {
+        throw new Error('Failed to send document - no document ID returned');
+      }
+
+      await supabase
+        .from('bold_sign_documents')
+        .insert({
+          transaction_id: transactionId,
+          agent_id: user.id,
+          document_id: document.id,
+          bold_sign_document_id: result.documentId,
+          status: 'sent',
+          expires_at: expirationDate.toISOString(),
+        });
+
+      await supabase
+        .from('profiles')
+        .update({
+          credit_balance: (user.credit_balance || 0) - CREDIT_COST_PER_DOCUMENT,
+        })
+        .eq('id', user.id);
+
+      await refreshProfile();
 
       onSuccess();
     } catch (err: any) {
@@ -115,6 +155,29 @@ export function SendDocumentModal({ document, transactionId, onClose, onSuccess 
 
         <div className="flex-1 overflow-y-auto p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
+            <div className={`border rounded-lg p-4 flex items-start ${
+              hasEnoughCredits ? 'bg-blue-50 border-blue-200' : 'bg-red-50 border-red-200'
+            }`}>
+              <Coins className={`w-5 h-5 mr-3 flex-shrink-0 mt-0.5 ${
+                hasEnoughCredits ? 'text-blue-600' : 'text-red-600'
+              }`} />
+              <div className="flex-1">
+                <h3 className={`text-sm font-medium ${
+                  hasEnoughCredits ? 'text-blue-800' : 'text-red-800'
+                }`}>
+                  {hasEnoughCredits ? 'Credit Check' : 'Insufficient Credits'}
+                </h3>
+                <p className={`text-sm mt-1 ${
+                  hasEnoughCredits ? 'text-blue-700' : 'text-red-700'
+                }`}>
+                  {hasEnoughCredits
+                    ? `This will cost ${CREDIT_COST_PER_DOCUMENT} credit. You have ${user?.credit_balance || 0} credits available.`
+                    : `You need ${CREDIT_COST_PER_DOCUMENT} credit to send this document, but you only have ${user?.credit_balance || 0} credits. Please purchase more credits to continue.`
+                  }
+                </p>
+              </div>
+            </div>
+
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start">
                 <AlertCircle className="w-5 h-5 text-red-600 mr-3 flex-shrink-0 mt-0.5" />
@@ -235,7 +298,7 @@ export function SendDocumentModal({ document, transactionId, onClose, onSuccess 
               <Button type="button" variant="secondary" onClick={onClose}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={loading}>
+              <Button type="submit" disabled={loading || !hasEnoughCredits}>
                 {loading ? 'Sending...' : 'Send for Signature'}
               </Button>
             </div>

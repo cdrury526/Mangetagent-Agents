@@ -11,6 +11,7 @@ import { Tasks } from './pages/agent/Tasks';
 import { Settings } from './pages/agent/Settings';
 import TransactionDetail from './pages/agent/TransactionDetail';
 import Documents from './pages/agent/Documents';
+import ESignatures from './pages/agent/ESignatures';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { session, loading } = useAuth();
@@ -115,6 +116,14 @@ function App() {
             element={
               <PrivateRoute>
                 <Documents />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/e-signatures"
+            element={
+              <PrivateRoute>
+                <ESignatures />
               </PrivateRoute>
             }
           />
