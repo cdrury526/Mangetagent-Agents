@@ -25,7 +25,7 @@ interface SendDocumentModalProps {
 
 export function SendDocumentModal({ document, transactionId, onClose, onSuccess }: SendDocumentModalProps) {
   const { user, refreshProfile } = useAuth();
-  const { contacts } = useTransactionContacts(transactionId);
+  const { transactionContacts } = useTransactionContacts(transactionId);
   const [signers, setSigners] = useState<Signer[]>([]);
   const [subject, setSubject] = useState(`Please sign: ${document.name}`);
   const [message, setMessage] = useState('');
@@ -55,13 +55,13 @@ export function SendDocumentModal({ document, transactionId, onClose, onSuccess 
   };
 
   const addContactAsSigner = (contactId: string) => {
-    const contact = contacts.find(c => c.contact_id === contactId);
-    if (!contact || !contact.contacts) return;
+    const transactionContact = transactionContacts.find(tc => tc.contact_id === contactId);
+    if (!transactionContact || !transactionContact.contact) return;
 
     setSigners([...signers, {
-      firstName: contact.contacts.first_name,
-      lastName: contact.contacts.last_name || '',
-      email: contact.contacts.email || '',
+      firstName: transactionContact.contact.first_name,
+      lastName: transactionContact.contact.last_name || '',
+      email: transactionContact.contact.email || '',
     }]);
   };
 
@@ -221,7 +221,7 @@ export function SendDocumentModal({ document, transactionId, onClose, onSuccess 
                 </Button>
               </div>
 
-              {contacts.length > 0 && (
+              {transactionContacts.length > 0 && (
                 <div className="mb-4">
                   <FormSelect
                     label="Or add from transaction contacts"
@@ -234,9 +234,9 @@ export function SendDocumentModal({ document, transactionId, onClose, onSuccess 
                     }}
                   >
                     <option value="">Select a contact...</option>
-                    {contacts.map((tc) => (
+                    {transactionContacts.map((tc) => (
                       <option key={tc.id} value={tc.contact_id}>
-                        {tc.contacts?.first_name} {tc.contacts?.last_name} ({tc.contacts?.email})
+                        {tc.contact?.first_name} {tc.contact?.last_name} ({tc.contact?.email})
                       </option>
                     ))}
                   </FormSelect>
