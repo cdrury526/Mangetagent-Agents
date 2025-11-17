@@ -103,12 +103,13 @@ export function DocumentUploadModal({
 
       for (const fileMetadata of files) {
         const fileExt = fileMetadata.file.name.split('.').pop();
-        const fileName = `documents/${user.id}/${transactionId}/${Date.now()}-${Math.random()}.${fileExt}`;
+        const storagePath = `${user.id}/${transactionId}/${Date.now()}-${Math.random()}.${fileExt}`;
+        const fullPath = `documents/${storagePath}`;
 
-        // Upload to storage
+        // Upload to storage (without 'documents/' prefix since bucket already defines that)
         const { error: uploadError } = await supabase.storage
           .from('documents')
-          .upload(fileName, fileMetadata.file, {
+          .upload(storagePath, fileMetadata.file, {
             cacheControl: '3600',
             upsert: false,
           });
@@ -118,7 +119,7 @@ export function DocumentUploadModal({
           throw new Error(`Failed to upload ${fileMetadata.file.name}: ${uploadError.message}`);
         }
 
-        // Create database record
+        // Create database record (with 'documents/' prefix for constraint)
         const { error: dbError } = await supabase.from('documents').insert({
           agent_id: user.id,
           transaction_id: transactionId,
@@ -126,7 +127,7 @@ export function DocumentUploadModal({
           type: fileMetadata.type,
           size_bytes: fileMetadata.file.size,
           mime_type: fileMetadata.file.type,
-          storage_path: fileName,
+          storage_path: fullPath,
           visible_to_client: fileMetadata.visibleToClient,
           archived: false,
         });
