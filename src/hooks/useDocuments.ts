@@ -70,32 +70,78 @@ export function useDocuments(transactionId: string | undefined) {
   }
 
   async function createDocument(data: Omit<Document, 'id' | 'created_at' | 'updated_at'>) {
-    const { data: created, error: createError } = await supabase
-      .from('documents')
-      .insert([data])
-      .select()
-      .single();
+    const optimisticDoc: Document = {
+      ...data,
+      id: crypto.randomUUID(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    } as Document;
 
-    if (createError) throw createError;
-    return created;
+    setDocuments(prev => [optimisticDoc, ...prev]);
+
+    try {
+      const { data: created, error: createError } = await supabase
+        .from('documents')
+        .insert([data])
+        .select()
+        .single();
+
+      if (createError) throw createError;
+
+      setDocuments(prev => prev.map(doc => doc.id === optimisticDoc.id ? created : doc));
+      return created;
+    } catch (error) {
+      setDocuments(prev => prev.filter(doc => doc.id !== optimisticDoc.id));
+      throw error;
+    }
   }
 
   async function updateDocument(id: string, updates: Partial<Document>) {
-    const { data: updated, error: updateError } = await supabase
-      .from('documents')
-      .update(updates)
-      .eq('id', id)
-      .select()
-      .single();
+    const previousDoc = documents.find(doc => doc.id === id);
 
-    if (updateError) throw updateError;
-    return updated;
+    setDocuments(prev => prev.map(doc =>
+      doc.id === id
+        ? { ...doc, ...updates, updated_at: new Date().toISOString() }
+        : doc
+    ));
+
+    try {
+      const { data: updated, error: updateError } = await supabase
+        .from('documents')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (updateError) throw updateError;
+
+      setDocuments(prev => prev.map(doc => doc.id === id ? updated : doc));
+      return updated;
+    } catch (error) {
+      if (previousDoc) {
+        setDocuments(prev => prev.map(doc => doc.id === id ? previousDoc : doc));
+      }
+      throw error;
+    }
   }
 
   async function deleteDocument(id: string) {
-    const { error: deleteError } = await supabase.from('documents').delete().eq('id', id);
+    const previousDoc = documents.find(doc => doc.id === id);
 
-    if (deleteError) throw deleteError;
+    setDocuments(prev => prev.filter(doc => doc.id !== id));
+
+    try {
+      const { error: deleteError } = await supabase.from('documents').delete().eq('id', id);
+
+      if (deleteError) throw deleteError;
+    } catch (error) {
+      if (previousDoc) {
+        setDocuments(prev => [...prev, previousDoc].sort((a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        ));
+      }
+      throw error;
+    }
   }
 
   async function archiveDocument(id: string) {
