@@ -91,7 +91,8 @@ export function DocumentsTab({ transactionId }: DocumentsTabProps) {
                 onClick={() => {
                   const nonPdfDocs = selectedDocs.filter(doc => {
                     const ext = doc.name.toLowerCase().split('.').pop();
-                    return ext !== 'pdf';
+                    const mime = doc.mime_type || '';
+                    return ext !== 'pdf' && mime !== 'application/pdf';
                   });
 
                   if (nonPdfDocs.length > 0) {
@@ -236,12 +237,16 @@ interface DocumentItemProps {
 function DocumentItem({ document, boldSignDoc, transactionId, isSelected, onSelect, onDelete, onToggleVisibility, onSendForSignature }: DocumentItemProps) {
   const fileName = document.name || '';
   const fileExtension = fileName.toLowerCase().split('.').pop();
-  const isPdf = fileExtension === 'pdf';
+  const mimeType = document.mime_type || '';
+
+  // Check if it's a PDF by file extension OR MIME type
+  const isPdf = fileExtension === 'pdf' || mimeType === 'application/pdf';
 
   // Debug logging
   console.log('[DocumentItem Debug]', {
     fileName,
     fileExtension,
+    mimeType,
     isPdf,
     boldSignDoc: !!boldSignDoc
   });

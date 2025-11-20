@@ -90,7 +90,10 @@ export function EmbeddedDocumentPreparation({
       }
 
       const fileExtension = document.name.toLowerCase().split('.').pop();
-      if (fileExtension !== 'pdf') {
+      const mimeType = document.mime_type || '';
+      const isPdf = fileExtension === 'pdf' || mimeType === 'application/pdf';
+
+      if (!isPdf) {
         throw new Error('BoldSign only supports PDF files for signature requests. Please convert your document to PDF first.');
       }
 
