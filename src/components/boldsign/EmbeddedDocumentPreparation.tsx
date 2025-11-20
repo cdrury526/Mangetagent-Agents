@@ -85,12 +85,34 @@ export function EmbeddedDocumentPreparation({
     try {
       const document = documents[0];
 
-      const { data: { publicUrl } } = supabase.storage
+      if (!document.storage_path) {
+        throw new Error('Document storage path is missing');
+      }
+
+      const fileExtension = document.name.toLowerCase().split('.').pop();
+      if (fileExtension !== 'pdf') {
+        throw new Error('BoldSign only supports PDF files for signature requests. Please convert your document to PDF first.');
+      }
+
+      console.log('[EmbeddedDocumentPreparation] Getting signed URL for:', document.storage_path);
+
+      const { data: urlData, error: urlError } = await supabase.storage
         .from('documents')
-        .getPublicUrl(document.storage_path);
+        .createSignedUrl(document.storage_path, 3600);
+
+      if (urlError) {
+        console.error('[EmbeddedDocumentPreparation] Error creating signed URL:', urlError);
+        throw new Error(`Failed to access document: ${urlError.message}`);
+      }
+
+      if (!urlData?.signedUrl) {
+        throw new Error('Failed to generate document access URL');
+      }
+
+      console.log('[EmbeddedDocumentPreparation] Signed URL created successfully');
 
       const result = await createEmbeddedRequest({
-        documentUrl: publicUrl,
+        documentUrl: urlData.signedUrl,
         name: document.name,
         title: `${document.name} - Signature Request`,
         signers: signers.map((s, index) => ({

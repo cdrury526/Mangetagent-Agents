@@ -89,6 +89,16 @@ export function DocumentsTab({ transactionId }: DocumentsTabProps) {
             <>
               <button
                 onClick={() => {
+                  const nonPdfDocs = selectedDocs.filter(doc => {
+                    const ext = doc.name.toLowerCase().split('.').pop();
+                    return ext !== 'pdf';
+                  });
+
+                  if (nonPdfDocs.length > 0) {
+                    alert(`Only PDF files can be sent for signature. The following files are not PDFs:\n\n${nonPdfDocs.map(d => d.name).join('\n')}\n\nPlease select only PDF files.`);
+                    return;
+                  }
+
                   setShowSendModal(true);
                 }}
                 className="group relative px-3 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors flex items-center gap-2"
@@ -224,6 +234,8 @@ interface DocumentItemProps {
 }
 
 function DocumentItem({ document, boldSignDoc, transactionId, isSelected, onSelect, onDelete, onToggleVisibility, onSendForSignature }: DocumentItemProps) {
+  const isPdf = document.name.toLowerCase().endsWith('.pdf');
+
   const formatFileSize = (bytes: number | null) => {
     if (!bytes) return 'Unknown size';
     if (bytes < 1024) return `${bytes} B`;
@@ -285,7 +297,14 @@ function DocumentItem({ document, boldSignDoc, transactionId, isSelected, onSele
           <FileText className="w-8 h-8 text-blue-500" />
         </div>
         <div className="flex-1 min-w-0">
-          <h4 className="text-sm font-medium text-gray-900 truncate">{document.name}</h4>
+          <div className="flex items-center gap-2">
+            <h4 className="text-sm font-medium text-gray-900 truncate">{document.name}</h4>
+            {isPdf && !boldSignDoc && (
+              <span className="px-2 py-0.5 text-xs font-medium text-green-700 bg-green-100 rounded-full whitespace-nowrap">
+                Ready for Signature
+              </span>
+            )}
+          </div>
           <div className="flex items-center space-x-4 mt-1 text-xs text-gray-500">
             <span className="capitalize">{document.type.replace(/_/g, ' ')}</span>
             <span>{formatFileSize(document.size_bytes)}</span>
@@ -302,10 +321,19 @@ function DocumentItem({ document, boldSignDoc, transactionId, isSelected, onSele
           <button
             onClick={(e) => {
               e.stopPropagation();
+              if (!isPdf) {
+                alert('Only PDF files can be sent for signature. Please convert this file to PDF first.');
+                return;
+              }
               onSendForSignature();
             }}
-            className="p-2 text-gray-400 hover:text-orange-600 rounded hover:bg-orange-50 transition-colors"
-            title="Send for signature"
+            disabled={!isPdf}
+            className={`p-2 rounded transition-colors ${
+              isPdf
+                ? 'text-gray-400 hover:text-orange-600 hover:bg-orange-50'
+                : 'text-gray-300 cursor-not-allowed'
+            }`}
+            title={isPdf ? 'Send for signature' : 'Only PDF files can be sent for signature'}
           >
             <FileSignature className="w-4 h-4" />
           </button>
