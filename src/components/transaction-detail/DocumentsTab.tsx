@@ -234,8 +234,17 @@ interface DocumentItemProps {
 }
 
 function DocumentItem({ document, boldSignDoc, transactionId, isSelected, onSelect, onDelete, onToggleVisibility, onSendForSignature }: DocumentItemProps) {
-  const fileExtension = document.name.toLowerCase().split('.').pop();
+  const fileName = document.name || '';
+  const fileExtension = fileName.toLowerCase().split('.').pop();
   const isPdf = fileExtension === 'pdf';
+
+  // Debug logging
+  console.log('[DocumentItem Debug]', {
+    fileName,
+    fileExtension,
+    isPdf,
+    boldSignDoc: !!boldSignDoc
+  });
 
   const formatFileSize = (bytes: number | null) => {
     if (!bytes) return 'Unknown size';
