@@ -118,7 +118,7 @@ export function EmbeddedDocumentPreparation({
         throw new Error('Failed to generate document access URL');
       }
 
-      console.log('[EmbeddedDocumentPreparation] Signed URL created successfully');
+      console.log('[EmbeddedDocumentPreparation] Signed URL created successfully:', urlData.signedUrl);
 
       const result = await createEmbeddedRequest({
         documentUrl: urlData.signedUrl,
@@ -146,6 +146,9 @@ export function EmbeddedDocumentPreparation({
       if (!result.sendUrl && !result.documentId) {
         throw new Error('No embedded URL returned from BoldSign');
       }
+
+      console.log('[EmbeddedDocumentPreparation] Embedded URL:', result.sendUrl);
+      console.log('[EmbeddedDocumentPreparation] Document ID:', result.documentId);
 
       setEmbeddedUrl(result.sendUrl);
       setDocumentId(result.documentId);
@@ -237,8 +240,7 @@ export function EmbeddedDocumentPreparation({
               ref={iframeRef}
               src={embeddedUrl}
               className="w-full h-full border-0"
-              allow="clipboard-read; clipboard-write"
-              sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals"
+              allow="clipboard-read; clipboard-write; fullscreen"
               title="Document Preparation"
             />
           )}
