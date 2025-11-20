@@ -234,7 +234,8 @@ interface DocumentItemProps {
 }
 
 function DocumentItem({ document, boldSignDoc, transactionId, isSelected, onSelect, onDelete, onToggleVisibility, onSendForSignature }: DocumentItemProps) {
-  const isPdf = document.name.toLowerCase().endsWith('.pdf');
+  const fileExtension = document.name.toLowerCase().split('.').pop();
+  const isPdf = fileExtension === 'pdf';
 
   const formatFileSize = (bytes: number | null) => {
     if (!bytes) return 'Unknown size';
@@ -327,10 +328,9 @@ function DocumentItem({ document, boldSignDoc, transactionId, isSelected, onSele
               }
               onSendForSignature();
             }}
-            disabled={!isPdf}
             className={`p-2 rounded transition-colors ${
               isPdf
-                ? 'text-gray-400 hover:text-orange-600 hover:bg-orange-50'
+                ? 'text-gray-400 hover:text-orange-600 hover:bg-orange-50 cursor-pointer'
                 : 'text-gray-300 cursor-not-allowed'
             }`}
             title={isPdf ? 'Send for signature' : 'Only PDF files can be sent for signature'}
