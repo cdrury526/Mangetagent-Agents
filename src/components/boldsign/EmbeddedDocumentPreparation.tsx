@@ -97,11 +97,17 @@ export function EmbeddedDocumentPreparation({
         throw new Error('BoldSign only supports PDF files for signature requests. Please convert your document to PDF first.');
       }
 
-      console.log('[EmbeddedDocumentPreparation] Getting signed URL for:', document.storage_path);
+      // Strip 'documents/' prefix if present since we're already specifying the bucket
+      let storagePath = document.storage_path;
+      if (storagePath.startsWith('documents/')) {
+        storagePath = storagePath.substring('documents/'.length);
+      }
+
+      console.log('[EmbeddedDocumentPreparation] Getting signed URL for:', storagePath);
 
       const { data: urlData, error: urlError } = await supabase.storage
         .from('documents')
-        .createSignedUrl(document.storage_path, 3600);
+        .createSignedUrl(storagePath, 3600);
 
       if (urlError) {
         console.error('[EmbeddedDocumentPreparation] Error creating signed URL:', urlError);
