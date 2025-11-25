@@ -1,0 +1,396 @@
+{
+  "metadata": {
+    "created": "2025-11-23T14:30:00-08:00",
+    "created_by": "claude-sonnet-4-5-20250929",
+    "plan_id": "550e8400-e29b-41d4-a716-446655440000",
+    "version": "1.0"
+  },
+  "planning": {
+    "goal": "Implement Stripe subscription billing with recurring payments and webhook handling",
+    "reason": "Enable SaaS business model with monthly recurring revenue and automated billing",
+    "scope": "Includes: subscription creation, cancellation, webhook handling for payment events, subscription status tracking. Excludes: usage-based billing, proration, multi-currency support",
+    "success_metrics": [
+      "Users can subscribe to any plan tier (Free, Pro, Enterprise)",
+      "Failed payments trigger automated status updates and email notifications",
+      "Webhooks are verified and processed within 5 seconds",
+      "Subscription status is displayed accurately in user dashboard"
+    ],
+    "estimated_timeline": "18 hours",
+    "priority": "High"
+  },
+  "files_impacted": [
+    {
+      "path": "src/pages/Pricing.tsx",
+      "type": "modified",
+      "reason": "Add Stripe Checkout buttons for each plan tier",
+      "estimated_changes": "+80 lines"
+    },
+    {
+      "path": "supabase/migrations/20251123_subscriptions.sql",
+      "type": "created",
+      "reason": "Create subscriptions table with RLS policies"
+    },
+    {
+      "path": "supabase/functions/stripe-create-checkout-session/index.ts",
+      "type": "created",
+      "reason": "Edge Function for creating Stripe Checkout sessions"
+    },
+    {
+      "path": "supabase/functions/stripe-webhook-handler/index.ts",
+      "type": "created",
+      "reason": "Edge Function for processing Stripe webhooks"
+    },
+    {
+      "path": "src/hooks/useSubscription.ts",
+      "type": "modified",
+      "reason": "Add subscription status fetching and real-time updates",
+      "estimated_changes": "+50 lines"
+    },
+    {
+      "path": "src/contexts/AuthContext.tsx",
+      "type": "modified",
+      "reason": "Include subscription data in auth context",
+      "estimated_changes": "+30 lines"
+    }
+  ],
+  "phases": [
+    {
+      "number": 1,
+      "name": "Database Schema Setup",
+      "description": "Create subscriptions table with RLS policies and status tracking",
+      "status": "not_started",
+      "completion_percentage": 0,
+      "estimated_effort": "3",
+      "assigned_subagent": "supabase-backend-specialist",
+      "steps": [
+        {
+          "number": 1,
+          "task": "Create subscriptions table migration",
+          "status": "not_started",
+          "details": "Fields: id, agent_id, stripe_subscription_id, stripe_customer_id, status, plan_tier, current_period_start, current_period_end, cancel_at_period_end, created_at, updated_at"
+        },
+        {
+          "number": 2,
+          "task": "Add RLS policies for agent_id isolation",
+          "status": "not_started",
+          "details": "Agents can only SELECT/UPDATE their own subscriptions, service role can INSERT/UPDATE/DELETE"
+        },
+        {
+          "number": 3,
+          "task": "Add indexes for performance",
+          "status": "not_started",
+          "details": "Index on agent_id, stripe_subscription_id, status"
+        }
+      ],
+      "dependencies": [],
+      "blockers": [],
+      "deliverables": [
+        "Migration file: supabase/migrations/20251123_subscriptions.sql",
+        "RLS policies for subscriptions table"
+      ]
+    },
+    {
+      "number": 2,
+      "name": "Stripe Edge Function Implementation",
+      "description": "Create Deno-based Edge Functions for Stripe Checkout and webhook handling with signature verification",
+      "status": "not_started",
+      "completion_percentage": 0,
+      "estimated_effort": "6",
+      "assigned_subagent": "stripe-specialist",
+      "steps": [
+        {
+          "number": 1,
+          "task": "Create stripe-create-checkout-session Edge Function",
+          "status": "not_started",
+          "details": "Accept plan tier, create Stripe Checkout session, return session URL"
+        },
+        {
+          "number": 2,
+          "task": "Create stripe-webhook-handler Edge Function",
+          "status": "not_started",
+          "details": "Verify webhook signature (HMAC-SHA256), process events (checkout.session.completed, customer.subscription.updated, customer.subscription.deleted, invoice.payment_failed), update database"
+        },
+        {
+          "number": 3,
+          "task": "Add error handling and logging",
+          "status": "not_started",
+          "details": "Proper error responses, structured logging for debugging, return 200 for successfully processed webhooks"
+        }
+      ],
+      "dependencies": ["Phase 1"],
+      "blockers": [
+        {
+          "issue": "Stripe webhook secret not in environment variables",
+          "mitigation": "Document STRIPE_WEBHOOK_SECRET in .env.example, add to deployment checklist",
+          "severity": "High"
+        }
+      ],
+      "deliverables": [
+        "Edge Function: supabase/functions/stripe-create-checkout-session/index.ts",
+        "Edge Function: supabase/functions/stripe-webhook-handler/index.ts"
+      ]
+    },
+    {
+      "number": 3,
+      "name": "Frontend Integration",
+      "description": "Add subscription UI to Pricing page and dashboard with real-time status updates",
+      "status": "not_started",
+      "completion_percentage": 0,
+      "estimated_effort": "5",
+      "assigned_subagent": "human",
+      "steps": [
+        {
+          "number": 1,
+          "task": "Add Subscribe buttons to Pricing page",
+          "status": "not_started",
+          "details": "Call stripe-create-checkout-session Edge Function, redirect to Stripe Checkout"
+        },
+        {
+          "number": 2,
+          "task": "Update useSubscription hook",
+          "status": "not_started",
+          "details": "Fetch subscription status, subscribe to real-time updates, handle loading/error states"
+        },
+        {
+          "number": 3,
+          "task": "Add subscription status to AuthContext",
+          "status": "not_started",
+          "details": "Include plan_tier and status in auth context for global access"
+        },
+        {
+          "number": 4,
+          "task": "Display subscription status in dashboard",
+          "status": "not_started",
+          "details": "Show current plan, renewal date, cancel button"
+        }
+      ],
+      "dependencies": ["Phase 2"],
+      "blockers": [],
+      "deliverables": [
+        "Updated Pricing.tsx with Subscribe buttons",
+        "Updated useSubscription.ts hook",
+        "Updated AuthContext.tsx with subscription data"
+      ]
+    },
+    {
+      "number": 4,
+      "name": "Testing and Documentation",
+      "description": "Test subscription flow end-to-end and document webhook handling",
+      "status": "not_started",
+      "completion_percentage": 0,
+      "estimated_effort": "4",
+      "assigned_subagent": "human",
+      "steps": [
+        {
+          "number": 1,
+          "task": "Test subscription creation in Stripe test mode",
+          "status": "not_started",
+          "details": "Use test card 4242424242424242, verify database updated, verify dashboard shows status"
+        },
+        {
+          "number": 2,
+          "task": "Test webhook handling with Stripe CLI",
+          "status": "not_started",
+          "details": "Use stripe listen --forward-to to send test webhooks, verify signature verification, verify database updates"
+        },
+        {
+          "number": 3,
+          "task": "Test payment failure flow",
+          "status": "not_started",
+          "details": "Use test card 4000000000000341, verify status updated to past_due"
+        },
+        {
+          "number": 4,
+          "task": "Document webhook handling",
+          "status": "not_started",
+          "details": "Create Docs/Stripe/Webhook-Handling.md with event types, verification, testing"
+        }
+      ],
+      "dependencies": ["Phase 3"],
+      "blockers": [
+        {
+          "issue": "Stripe CLI may not work in some network environments",
+          "mitigation": "Alternative: manually trigger webhooks from Stripe Dashboard",
+          "severity": "Medium"
+        }
+      ],
+      "deliverables": [
+        "All tests passing",
+        "Documentation: Docs/Stripe/Webhook-Handling.md"
+      ]
+    }
+  ],
+  "subagent_assignments": [
+    {
+      "subagent": "supabase-backend-specialist",
+      "domain": "Database design, RLS policies, migrations",
+      "responsibilities": "Create subscriptions table migration with proper schema, implement RLS policies for agent_id isolation, add performance indexes",
+      "phases_involved": [1],
+      "estimated_effort": "3",
+      "key_deliverables": [
+        "Migration: 20251123_subscriptions.sql",
+        "RLS policies for subscriptions table"
+      ]
+    },
+    {
+      "subagent": "stripe-specialist",
+      "domain": "Payment processing and webhook handling",
+      "responsibilities": "Create Edge Functions for Stripe Checkout session creation and webhook verification, implement HMAC-SHA256 signature validation, handle subscription lifecycle events",
+      "phases_involved": [2],
+      "estimated_effort": "6",
+      "key_deliverables": [
+        "Edge Function: stripe-create-checkout-session",
+        "Edge Function: stripe-webhook-handler",
+        "Webhook signature verification implementation"
+      ]
+    }
+  ],
+  "reference_documents": [
+    {
+      "path": "Docs/Stripe/Stripe-Integration.md",
+      "relevance": "Webhook signature verification implementation pattern",
+      "status": "reference",
+      "sections": "Webhook Security, Testing Webhooks"
+    },
+    {
+      "path": "Docs/Architecture.md",
+      "relevance": "Update with subscriptions table schema",
+      "status": "update",
+      "sections": "Database Schema"
+    },
+    {
+      "path": "Docs/Stripe/Webhook-Handling.md",
+      "relevance": "New documentation for webhook event handling",
+      "status": "create"
+    },
+    {
+      "path": "Docs/Patterns/Real-Time-Subscriptions.md",
+      "relevance": "Real-time subscription pattern for useSubscription hook",
+      "status": "reference"
+    }
+  ],
+  "potential_blockers": [
+    {
+      "issue": "Stripe webhook endpoint SSL certificate verification in development",
+      "likelihood": "High",
+      "impact": "Medium",
+      "mitigation_strategy": "Use Stripe CLI for local webhook testing with request forwarding to localhost",
+      "fallback_plan": "Test webhooks manually in Stripe Dashboard test mode"
+    },
+    {
+      "issue": "Race condition between webhook processing and frontend subscription status check",
+      "likelihood": "Medium",
+      "impact": "Low",
+      "mitigation_strategy": "Use real-time subscriptions to push updates immediately after webhook processes",
+      "fallback_plan": "Add polling fallback if real-time connection drops"
+    },
+    {
+      "issue": "Missing Stripe pricing IDs in environment configuration",
+      "likelihood": "Medium",
+      "impact": "High",
+      "mitigation_strategy": "Document all required Stripe pricing IDs in .env.example and deployment checklist",
+      "fallback_plan": "Create pricing objects in Stripe Dashboard before deployment"
+    }
+  ],
+  "success_criteria": [
+    {
+      "criterion": "User can successfully subscribe to any plan tier and see subscription status in dashboard",
+      "how_to_verify": "Manual test: Sign up, navigate to Pricing, click Subscribe on Pro, complete Stripe Checkout, verify dashboard shows 'Pro' status",
+      "priority": "Critical",
+      "acceptance_test": "Given user on Free plan, when user completes Stripe Checkout for Pro, then dashboard displays 'Pro Plan' badge and subscription.status = 'active'"
+    },
+    {
+      "criterion": "Failed payments trigger webhook that updates subscription status and sends email notification",
+      "how_to_verify": "Use Stripe CLI to send test invoice.payment_failed webhook, check database status updated to 'past_due', verify email sent via Resend logs",
+      "priority": "High"
+    },
+    {
+      "criterion": "Webhook signature verification rejects unauthorized requests",
+      "how_to_verify": "Send webhook with invalid signature, expect 401 response and no database changes",
+      "priority": "Critical",
+      "acceptance_test": "Given webhook request with invalid HMAC signature, when webhook handler processes request, then return 401 and do not update database"
+    },
+    {
+      "criterion": "Subscription status updates in real-time without page refresh",
+      "how_to_verify": "Process webhook while user is viewing dashboard, verify status updates automatically",
+      "priority": "Medium"
+    },
+    {
+      "criterion": "All Stripe webhook events are processed within 5 seconds",
+      "how_to_verify": "Monitor Edge Function logs for webhook processing time, verify average < 5s",
+      "priority": "Medium"
+    }
+  ],
+  "technical_approach": {
+    "architecture": "Server-side payment creation using Supabase Edge Functions to keep Stripe secrets secure, client-side redirects to Stripe Checkout for payment collection, webhook handlers for automated subscription lifecycle management",
+    "key_decisions": [
+      {
+        "decision": "Use Stripe Checkout instead of Payment Intents",
+        "rationale": "Checkout provides hosted payment page with built-in PCI compliance, reduces frontend complexity, handles 3D Secure automatically",
+        "alternatives_considered": [
+          "Payment Intents with custom form",
+          "Payment Links"
+        ],
+        "trade_offs": "Less UI customization, but much simpler implementation and better security"
+      },
+      {
+        "decision": "Process webhooks in Edge Functions instead of client-side",
+        "rationale": "Webhooks must be server-side for security (signature verification requires secret key), Edge Functions are serverless and scale automatically",
+        "alternatives_considered": [
+          "Traditional server with Express",
+          "Cloud Functions"
+        ],
+        "trade_offs": "Edge Functions have cold start latency, but better cost and scaling"
+      }
+    ],
+    "tech_stack": [
+      "Stripe Checkout",
+      "Stripe Webhooks",
+      "Supabase Edge Functions (Deno)",
+      "Supabase Realtime (for subscription status updates)",
+      "React Context (for global subscription state)",
+      "TypeScript"
+    ],
+    "integration_points": [
+      {
+        "system": "Stripe API",
+        "interaction": "Create checkout sessions, receive webhooks for subscription events",
+        "authentication": "Stripe secret key in Edge Function environment variables"
+      },
+      {
+        "system": "Supabase Database",
+        "interaction": "Store subscription data, query subscription status",
+        "authentication": "Service role key in Edge Functions, anon key with RLS in frontend"
+      },
+      {
+        "system": "Resend Email API",
+        "interaction": "Send payment failure notifications",
+        "authentication": "Resend API key in Edge Function environment variables"
+      }
+    ]
+  },
+  "testing_strategy": {
+    "unit_tests": "Not applicable for this feature (primarily integration-focused)",
+    "integration_tests": "Use Stripe test mode and Stripe CLI for end-to-end subscription flow testing",
+    "manual_tests": [
+      {
+        "test_case": "Subscribe to Pro plan",
+        "steps": "1. Navigate to Pricing page, 2. Click Subscribe on Pro, 3. Complete Stripe Checkout with test card 4242424242424242, 4. Verify redirect to dashboard, 5. Verify dashboard shows 'Pro Plan' status",
+        "expected_result": "User sees Pro features unlocked, subscription.status = 'active', subscription.plan_tier = 'pro'"
+      },
+      {
+        "test_case": "Payment failure handling",
+        "steps": "1. Create subscription, 2. Use Stripe CLI to send invoice.payment_failed webhook, 3. Check database status, 4. Check email logs",
+        "expected_result": "subscription.status = 'past_due', email notification sent to user"
+      }
+    ],
+    "edge_cases": [
+      "Payment fails due to insufficient funds",
+      "User cancels subscription",
+      "Webhook delivery fails and retries",
+      "User clicks Subscribe twice (duplicate checkout sessions)",
+      "Webhook arrives before frontend redirect completes"
+    ]
+  },
+  "notes": "This is an example plan demonstrating proper structure. Real plans should be created for actual features."
+}

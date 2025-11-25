@@ -1,0 +1,107 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Claude Code Session Context Template",
+  "description": "Template for capturing Claude Code session context to enable seamless session transitions",
+  "type": "object",
+  "metadata": {
+    "timestamp": "ISO-8601 datetime when context was saved (e.g., 2025-11-23T14:30:00-08:00)",
+    "session_id": "UUID or unique identifier for the session",
+    "version": "1.0",
+    "claude_model": "Model used during session (e.g., claude-sonnet-4-5-20250929)"
+  },
+  "session": {
+    "subject": "What we're working on (e.g., 'Stripe Payment Integration', 'BoldSign E-Signature Workflow')",
+    "goal": "Objective of the session (e.g., 'Implement recurring billing subscriptions with webhook handling')",
+    "priority": "High|Medium|Low - Session priority level",
+    "estimated_duration": "Estimated time investment in hours (e.g., 2.5)",
+    "actual_duration": "Actual time spent in hours (optional)"
+  },
+  "context": {
+    "files": [
+      {
+        "path": "Relative path from project root (e.g., src/components/Pricing.tsx)",
+        "status": "created|modified|deleted|reviewed",
+        "description": "What changed and why (e.g., 'Added Stripe Checkout integration for subscription plans')",
+        "lines_changed": "Number of lines added/removed (optional)"
+      }
+    ],
+    "documentation": [
+      {
+        "path": "Documentation file referenced (e.g., Docs/Stripe/Stripe-Integration.md)",
+        "relevance": "What from this doc was used (e.g., 'Webhook signature verification pattern')",
+        "status": "referenced|updated|created"
+      }
+    ],
+    "plan": {
+      "approach": "High-level approach or strategy (e.g., 'Server-side payment creation using Edge Functions')",
+      "steps": [
+        {
+          "number": 1,
+          "description": "Step description (e.g., 'Create Stripe Checkout Edge Function')",
+          "status": "not_started|in_progress|completed|blocked",
+          "completion_percentage": "0-100",
+          "blockers": "Any issues encountered (optional)"
+        }
+      ]
+    },
+    "subagents_used": [
+      {
+        "name": "Name of subagent (e.g., stripe-specialist, supabase-backend-specialist)",
+        "purpose": "What the subagent was delegated to do",
+        "outcome": "Result or status of delegation"
+      }
+    ]
+  },
+  "progress": {
+    "blockers": [
+      {
+        "issue": "Description of the blocker (e.g., 'Webhook signature verification failing in development')",
+        "severity": "High|Medium|Low",
+        "attempted_solutions": [
+          "Solution 1 attempted",
+          "Solution 2 attempted"
+        ],
+        "current_status": "unresolved|investigating|solution_found|resolved",
+        "resolution": "How it was resolved (if resolved)"
+      }
+    ],
+    "decisions_made": [
+      {
+        "decision": "What was decided (e.g., 'Use Stripe Checkout instead of Payment Intents')",
+        "rationale": "Why this decision was made",
+        "alternatives_considered": [
+          "Alternative 1",
+          "Alternative 2"
+        ],
+        "impact": "Expected impact of this decision"
+      }
+    ],
+    "testing_status": {
+      "unit_tests": "passed|failed|not_run|n/a",
+      "integration_tests": "passed|failed|not_run|n/a",
+      "manual_testing": "Description of manual testing performed",
+      "edge_cases_covered": [
+        "Edge case 1",
+        "Edge case 2"
+      ]
+    }
+  },
+  "next_steps": [
+    {
+      "action": "Specific next action (e.g., 'Deploy Edge Function to production')",
+      "priority": "High|Medium|Low",
+      "assigned_to": "agent_name|subagent_name|human - who should handle this",
+      "estimated_effort": "Estimated time in hours",
+      "dependencies": "What needs to happen first (optional)",
+      "success_criteria": "How to know this is done (optional)"
+    }
+  ],
+  "knowledge_gained": [
+    {
+      "topic": "What was learned (e.g., 'Stripe webhook retry behavior')",
+      "insight": "Key insight or takeaway",
+      "documentation_updated": "Path to doc if knowledge was documented"
+    }
+  ],
+  "summary": "1-2 paragraph overview of session accomplishments, current status, and key takeaways. This should provide enough context for a new agent to understand the full picture without reading all the details."
+}

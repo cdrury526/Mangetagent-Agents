@@ -1,0 +1,44 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "comment": "Validate context files match template structure and naming convention",
+            "command": ".claude/hooks/validate-context.py"
+          },
+          {
+            "type": "command",
+            "comment": "Validate plan files match template structure and naming convention",
+            "command": ".claude/hooks/validate-plan.py"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write.*\\.(ts|tsx|js|jsx)|Edit.*\\.(ts|tsx|js|jsx)",
+        "hooks": [
+          {
+            "type": "command",
+            "comment": "Auto-format TypeScript/JavaScript files with Prettier",
+            "command": "npx prettier --write \"$CLAUDE_FILE_PATHS\""
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "comment": "Run end-of-turn quality checks (type checking and linting)",
+            "command": ".claude/hooks/end-of-turn-check.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

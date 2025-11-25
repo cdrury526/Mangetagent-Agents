@@ -1,0 +1,188 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Claude Code Feature Plan Template",
+  "description": "Template for creating structured feature implementation plans with subagent assignments and progress tracking",
+  "type": "object",
+  "metadata": {
+    "created": "ISO-8601 timestamp when plan was created (e.g., 2025-11-23T14:30:00-08:00)",
+    "created_by": "Claude model identifier (e.g., claude-sonnet-4-5-20250929)",
+    "plan_id": "Unique identifier (UUID format)",
+    "version": "1.0",
+    "last_updated": "ISO-8601 timestamp of last modification (optional)"
+  },
+  "planning": {
+    "goal": "Clear, concise statement of what we're trying to achieve (e.g., 'Implement Stripe subscription billing with recurring payments and webhook handling')",
+    "reason": "Why this feature is important or needed (e.g., 'Enable SaaS business model with monthly recurring revenue')",
+    "scope": "What's included and excluded from this plan (e.g., 'Includes: subscription creation, cancellation, webhook handling. Excludes: usage-based billing, proration')",
+    "success_metrics": [
+      "Measurable outcome 1 (e.g., 'Users can subscribe to any plan tier')",
+      "Measurable outcome 2 (e.g., 'Failed payments trigger automated email notifications')"
+    ],
+    "estimated_timeline": "Total estimated time in hours or days (e.g., '18 hours' or '3 days')",
+    "priority": "Critical|High|Medium|Low - Overall feature priority"
+  },
+  "files_impacted": [
+    {
+      "path": "Relative path from project root (e.g., src/pages/Pricing.tsx)",
+      "type": "created|modified|deleted|reviewed",
+      "reason": "Why this file is involved (e.g., 'Add Stripe Checkout button for subscription plans')",
+      "estimated_changes": "Approximate lines of code or complexity (optional, e.g., '+50 lines', 'major refactor')"
+    }
+  ],
+  "phases": [
+    {
+      "number": 1,
+      "name": "Phase name (e.g., 'Database Schema Setup')",
+      "description": "What this phase accomplishes (e.g., 'Create subscriptions table with RLS policies and status tracking')",
+      "status": "not_started|in_progress|completed|blocked",
+      "completion_percentage": 0,
+      "estimated_effort": "Estimated hours for this phase (e.g., '4')",
+      "actual_effort": "Actual hours spent (optional, filled during execution)",
+      "assigned_subagent": "Subagent name from agent-index.md or 'human' (e.g., 'supabase-backend-specialist')",
+      "steps": [
+        {
+          "number": 1,
+          "task": "Specific task to complete (e.g., 'Create subscriptions table migration')",
+          "status": "not_started|in_progress|completed|blocked",
+          "details": "Implementation details or notes (e.g., 'Include fields: id, agent_id, stripe_subscription_id, status, plan_tier, current_period_end')",
+          "estimated_effort": "Hours for this step (optional)"
+        }
+      ],
+      "dependencies": [
+        "List of phase numbers or names this phase depends on (e.g., 'Phase 2', 'Database Setup'). Empty array if no dependencies."
+      ],
+      "blockers": [
+        {
+          "issue": "Potential blocker description (e.g., 'Stripe API keys not configured')",
+          "mitigation": "How to mitigate or resolve (e.g., 'Document required environment variables in .env.example')",
+          "severity": "High|Medium|Low"
+        }
+      ],
+      "deliverables": [
+        "What this phase produces (e.g., 'Migration file: supabase/migrations/20251123_subscriptions.sql')",
+        "RLS policies for agent_id isolation"
+      ]
+    }
+  ],
+  "subagent_assignments": [
+    {
+      "subagent": "Name from agent-index.md (e.g., 'stripe-specialist')",
+      "domain": "Their area of expertise (e.g., 'Payment processing and webhook handling')",
+      "responsibilities": "What they're responsible for in this plan (e.g., 'Create Edge Functions for Stripe Checkout and webhook verification')",
+      "phases_involved": [
+        2,
+        3
+      ],
+      "estimated_effort": "Total hours for this subagent (e.g., '8')",
+      "key_deliverables": [
+        "Major outputs from this subagent (e.g., 'Edge Function: stripe-create-checkout-session')",
+        "Edge Function: stripe-webhook-handler"
+      ]
+    }
+  ],
+  "reference_documents": [
+    {
+      "path": "Documentation file path (e.g., Docs/Stripe/Stripe-Integration.md)",
+      "relevance": "How it's relevant to this plan (e.g., 'Webhook signature verification implementation pattern')",
+      "status": "reference|update|create",
+      "sections": "Specific sections to reference (optional, e.g., 'Webhook Security, Testing Webhooks')"
+    }
+  ],
+  "potential_blockers": [
+    {
+      "issue": "Description of potential blocker (e.g., 'Stripe webhook endpoint SSL certificate verification in development')",
+      "likelihood": "High|Medium|Low",
+      "impact": "High|Medium|Low - Impact if this blocker occurs",
+      "mitigation_strategy": "Proactive plan to handle it (e.g., 'Use Stripe CLI for local webhook testing with request forwarding')",
+      "fallback_plan": "Alternative approach if mitigation fails (optional)"
+    }
+  ],
+  "success_criteria": [
+    {
+      "criterion": "Specific, measurable success metric (e.g., 'User can successfully subscribe to a plan and see subscription status in dashboard')",
+      "how_to_verify": "Concrete verification method (e.g., 'Manual test: create subscription in Stripe test mode, verify status appears correctly in app')",
+      "priority": "Critical|High|Medium|Low",
+      "acceptance_test": "Specific test case (optional, e.g., 'Given user clicks Subscribe on Pro plan, when Stripe Checkout completes, then subscription status = active in database')"
+    }
+  ],
+  "risks_and_assumptions": [
+    {
+      "type": "risk|assumption",
+      "description": "Description of risk or assumption (e.g., 'Assumption: Stripe pricing IDs are already configured in Stripe Dashboard')",
+      "impact": "What happens if this is wrong or materializes (e.g., 'Need to create pricing objects before Checkout sessions work')",
+      "owner": "Who manages this risk/assumption (optional, e.g., 'human', 'stripe-specialist')"
+    }
+  ],
+  "technical_approach": {
+    "architecture": "High-level architectural approach (e.g., 'Server-side payment creation using Supabase Edge Functions to keep secrets secure')",
+    "key_decisions": [
+      {
+        "decision": "Technical decision made (e.g., 'Use Stripe Checkout instead of Payment Intents')",
+        "rationale": "Why this decision (e.g., 'Checkout provides hosted payment page, reducing PCI compliance burden')",
+        "alternatives_considered": [
+          "Payment Intents with custom form",
+          "Payment Links"
+        ],
+        "trade_offs": "Pros and cons (optional)"
+      }
+    ],
+    "tech_stack": [
+      "Technology or service used (e.g., 'Stripe Checkout', 'Supabase Edge Functions', 'React Context for state')"
+    ],
+    "integration_points": [
+      {
+        "system": "External system or service (e.g., 'Stripe API')",
+        "interaction": "How we interact (e.g., 'Create checkout sessions, receive webhooks')",
+        "authentication": "Auth method (e.g., 'Stripe secret key in Edge Function env vars')"
+      }
+    ]
+  },
+  "execution_history": [
+    {
+      "date": "ISO-8601 date (e.g., 2025-11-23)",
+      "context_file": "Associated context file if applicable (e.g., context-11-23-25-2-30pm.json)",
+      "phases_completed": [
+        1
+      ],
+      "phases_started": [
+        2
+      ],
+      "notes": "Session notes (e.g., 'Phase 1 completed successfully, starting Phase 2 next session. Discovered blocker: need to update webhook endpoint URL.')",
+      "blockers_encountered": [
+        "New blockers discovered during execution"
+      ],
+      "decisions_made": [
+        "Runtime decisions that weren't in original plan"
+      ]
+    }
+  ],
+  "testing_strategy": {
+    "unit_tests": "Approach for unit testing (e.g., 'Test webhook signature verification logic with mock payloads')",
+    "integration_tests": "Approach for integration testing (e.g., 'Use Stripe test mode and Stripe CLI for end-to-end checkout flow')",
+    "manual_tests": [
+      {
+        "test_case": "What to test manually (e.g., 'Subscribe to Pro plan')",
+        "steps": "Test steps (e.g., '1. Click Subscribe, 2. Complete Stripe Checkout, 3. Verify subscription status')",
+        "expected_result": "What should happen (e.g., 'User sees Pro features unlocked, subscription status = active')"
+      }
+    ],
+    "edge_cases": [
+      "Edge case 1 (e.g., 'Payment fails due to insufficient funds')",
+      "Edge case 2 (e.g., 'User cancels subscription')",
+      "Edge case 3 (e.g., 'Webhook delivery fails and retries')"
+    ]
+  },
+  "rollout_plan": {
+    "deployment_phases": [
+      {
+        "phase": "Deployment phase (e.g., 'Development', 'Staging', 'Production')",
+        "when": "When to deploy (e.g., 'After all tests pass')",
+        "verification": "How to verify success (e.g., 'Test subscription creation in production with test card')",
+        "rollback_plan": "How to rollback if issues (e.g., 'Revert Edge Function deployment, disable pricing page')"
+      }
+    ],
+    "feature_flags": "Feature flags to use (optional)",
+    "monitoring": "What to monitor after deployment (e.g., 'Watch for failed webhook deliveries, subscription creation errors')"
+  },
+  "notes": "Additional planning notes, considerations, or context that doesn't fit elsewhere"
+}
