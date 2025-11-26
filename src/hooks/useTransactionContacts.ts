@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Contact, TransactionContact } from '../types/database';
+import { getErrorMessage } from '../utils/errorHandler';
 
 interface TransactionContactWithDetails extends TransactionContact {
   contact: Contact;
@@ -38,7 +39,8 @@ export function useTransactionContacts(transactionId: string | undefined) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [transactionId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [transactionId]); // fetchTransactionContacts is intentionally excluded - it's stable and including it would cause infinite loops
 
   async function fetchTransactionContacts() {
     try {
@@ -54,8 +56,8 @@ export function useTransactionContacts(transactionId: string | undefined) {
       if (fetchError) throw fetchError;
       setTransactionContacts(data || []);
       setError(null);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }

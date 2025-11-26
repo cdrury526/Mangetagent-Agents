@@ -6,7 +6,7 @@ import { ConfirmModal } from '../ui/ConfirmModal';
 import { CheckCircle2, Mail, Briefcase, User, Trash2, AlertCircle, Star } from 'lucide-react';
 
 export function SenderIdentityList() {
-  const { identities, loading, error, refresh, setDefaultIdentity, deleteIdentity } = useBoldSignIdentities();
+  const { identities, loading, error, setDefaultIdentity, deleteIdentity } = useBoldSignIdentities();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [identityToDelete, setIdentityToDelete] = useState<BoldSignIdentity | null>(null);
@@ -24,8 +24,8 @@ export function SenderIdentityList() {
     try {
       await deleteIdentity(identityToDelete.id);
       setIdentityToDelete(null);
-    } catch (err: any) {
-      setDeleteError(err.message);
+    } catch (err: unknown) {
+      setDeleteError((err instanceof Error ? err.message : String(err)));
     } finally {
       setDeletingId(null);
     }
@@ -38,8 +38,8 @@ export function SenderIdentityList() {
   const handleSetDefault = async (id: string) => {
     try {
       await setDefaultIdentity(id);
-    } catch (err: any) {
-      setDeleteError(err.message);
+    } catch (err: unknown) {
+      setDeleteError((err instanceof Error ? err.message : String(err)));
     }
   };
 
@@ -118,7 +118,9 @@ export function SenderIdentityList() {
                   </span>
                 )}
                 {identity.approval_status === 'approved' && (
-                  <CheckCircle2 className="w-5 h-5 text-green-600" title="Verified" />
+                  <span title="Verified">
+                    <CheckCircle2 className="w-5 h-5 text-green-600" />
+                  </span>
                 )}
               </div>
 

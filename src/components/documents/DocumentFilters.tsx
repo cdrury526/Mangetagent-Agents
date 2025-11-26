@@ -52,7 +52,7 @@ export function DocumentFilters({
           id="type-filter"
           value={selectedType}
           onChange={(e) => onTypeChange(e.target.value as DocumentType | 'all')}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white text-gray-900 cursor-pointer"
         >
           {documentTypes.map((type) => (
             <option key={type.value} value={type.value}>
@@ -70,7 +70,7 @@ export function DocumentFilters({
           id="transaction-filter"
           value={selectedTransaction}
           onChange={(e) => onTransactionChange(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white text-gray-900 cursor-pointer"
         >
           <option value="all">All Transactions</option>
           {transactions.map((transaction) => (
@@ -89,7 +89,7 @@ export function DocumentFilters({
           id="status-filter"
           value={selectedStatus}
           onChange={(e) => onStatusChange(e.target.value as ESignatureStatus | 'all' | 'none')}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white text-gray-900 cursor-pointer"
         >
           {signatureStatuses.map((status) => (
             <option key={status.value} value={status.value}>

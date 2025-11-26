@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../contexts/AuthContext'
+import { useAuth } from '../hooks/useAuth'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 import { Alert } from '../components/ui/Alert'
@@ -42,8 +42,8 @@ export function Signup() {
       setTimeout(() => {
         navigate('/')
       }, 2000)
-    } catch (err: any) {
-      setError(err.message || 'Failed to sign up')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? (err instanceof Error ? err.message : String(err)) : 'Failed to sign up')
     } finally {
       setLoading(false)
     }

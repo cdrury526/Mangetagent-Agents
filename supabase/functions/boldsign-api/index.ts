@@ -1,5 +1,4 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "jsr:@supabase/supabase-js@2";
 import { encodeBase64 } from "jsr:@std/encoding/base64";
 
 // BoldSign Configuration
@@ -20,7 +19,8 @@ if (!SUPABASE_SERVICE_ROLE_KEY) {
   console.error("ERROR: SUPABASE_SERVICE_ROLE_KEY not configured");
 }
 
-const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
+// Supabase client available for future use
+// const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
 
 /**
  * Token Cache for OAuth tokens
@@ -95,8 +95,7 @@ async function getAccessToken(): Promise<string> {
       throw new Error("BoldSign token endpoint returned invalid response");
     }
 
-    // Cache token with 5-minute safety buffer (300 seconds)
-    const safetyBufferMs = 300 * 1000; // 5 minutes
+    // Cache token with 5-minute safety buffer (300 seconds = 300,000ms)
     cachedToken = {
       token: data.access_token,
       expiresAt: now + (data.expires_in - 300) * 1000, // Subtract 5 minutes safety buffer
@@ -199,9 +198,32 @@ function handleCORS() {
 }
 
 /**
+ * BoldSign signer interface
+ */
+interface BoldSignSigner {
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  signerOrder?: number;
+  signerRole?: string;
+}
+
+/**
+ * Send document parameters
+ */
+interface SendDocumentParams {
+  documentUrl: string;
+  name?: string;
+  signers: BoldSignSigner[];
+  emailMessage?: string;
+  subject?: string;
+  expiryDays?: number;
+}
+
+/**
  * Send document for signature
  */
-async function handleSendDocument(params: any) {
+async function handleSendDocument(params: SendDocumentParams) {
   try {
     console.log('[BoldSign API] sendDocument: Starting with params:', {
       documentUrl: params.documentUrl ? params.documentUrl.substring(0, 100) + '...' : 'none',
@@ -256,7 +278,28 @@ async function handleSendDocument(params: any) {
     }
 
     // Build payload with Base64 encoded file
-    const payload: any = {
+    interface BoldSignPayload {
+      title: string;
+      files: Array<{ fileName: string; base64: string }>;
+      signers: Array<{
+        emailAddress: string;
+        name: string;
+        signerOrder: number;
+        authenticationMethod: string;
+        formFields: Array<{
+          fieldType: string;
+          pageNumber: number;
+          bounds: { x: number; y: number; width: number; height: number };
+          isRequired: boolean;
+        }>;
+      }>;
+      useTextTags: boolean;
+      emailMessage?: string;
+      subject?: string;
+      expiryDays?: number;
+    }
+
+    const payload: BoldSignPayload = {
       title: name || 'Signing Document', // BoldSign requires title or documentInformation
       files: [
         {
@@ -264,7 +307,7 @@ async function handleSendDocument(params: any) {
           base64: fileBase64,
         },
       ],
-      signers: signers.map((s: any) => {
+      signers: signers.map((s) => {
         const fullName = [s.firstName, s.lastName].filter(Boolean).join(' ') || 'Signer';
         const signer = {
           emailAddress: s.email,
@@ -298,7 +341,7 @@ async function handleSendDocument(params: any) {
     if (expiryDays) payload.expiryDays = expiryDays;
 
     console.log('[BoldSign API] sendDocument: Request payload prepared, calling BoldSign API');
-    console.log('[BoldSign API] sendDocument: Payload signers:', payload.signers.map((s: any) => ({ emailAddress: s.emailAddress, order: s.signerOrder })));
+    console.log('[BoldSign API] sendDocument: Payload signers:', payload.signers.map((s) => ({ emailAddress: s.emailAddress, order: s.signerOrder })));
 
     // Log full payload for debugging
     console.log('[BoldSign API] sendDocument: Full payload:', JSON.stringify(payload, null, 2));
@@ -320,7 +363,7 @@ async function handleSendDocument(params: any) {
     const responseText = await response.text();
     console.log('[BoldSign API] sendDocument: Response text (first 1000 chars):', responseText.substring(0, 1000));
 
-    let data: any;
+    let data: unknown;
     try {
       data = responseText ? JSON.parse(responseText) : {};
     } catch (parseError) {
@@ -337,15 +380,16 @@ async function handleSendDocument(params: any) {
     }
 
     if (!response.ok) {
+      const errorData = data as { message?: string; error?: string };
       console.error('[BoldSign API] sendDocument: API error response', {
         status: response.status,
         statusText: response.statusText,
-        message: data?.message || data?.error || 'Unknown error',
+        message: errorData?.message || errorData?.error || 'Unknown error',
         fullData: JSON.stringify(data),
       });
       return new Response(
         JSON.stringify({
-          error: data.message || data.error || `BoldSign API error (${response.status})`,
+          error: errorData.message || errorData.error || `BoldSign API error (${response.status})`,
           details: data,
           status: response.status,
           statusText: response.statusText,
@@ -354,7 +398,8 @@ async function handleSendDocument(params: any) {
       );
     }
 
-    console.log('[BoldSign API] sendDocument: Success! Document ID:', data?.documentId);
+    const successData = data as { documentId?: string };
+    console.log('[BoldSign API] sendDocument: Success! Document ID:', successData?.documentId);
 
     return new Response(JSON.stringify(data), {
       status: 200,
@@ -372,9 +417,22 @@ async function handleSendDocument(params: any) {
 }
 
 /**
+ * Send on behalf parameters
+ */
+interface SendOnBehalfParams {
+  documentId: string;
+  senderEmail: string;
+  senderName: string;
+  senderIdentityId?: string;
+  signers: BoldSignSigner[];
+  emailMessage?: string;
+  subject?: string;
+}
+
+/**
  * Send document on behalf of another user
  */
-async function handleSendOnBehalf(params: any) {
+async function handleSendOnBehalf(params: SendOnBehalfParams) {
   try {
     const { documentId, senderEmail, senderName, senderIdentityId, signers, emailMessage, subject } = params;
 
@@ -383,7 +441,7 @@ async function handleSendOnBehalf(params: any) {
       senderEmail,
       senderName,
       ...(senderIdentityId && { senderIdentityId }),
-      signers: signers.map((s: any) => ({
+      signers: signers.map((s) => ({
         email: s.email,
         firstName: s.firstName,
         lastName: s.lastName,
@@ -420,9 +478,17 @@ async function handleSendOnBehalf(params: any) {
 }
 
 /**
+ * Revoke document parameters
+ */
+interface RevokeDocumentParams {
+  documentId: string;
+  revokeReason?: string;
+}
+
+/**
  * Revoke a document
  */
-async function handleRevokeDocument(params: any) {
+async function handleRevokeDocument(params: RevokeDocumentParams) {
   try {
     const { documentId, revokeReason } = params;
 
@@ -459,9 +525,16 @@ async function handleRevokeDocument(params: any) {
 }
 
 /**
+ * Get document parameters
+ */
+interface GetDocumentParams {
+  documentId: string;
+}
+
+/**
  * Get document details
  */
-async function handleGetDocument(params: any) {
+async function handleGetDocument(params: GetDocumentParams) {
   try {
     const { documentId } = params;
 
@@ -492,9 +565,18 @@ async function handleGetDocument(params: any) {
 }
 
 /**
+ * Download document parameters
+ */
+interface DownloadDocumentParams {
+  documentId: string;
+  format?: string;
+  type?: 'original' | 'signed' | 'audit';
+}
+
+/**
  * Download document (returns binary PDF)
  */
-async function handleDownloadDocument(params: any) {
+async function handleDownloadDocument(params: DownloadDocumentParams) {
   try {
     const { documentId, format = 'pdf', type = 'signed' } = params;
 
@@ -541,11 +623,21 @@ async function handleDownloadDocument(params: any) {
 }
 
 /**
+ * Generate signing link parameters
+ */
+interface GenerateSigningLinkParams {
+  documentId: string;
+  signerEmail: string;
+  redirectUrl?: string;
+  expiresIn?: number;
+}
+
+/**
  * Generate signing link for embedded signing
  * BoldSign API: POST /document/{documentId}/embeddedSigningLink
  * Returns: { embeddedSigningLink, expiryTime }
  */
-async function handleGenerateSigningLink(params: any) {
+async function handleGenerateSigningLink(params: GenerateSigningLinkParams) {
   try {
     const { documentId, signerEmail, redirectUrl, expiresIn = 3600 } = params;
 
@@ -641,11 +733,31 @@ async function handleGenerateSigningLink(params: any) {
 }
 
 /**
+ * Create embedded request parameters
+ */
+interface CreateEmbeddedRequestParams {
+  documentUrl: string;
+  name?: string;
+  signers: BoldSignSigner[];
+  title?: string;
+  message?: string;
+  expiryDays?: number;
+  redirectUrl?: string;
+  showToolbar?: boolean;
+  showNavigationButtons?: boolean;
+  showSendButton?: boolean;
+  showPreviewButton?: boolean;
+  showSaveButton?: boolean;
+  sendViewOption?: string;
+  showTooltip?: boolean;
+}
+
+/**
  * Create embedded request URL for document preparation
  * Allows users to place signature fields before sending
  * BoldSign API: POST /v1/document/createEmbeddedRequestUrl
  */
-async function handleCreateEmbeddedRequest(params: any) {
+async function handleCreateEmbeddedRequest(params: CreateEmbeddedRequestParams) {
   try {
     const {
       documentUrl,
@@ -713,7 +825,28 @@ async function handleCreateEmbeddedRequest(params: any) {
     }
 
     // Build payload for embedded request
-    const payload: any = {
+    interface EmbeddedRequestPayload {
+      title: string;
+      files: Array<{ fileName: string; base64: string }>;
+      signers: Array<{
+        name: string;
+        emailAddress: string;
+        signerOrder: number;
+        signerRole: string;
+      }>;
+      expiryDays: number;
+      showToolbar: boolean;
+      showNavigationButtons: boolean;
+      showSendButton: boolean;
+      showPreviewButton: boolean;
+      showSaveButton: boolean;
+      sendViewOption: string;
+      showTooltip: boolean;
+      message?: string;
+      redirectUrl?: string;
+    }
+
+    const payload: EmbeddedRequestPayload = {
       title: title || name || 'Document for Signature',
       files: [
         {
@@ -721,7 +854,7 @@ async function handleCreateEmbeddedRequest(params: any) {
           base64: fileBase64,
         },
       ],
-      signers: signers.map((s: any, index: number) => {
+      signers: signers.map((s, index: number) => {
         const fullName = [s.firstName, s.lastName].filter(Boolean).join(' ') || 'Signer';
         return {
           name: fullName,
@@ -764,7 +897,7 @@ async function handleCreateEmbeddedRequest(params: any) {
     });
 
     const responseText = await response.text();
-    let data: any;
+    let data: unknown;
     try {
       data = responseText ? JSON.parse(responseText) : {};
     } catch (parseError) {
@@ -779,13 +912,14 @@ async function handleCreateEmbeddedRequest(params: any) {
     }
 
     if (!response.ok) {
+      const errorData = data as { message?: string; error?: string };
       console.error('[createEmbeddedRequest] API error:', {
         status: response.status,
-        message: data?.message || data?.error || 'Unknown error',
+        message: errorData?.message || errorData?.error || 'Unknown error',
       });
       return new Response(
         JSON.stringify({
-          error: data.message || data.error || `BoldSign API error (${response.status})`,
+          error: errorData.message || errorData.error || `BoldSign API error (${response.status})`,
           details: data,
         }),
         { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -809,10 +943,20 @@ async function handleCreateEmbeddedRequest(params: any) {
 }
 
 /**
+ * Upload document parameters
+ */
+interface UploadDocumentParams {
+  file?: Blob | ArrayBuffer;
+  name?: string;
+  labels?: string[];
+  documentUrl?: string;
+}
+
+/**
  * Upload document to BoldSign
  * Accepts either a file (FormData) or a documentUrl to download from
  */
-async function handleUploadDocument(params: any) {
+async function handleUploadDocument(params: UploadDocumentParams) {
   try {
     if (!BOLDSIGN_API_KEY) {
       return new Response(
@@ -880,7 +1024,7 @@ async function handleUploadDocument(params: any) {
     console.log('BoldSign upload response status:', response.status);
 
     // Try to parse JSON response, but handle non-JSON errors
-    let data: any;
+    let data: unknown;
     try {
       const text = await response.text();
       data = text ? JSON.parse(text) : {};
@@ -905,14 +1049,20 @@ async function handleUploadDocument(params: any) {
         errorMessage = data;
       } else if (data && typeof data === 'object') {
         // BoldSign errors often returned as { error: { message, type } }
-        const nestedError = (data as any).error;
-        if (nestedError && typeof nestedError === 'object' && typeof nestedError.message === 'string') {
-          errorMessage = nestedError.message;
-        } else if (typeof (data as any).message === 'string') {
-          errorMessage = (data as any).message;
-        } else if (typeof (data as any).errorMessage === 'string') {
-          errorMessage = (data as any).errorMessage;
-        } else if (nestedError && typeof nestedError === 'string') {
+        const errorData = data as { error?: unknown; message?: string; errorMessage?: string };
+        const nestedError = errorData.error;
+        if (nestedError && typeof nestedError === 'object') {
+          const errorObj = nestedError as { message?: string };
+          if (typeof errorObj.message === 'string') {
+            errorMessage = errorObj.message;
+          } else {
+            errorMessage = JSON.stringify(nestedError);
+          }
+        } else if (typeof errorData.message === 'string') {
+          errorMessage = errorData.message;
+        } else if (typeof errorData.errorMessage === 'string') {
+          errorMessage = errorData.errorMessage;
+        } else if (typeof nestedError === 'string') {
           errorMessage = nestedError;
         } else {
           try {
@@ -953,7 +1103,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    let requestBody: any;
+    let requestBody: { action?: string; [key: string]: unknown };
     try {
       const text = await req.text();
       requestBody = text ? JSON.parse(text) : {};

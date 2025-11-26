@@ -29,6 +29,18 @@ interface AddressAutocompleteProps {
   placeholder?: string;
 }
 
+// Google Places API types
+interface GooglePlacePrediction {
+  placePrediction?: {
+    placeId: string;
+    text?: { text?: string };
+    structuredFormat?: {
+      mainText?: { text?: string };
+      secondaryText?: { text?: string };
+    };
+  };
+}
+
 export const AddressAutocomplete = forwardRef<HTMLInputElement, AddressAutocompleteProps>(
   ({ label, value, onChange, onAddressSelect, required, error, helperText, placeholder }, ref) => {
     const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -59,7 +71,8 @@ export const AddressAutocomplete = forwardRef<HTMLInputElement, AddressAutocompl
     }, []);
 
     const fetchSuggestions = async (input: string) => {
-      const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+      // Try both VITE_ prefixed and non-prefixed keys for compatibility
+      const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || import.meta.env.VITE_GOOGLE_PLACES_API_KEY;
 
       if (!apiKey || apiKey === 'YOUR_GOOGLE_MAPS_API_KEY') {
         console.warn('Google Maps API key not configured');
@@ -104,11 +117,11 @@ export const AddressAutocomplete = forwardRef<HTMLInputElement, AddressAutocompl
         const predictions = data.suggestions || [];
 
         const formattedSuggestions: Suggestion[] = predictions
-          .filter((s: any) => s.placePrediction)
-          .map((s: any) => ({
-            placeId: s.placePrediction.placeId,
-            text: s.placePrediction.text?.text || '',
-            structuredFormat: s.placePrediction.structuredFormat
+          .filter((s: GooglePlacePrediction) => s.placePrediction)
+          .map((s: GooglePlacePrediction) => ({
+            placeId: s.placePrediction?.placeId || '',
+            text: s.placePrediction?.text?.text || '',
+            structuredFormat: s.placePrediction?.structuredFormat
               ? {
                   mainText: s.placePrediction.structuredFormat.mainText?.text || '',
                   secondaryText: s.placePrediction.structuredFormat.secondaryText?.text || '',
@@ -119,8 +132,8 @@ export const AddressAutocomplete = forwardRef<HTMLInputElement, AddressAutocompl
         setSuggestions(formattedSuggestions);
         setShowDropdown(formattedSuggestions.length > 0);
         setSelectedIndex(-1);
-      } catch (err: any) {
-        if (err.name !== 'AbortError') {
+      } catch (err: unknown) {
+        if (err instanceof Error && err.name !== 'AbortError') {
           console.error('Error fetching address suggestions:', err);
           setSuggestions([]);
         }
@@ -130,7 +143,8 @@ export const AddressAutocomplete = forwardRef<HTMLInputElement, AddressAutocompl
     };
 
     const fetchPlaceDetails = async (placeId: string) => {
-      const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+      // Try both VITE_ prefixed and non-prefixed keys for compatibility
+      const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || import.meta.env.VITE_GOOGLE_PLACES_API_KEY;
 
       if (!apiKey || apiKey === 'YOUR_GOOGLE_MAPS_API_KEY') {
         return;

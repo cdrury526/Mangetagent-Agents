@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AgentLayout } from '../../components/AgentLayout';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import { useTransactions } from '../../hooks/useTransactions';
 import { TransactionStatus, TransactionSide } from '../../types/database';
-import { Plus, Search, Filter, X, AlertCircle } from 'lucide-react';
+import { Plus, Search, X, AlertCircle } from 'lucide-react';
 
 const STATUS_OPTIONS: { value: TransactionStatus; label: string }[] = [
   { value: 'prospecting', label: 'Prospecting' },
@@ -79,14 +79,15 @@ export function Transactions() {
           contract_accepted_date: null,
           buyer_financing_approval: null,
           move_out_date: null,
+          section_last_updated: null,
         },
         user!.subscription_plan
       );
 
       setShowModal(false);
       form.reset();
-    } catch (err: any) {
-      setError(err.message || 'Failed to create transaction');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? (err instanceof Error ? err.message : String(err)) : String(err) || 'Failed to create transaction');
     } finally {
       setSubmitting(false);
     }
@@ -175,13 +176,13 @@ export function Transactions() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search transactions..."
-                className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-slate-700 placeholder-slate-400 cursor-text"
               />
             </div>
             <select
               value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value as any)}
-              className="px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              onChange={(e) => setFilterStatus(e.target.value as TransactionStatus | 'all')}
+              className="px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-slate-700 cursor-pointer"
             >
               <option value="all">All Statuses</option>
               {STATUS_OPTIONS.map((opt) => (
@@ -192,8 +193,8 @@ export function Transactions() {
             </select>
             <select
               value={filterSide}
-              onChange={(e) => setFilterSide(e.target.value as any)}
-              className="px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              onChange={(e) => setFilterSide(e.target.value as TransactionSide | 'all')}
+              className="px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-slate-700 cursor-pointer"
             >
               <option value="all">All Sides</option>
               <option value="buyer">Buyer</option>

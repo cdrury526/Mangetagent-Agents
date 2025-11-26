@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Transaction } from '../types/database';
+import { getErrorMessage } from '../utils/errorHandler';
 
 export function useTransactions(agentId: string | undefined) {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -34,7 +35,8 @@ export function useTransactions(agentId: string | undefined) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [agentId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [agentId]); // fetchTransactions is intentionally excluded - it's stable and including it would cause infinite loops
 
   async function fetchTransactions() {
     try {
@@ -48,8 +50,8 @@ export function useTransactions(agentId: string | undefined) {
       if (fetchError) throw fetchError;
       setTransactions(data || []);
       setError(null);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }

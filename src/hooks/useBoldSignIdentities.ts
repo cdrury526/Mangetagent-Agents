@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { getErrorMessage } from '../utils/errorHandler';
 
 export interface BoldSignIdentity {
   id: string;
@@ -44,8 +45,8 @@ export function useBoldSignIdentities() {
       if (fetchError) throw fetchError;
 
       setIdentities(data || []);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -69,8 +70,8 @@ export function useBoldSignIdentities() {
 
       await fetchIdentities();
       return data;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(getErrorMessage(err));
       throw err;
     }
   };
@@ -88,8 +89,8 @@ export function useBoldSignIdentities() {
       if (updateError) throw updateError;
 
       await fetchIdentities();
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(getErrorMessage(err));
       throw err;
     }
   };
@@ -104,8 +105,8 @@ export function useBoldSignIdentities() {
       if (deleteError) throw deleteError;
 
       await fetchIdentities();
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(getErrorMessage(err));
       throw err;
     }
   };
@@ -126,8 +127,8 @@ export function useBoldSignIdentities() {
         .eq('id', id);
 
       await fetchIdentities();
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(getErrorMessage(err));
       throw err;
     }
   };

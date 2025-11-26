@@ -2,12 +2,16 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { useTransactions } from '../../hooks/useTransactions';
-import { useAuth } from '../../contexts/AuthContext';
+import { useTasks } from '../../hooks/useTasks';
+import { useTransactionContacts } from '../../hooks/useTransactionContacts';
+import { useDocuments } from '../../hooks/useDocuments';
+import { useAuth } from '../../hooks/useAuth';
 import { AgentLayout } from '../../components/AgentLayout';
 import { DetailsTab } from '../../components/transaction-detail/DetailsTab';
 import { TasksTab } from '../../components/transaction-detail/TasksTab';
 import { ContactsTab } from '../../components/transaction-detail/ContactsTab';
 import { DocumentsTab } from '../../components/transaction-detail/DocumentsTab';
+import type { Transaction } from '../../types/database';
 
 type TabType = 'details' | 'tasks' | 'contacts' | 'documents';
 
@@ -16,11 +20,17 @@ export default function TransactionDetail() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { transactions, loading, updateTransaction } = useTransactions(user?.id);
+  
+  // Fetch data for counts
+  const { tasks } = useTasks(id);
+  const { transactionContacts } = useTransactionContacts(id);
+  const { documents } = useDocuments(id);
+
   const [activeTab, setActiveTab] = useState<TabType>('details');
 
   const transaction = transactions.find((t) => t.id === id);
 
-  const handleUpdateTransaction = async (updates: Partial<typeof transaction>) => {
+  const handleUpdateTransaction = async (updates: Partial<Transaction>) => {
     if (!transaction) return;
     await updateTransaction(transaction.id, updates);
   };
@@ -51,11 +61,16 @@ export default function TransactionDetail() {
     );
   }
 
-  const tabs: { id: TabType; label: string }[] = [
+  // Calculate counts
+  const uncompletedTasksCount = tasks.filter(t => !t.completed).length;
+  const contactsCount = transactionContacts.length;
+  const documentsCount = documents.length;
+
+  const tabs: { id: TabType; label: string; count?: number }[] = [
     { id: 'details', label: 'Details' },
-    { id: 'tasks', label: 'Tasks' },
-    { id: 'contacts', label: 'Contacts' },
-    { id: 'documents', label: 'Documents' },
+    { id: 'tasks', label: 'Tasks', count: uncompletedTasksCount },
+    { id: 'contacts', label: 'Contacts', count: contactsCount },
+    { id: 'documents', label: 'Documents', count: documentsCount },
   ];
 
   return (
@@ -76,17 +91,29 @@ export default function TransactionDetail() {
           </div>
 
           <div className="border-b border-gray-200">
-            <nav className="flex -mb-px">
+            <nav className="flex justify-center -mb-px space-x-8" aria-label="Tabs">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
-                    activeTab === tab.id
-                      ? 'border-blue-600 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
+                  className={`
+                    group inline-flex items-center px-1 py-4 border-b-2 font-medium text-sm transition-all duration-200
+                    ${
+                      activeTab === tab.id
+                        ? 'border-blue-600 text-blue-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }
+                  `}
                 >
+                  {tab.count !== undefined && (
+                    <span className={`${
+                      activeTab === tab.id 
+                        ? 'bg-blue-100 text-blue-600' 
+                        : 'bg-gray-100 text-gray-500 group-hover:bg-gray-200'
+                    } py-0.5 px-2.5 rounded-full text-xs font-medium md:inline-block mr-2`}>
+                      {tab.count}
+                    </span>
+                  )}
                   {tab.label}
                 </button>
               ))}

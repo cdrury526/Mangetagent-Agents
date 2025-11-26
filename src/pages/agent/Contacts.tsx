@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { AgentLayout } from '../../components/AgentLayout';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import { useContacts } from '../../hooks/useContacts';
 import { ContactType } from '../../types/database';
 import { Plus, Search, Star, Mail, Phone, Building, X, AlertCircle, Trash2, Edit } from 'lucide-react';
@@ -122,8 +122,8 @@ export function Contacts() {
       }
       closeModal();
       form.reset();
-    } catch (err: any) {
-      setError(err.message || 'Failed to save contact');
+    } catch (err: unknown) {
+      setError((err instanceof Error ? (err instanceof Error ? err.message : String(err)) : String(err)) || 'Failed to save contact');
     } finally {
       setSubmitting(false);
     }
@@ -133,8 +133,8 @@ export function Contacts() {
     if (confirm('Are you sure you want to delete this contact?')) {
       try {
         await deleteContact(id);
-      } catch (err: any) {
-        alert('Failed to delete contact: ' + err.message);
+      } catch (err: unknown) {
+        alert('Failed to delete contact: ' + (err instanceof Error ? (err instanceof Error ? err.message : String(err)) : String(err)));
       }
     }
   }
@@ -183,7 +183,7 @@ export function Contacts() {
             </div>
             <select
               value={filterType}
-              onChange={(e) => setFilterType(e.target.value as any)}
+              onChange={(e) => setFilterType(e.target.value as ContactType | 'all')}
               className="px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="all">All Types</option>

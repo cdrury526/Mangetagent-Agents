@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { useAuth } from '../contexts/AuthContext'
+import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
 import { SubscriptionPlan } from '../types/database'
+import { getErrorMessage } from '../utils/errorHandler';
 
 interface Subscription {
   id: string
@@ -13,6 +14,8 @@ interface Subscription {
   current_period_start: string | null
   current_period_end: string | null
   canceled_at: string | null
+  payment_method_brand?: string | null
+  payment_method_last4?: string | null
   created_at: string
   updated_at: string
 }
@@ -43,8 +46,8 @@ export function useSubscription() {
         }
 
         setSubscription(data)
-      } catch (err: any) {
-        setError(err.message)
+      } catch (err: unknown) {
+        setError(getErrorMessage(err))
       } finally {
         setLoading(false)
       }
@@ -58,7 +61,14 @@ export function useSubscription() {
       return null
     }
 
-    return subscription.plan === 'monthly' ? 'MagnetAgent Pro' : subscription.plan
+    // Map plan names to display names
+    const planNames: Record<SubscriptionPlan, string> = {
+      free: 'Free',
+      pro: 'MagnetAgent Pro',
+      enterprise: 'Enterprise'
+    }
+
+    return planNames[subscription.plan] || subscription.plan
   }
 
   const isActive = subscription?.status === 'active'

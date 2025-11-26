@@ -87,11 +87,21 @@ function sleep(ms: number): Promise<void> {
 }
 
 /**
+ * Email parameters interface
+ */
+interface EmailParams {
+  from: string;
+  to: string;
+  subject: string;
+  html: string;
+}
+
+/**
  * Send email via Resend with exponential backoff retry logic
  * Retries only on transient failures (5xx, 429)
  */
 async function sendEmailWithRetry(
-  emailParams: Record<string, any>,
+  emailParams: EmailParams,
   maxAttempts = 3,
   timestamp: string,
   requestId: string
@@ -212,15 +222,29 @@ async function getDocumentDetails(documentId: string): Promise<{ name: string } 
     }
 
     return { name: data.name };
-  } catch (error) {
+  } catch {
+    // Error fetching document details, return null
     return null;
   }
 }
 
 /**
+ * BoldSign webhook event interface
+ */
+interface BoldSignEvent {
+  id?: string;
+  event: string;
+  data?: {
+    documentId?: string;
+    [key: string]: unknown;
+  };
+  [key: string]: unknown;
+}
+
+/**
  * Store webhook event in database
  */
-async function storeEvent(event: any): Promise<void> {
+async function storeEvent(event: BoldSignEvent): Promise<void> {
   const eventId = event.id || `${event.event}_${Date.now()}_${Math.random().toString(36).substring(7)}`;
 
   await supabase.from('bold_sign_events').insert({
@@ -289,8 +313,8 @@ async function markEventProcessed(eventId: string): Promise<void> {
 async function downloadAndStoreSignedPDF(
   boldSignDocumentId: string,
   documentRecordId: string,
-  transactionId: string,
-  agentId: string
+  transactionId: string
+  // agentId parameter removed - not currently used but may be needed for future RLS policies
 ): Promise<{ storagePath: string; signedPdfUrl: string } | null> {
   try {
     // Download signed PDF from BoldSign
@@ -314,7 +338,7 @@ async function downloadAndStoreSignedPDF(
     const storagePath = `documents/${transactionId}/${documentRecordId}/signed.pdf`;
 
     // Upload to Supabase Storage
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { error: uploadError } = await supabase.storage
       .from('documents')
       .upload(storagePath, pdfBytes, {
         contentType: 'application/pdf',
@@ -345,11 +369,26 @@ async function downloadAndStoreSignedPDF(
 }
 
 /**
+ * Document event data interface
+ */
+interface DocumentEventData {
+  documentId: string;
+  completedAt?: string;
+  declinedAt?: string;
+  expiredAt?: string;
+  revokedAt?: string;
+  expiryDate?: string;
+  signerEmail?: string;
+  declineReason?: string;
+  [key: string]: unknown;
+}
+
+/**
  * Handle document.completed event
  * This is where we automatically download the signed PDF
  */
 async function handleDocumentCompleted(
-  data: any,
+  data: DocumentEventData,
   timestamp: string,
   requestId: string
 ): Promise<void> {
@@ -358,14 +397,14 @@ async function handleDocumentCompleted(
     const completedAt = data.completedAt || new Date().toISOString();
 
     // Find the document record
-    const { data: docRecord, error: docError } = await supabase
+    const { data: docRecord } = await supabase
       .from('bold_sign_documents')
       .select('id, transaction_id, agent_id, document_id')
       .eq('bold_sign_document_id', boldSignDocumentId)
       .single();
 
-    if (docError || !docRecord) {
-      console.error('Document record not found:', docError);
+    if (!docRecord) {
+      console.error('Document record not found for:', boldSignDocumentId);
       return;
     }
 
@@ -373,12 +412,17 @@ async function handleDocumentCompleted(
     const pdfResult = await downloadAndStoreSignedPDF(
       boldSignDocumentId,
       docRecord.id,
-      docRecord.transaction_id,
-      docRecord.agent_id
+      docRecord.transaction_id
     );
 
     // Update document status
-    const updateData: any = {
+    const updateData: {
+      status: string;
+      completed_at: string;
+      updated_at: string;
+      signed_pdf_url?: string;
+      signed_pdf_storage_path?: string;
+    } = {
       status: 'completed',
       completed_at: completedAt,
       updated_at: new Date().toISOString(),
@@ -472,14 +516,14 @@ async function refundCreditForDocument(
 ): Promise<void> {
   try {
     // Get document record to find agent_id and document name
-    const { data: docRecord, error: docError } = await supabase
+    const { data: docRecord } = await supabase
       .from('bold_sign_documents')
       .select('agent_id, document_id')
       .eq('bold_sign_document_id', boldSignDocumentId)
       .single();
 
-    if (docError || !docRecord) {
-      console.error(`[Credit Refund] Document record not found for ${boldSignDocumentId}:`, docError);
+    if (!docRecord) {
+      console.error(`[Credit Refund] Document record not found for ${boldSignDocumentId}`);
       return;
     }
 
@@ -591,7 +635,7 @@ async function refundCreditForDocument(
  * Handle document.declined event
  */
 async function handleDocumentDeclined(
-  data: any,
+  data: DocumentEventData,
   eventId: string,
   timestamp: string,
   requestId: string
@@ -601,7 +645,7 @@ async function handleDocumentDeclined(
     const declinedAt = data.declinedAt || new Date().toISOString();
 
     // Get document record
-    const { data: docRecord, error: docError } = await supabase
+    const { data: docRecord } = await supabase
       .from('bold_sign_documents')
       .select('id, agent_id, document_id, signers_json')
       .eq('bold_sign_document_id', boldSignDocumentId)
@@ -627,8 +671,8 @@ async function handleDocumentDeclined(
       const document = docRecord.document_id ? await getDocumentDetails(docRecord.document_id) : null;
 
       if (agent && document) {
-        const signers = docRecord.signers_json || [];
-        const declinedSigner = signers.find((s: any) => s.email === data.signerEmail) || signers[0];
+        const signers = (docRecord.signers_json || []) as Array<{ email?: string; name?: string }>;
+        const declinedSigner = signers.find((s) => s.email === data.signerEmail) || signers[0];
 
         const emailResult = await sendEmailWithRetry(
           {
@@ -663,7 +707,7 @@ async function handleDocumentDeclined(
  * Handle document.expired event
  */
 async function handleDocumentExpired(
-  data: any,
+  data: DocumentEventData,
   timestamp: string,
   requestId: string
 ): Promise<void> {
@@ -672,7 +716,7 @@ async function handleDocumentExpired(
     const expiredAt = data.expiredAt || new Date().toISOString();
 
     // Get document record
-    const { data: docRecord, error: docError } = await supabase
+    const { data: docRecord } = await supabase
       .from('bold_sign_documents')
       .select('id, agent_id, document_id')
       .eq('bold_sign_document_id', boldSignDocumentId)
@@ -729,7 +773,7 @@ async function handleDocumentExpired(
 /**
  * Handle document.revoked event
  */
-async function handleDocumentRevoked(data: any, eventId: string): Promise<void> {
+async function handleDocumentRevoked(data: DocumentEventData, eventId: string): Promise<void> {
   try {
     const boldSignDocumentId = data.documentId;
     const revokedAt = data.revokedAt || new Date().toISOString();
@@ -757,7 +801,7 @@ async function handleDocumentRevoked(data: any, eventId: string): Promise<void> 
  * Handle document.sent event
  */
 async function handleDocumentSent(
-  data: any,
+  data: DocumentEventData,
   timestamp: string,
   requestId: string
 ): Promise<void> {
@@ -765,14 +809,14 @@ async function handleDocumentSent(
     const boldSignDocumentId = data.documentId;
 
     // Get document record with agent info
-    const { data: docRecord, error: docError } = await supabase
+    const { data: docRecord } = await supabase
       .from('bold_sign_documents')
       .select('id, agent_id, document_id, signers_json')
       .eq('bold_sign_document_id', boldSignDocumentId)
       .single();
 
-    if (docError || !docRecord) {
-      console.error('Document record not found:', docError);
+    if (!docRecord) {
+      console.error('Document record not found for:', boldSignDocumentId);
       return;
     }
 
@@ -793,7 +837,7 @@ async function handleDocumentSent(
       const document = docRecord.document_id ? await getDocumentDetails(docRecord.document_id) : null;
 
       if (agent && document) {
-        const signers = docRecord.signers_json || [];
+        const signers = (docRecord.signers_json || []) as Array<{ email?: string; name?: string }>;
         const primarySigner = signers[0];
         const expiryDate = data.expiryDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString();
 
@@ -829,7 +873,7 @@ async function handleDocumentSent(
 /**
  * Handle signer.completed event
  */
-async function handleSignerCompleted(data: any): Promise<void> {
+async function handleSignerCompleted(data: DocumentEventData): Promise<void> {
   try {
     const boldSignDocumentId = data.documentId;
 
@@ -902,12 +946,12 @@ Deno.serve(async (req) => {
     }
 
     // Parse event early to check if it's a test event
-    let eventForChecking: any = null;
+    let eventForChecking: BoldSignEvent | null = null;
     try {
       if (body && body.trim() !== '' && body !== '{}') {
-        eventForChecking = JSON.parse(body);
+        eventForChecking = JSON.parse(body) as BoldSignEvent;
       }
-    } catch (e) {
+    } catch {
       // Ignore parse errors for now
     }
 

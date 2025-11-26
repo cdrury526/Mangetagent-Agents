@@ -29,8 +29,8 @@ export function TaskFilters({
           <label className="block text-xs font-medium text-gray-700 mb-2">Status</label>
           <select
             value={statusFilter}
-            onChange={(e) => onStatusFilterChange(e.target.value as any)}
-            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            onChange={(e) => onStatusFilterChange(e.target.value as 'all' | 'incomplete' | 'completed')}
+            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900 cursor-pointer"
           >
             <option value="all">All Tasks</option>
             <option value="incomplete">Incomplete</option>
@@ -42,8 +42,8 @@ export function TaskFilters({
           <label className="block text-xs font-medium text-gray-700 mb-2">Type</label>
           <select
             value={typeFilter}
-            onChange={(e) => onTypeFilterChange(e.target.value as any)}
-            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            onChange={(e) => onTypeFilterChange(e.target.value as 'all' | 'personal' | 'transaction')}
+            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900 cursor-pointer"
           >
             <option value="all">All Tasks</option>
             <option value="personal">Personal Tasks</option>
@@ -55,8 +55,8 @@ export function TaskFilters({
           <label className="block text-xs font-medium text-gray-700 mb-2">Sort By</label>
           <select
             value={sortBy}
-            onChange={(e) => onSortByChange(e.target.value as any)}
-            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            onChange={(e) => onSortByChange(e.target.value as 'dueDate' | 'created' | 'phase')}
+            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900 cursor-pointer"
           >
             <option value="dueDate">Due Date</option>
             <option value="created">Created Date</option>

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { AgentLayout } from '../../components/AgentLayout';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import { useSubscription } from '../../hooks/useSubscription';
 import { supabase } from '../../lib/supabase';
 import { Profile } from '../../types/database';
@@ -37,8 +37,8 @@ export function Settings() {
 
     try {
       await openGeneralPortal('/settings');
-    } catch (err: any) {
-      setError(err.message || 'Failed to open subscription management');
+    } catch (err: unknown) {
+      setError((err instanceof Error ? (err instanceof Error ? err.message : String(err)) : String(err)) || 'Failed to open subscription management');
       setManagingSubscription(false);
     }
   };
@@ -74,8 +74,8 @@ export function Settings() {
       setSuccess(true);
 
       setTimeout(() => setSuccess(false), 3000);
-    } catch (err: any) {
-      setError(err.message || 'Failed to update settings');
+    } catch (err: unknown) {
+      setError((err instanceof Error ? (err instanceof Error ? err.message : String(err)) : String(err)) || 'Failed to update settings');
     } finally {
       setSaving(false);
     }
@@ -246,7 +246,7 @@ export function Settings() {
                     <div className="flex-1">
                       <h3 className="text-sm font-medium text-green-800">Active Subscription</h3>
                       <p className="text-sm text-green-700 mt-1">
-                        Your <strong>{subscription.plan === 'monthly' ? 'MagnetAgent Pro' : subscription.plan}</strong> subscription is active
+                        Your <strong>{subscription.plan === 'pro' ? 'MagnetAgent Pro' : subscription.plan}</strong> subscription is active
                       </p>
                       <div className="mt-2">
                         <p className="text-xs text-green-600">

@@ -36,13 +36,14 @@ export function EmbeddedSigning({
             onComplete(boldSignDocumentId);
           }
           break;
-        case 'BoldSign.SigningError':
+        case 'BoldSign.SigningError': {
           const errorMsg = 'An error occurred during signing';
           setError(errorMsg);
           if (onError) {
             onError(new Error(errorMsg));
           }
           break;
+        }
         case 'BoldSign.ViewerReady':
           setLoading(false);
           break;
@@ -54,7 +55,8 @@ export function EmbeddedSigning({
     return () => {
       window.removeEventListener('message', handleMessage);
     };
-  }, [boldSignDocumentId, signerEmail]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // generateSigningUrl and callbacks are intentionally excluded - they're stable and re-running would regenerate signing URL unnecessarily
 
   const generateSigningUrl = async () => {
     try {
@@ -72,10 +74,11 @@ export function EmbeddedSigning({
       } else {
         throw new Error('Failed to generate signing link');
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      setError(errorMessage);
       if (onError) {
-        onError(err);
+        onError(err instanceof Error ? err : new Error(errorMessage));
       }
     }
   };

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { X } from 'lucide-react';
 import { useContacts } from '../../hooks/useContacts';
 import { useTransactionContacts } from '../../hooks/useTransactionContacts';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import { ContactType } from '../../types/database';
 import { AddressAutocomplete } from '../forms/AddressAutocomplete';
 import { formatPhoneNumber } from '../../utils/phoneFormatter';
@@ -92,8 +92,8 @@ export function NewContactModal({ transactionId, onClose, onSuccess }: NewContac
 
       onSuccess?.();
       onClose();
-    } catch (err: any) {
-      setError(err.message || 'Failed to create contact');
+    } catch (err: unknown) {
+      setError((err instanceof Error ? err.message : String(err)) || 'Failed to create contact');
     } finally {
       setSubmitting(false);
     }

@@ -3,14 +3,17 @@ import { AlertCircle, CheckCircle, Info, X } from 'lucide-react'
 
 interface AlertProps {
   type?: 'success' | 'error' | 'info' | 'warning'
+  variant?: 'success' | 'error' | 'info' | 'warning'
   title?: string
   children: React.ReactNode
   onClose?: () => void
+  className?: string
 }
 
-export function Alert({ type = 'info', title, children, onClose }: AlertProps) {
+export function Alert({ type, variant, title, children, onClose, className = '' }: AlertProps) {
+  const alertType = variant || type || 'info';
   const getIcon = () => {
-    switch (type) {
+    switch (alertType) {
       case 'success':
         return <CheckCircle className="h-5 w-5 text-green-600" />
       case 'error':
@@ -23,7 +26,7 @@ export function Alert({ type = 'info', title, children, onClose }: AlertProps) {
   }
 
   const getStyles = () => {
-    switch (type) {
+    switch (alertType) {
       case 'success':
         return 'bg-green-50 border-green-200 text-green-800'
       case 'error':
@@ -36,7 +39,7 @@ export function Alert({ type = 'info', title, children, onClose }: AlertProps) {
   }
 
   return (
-    <div className={`border rounded-lg p-4 ${getStyles()}`}>
+    <div className={`border rounded-lg p-4 ${getStyles()} ${className}`}>
       <div className="flex items-start">
         <div className="flex-shrink-0">{getIcon()}</div>
         <div className="ml-3 flex-1">

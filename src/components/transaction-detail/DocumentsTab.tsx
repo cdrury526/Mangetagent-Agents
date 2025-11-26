@@ -6,7 +6,7 @@ import { SendDocumentModal } from '../boldsign/SendDocumentModal';
 import { EmbeddedDocumentPreparation } from '../boldsign/EmbeddedDocumentPreparation';
 import { DocumentStatusBadge } from '../boldsign/DocumentStatusBadge';
 import { DocumentUploadModal } from '../documents/DocumentUploadModal';
-import { Document } from '../../types/database';
+import { Document, BoldSignDocument } from '../../types/database';
 import { supabase } from '../../lib/supabase';
 
 interface DocumentsTabProps {
@@ -21,22 +21,27 @@ export function DocumentsTab({ transactionId }: DocumentsTabProps) {
   const [showSendModal, setShowSendModal] = useState(false);
   const [showPrepareModal, setShowPrepareModal] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
-  const [prepareSigners, setPrepareSigners] = useState<any[]>([]);
+  const [prepareSigners, setPrepareSigners] = useState<Array<{
+    email: string;
+    firstName: string;
+    lastName: string;
+    signerOrder?: number;
+  }>>([]);
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this document?')) return;
     try {
       await deleteDocument(id);
-    } catch (err: any) {
-      alert('Failed to delete document: ' + err.message);
+    } catch (err: unknown) {
+      alert('Failed to delete document: ' + (err instanceof Error ? err.message : String(err)));
     }
   };
 
   const handleToggleVisibility = async (id: string, currentValue: boolean) => {
     try {
       await updateDocument(id, { visible_to_client: !currentValue });
-    } catch (err: any) {
-      alert('Failed to update document visibility: ' + err.message);
+    } catch (err: unknown) {
+      alert('Failed to update document visibility: ' + (err instanceof Error ? err.message : String(err)));
     }
   };
 
@@ -224,17 +229,17 @@ export function DocumentsTab({ transactionId }: DocumentsTabProps) {
 }
 
 interface DocumentItemProps {
-  document: any;
-  boldSignDoc?: any;
+  document: Document;
+  boldSignDoc?: BoldSignDocument;
   transactionId: string;
   isSelected: boolean;
-  onSelect: (doc: any) => void;
+  onSelect: (doc: Document) => void;
   onDelete: (id: string) => void;
   onToggleVisibility: (id: string, currentValue: boolean) => void;
   onSendForSignature: () => void;
 }
 
-function DocumentItem({ document, boldSignDoc, transactionId, isSelected, onSelect, onDelete, onToggleVisibility, onSendForSignature }: DocumentItemProps) {
+function DocumentItem({ document, boldSignDoc, isSelected, onSelect, onDelete, onToggleVisibility, onSendForSignature }: DocumentItemProps) {
   const fileName = document.name || '';
   const fileExtension = fileName.toLowerCase().split('.').pop();
   const mimeType = document.mime_type || '';

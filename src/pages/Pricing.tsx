@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { useAuth } from '../contexts/AuthContext'
+import { useState } from 'react'
+import { useAuth } from '../hooks/useAuth'
 import { useSubscription } from '../hooks/useSubscription'
 import { stripeProducts } from '../stripe-config'
 import { Button } from '../components/ui/Button'
@@ -26,8 +26,8 @@ export function Pricing() {
 
     try {
       await openGeneralPortal('/subscription')
-    } catch (err: any) {
-      setError(err.message || 'Something went wrong')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? (err instanceof Error ? err.message : String(err)) : 'Something went wrong')
       setLoading(null)
     }
   }
@@ -72,8 +72,8 @@ export function Pricing() {
       if (data.url) {
         window.location.href = data.url
       }
-    } catch (err: any) {
-      setError(err.message || 'Something went wrong')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? (err instanceof Error ? err.message : String(err)) : 'Something went wrong')
     } finally {
       setLoading(null)
     }
@@ -106,7 +106,7 @@ export function Pricing() {
 
         <div className="grid md:grid-cols-2 gap-8">
           {stripeProducts.map((product) => {
-            const isCurrentPlan = product.mode === 'subscription' && subscription?.plan === 'monthly' && isActive
+            const isCurrentPlan = product.mode === 'subscription' && subscription?.plan === 'pro' && isActive
             return (
             <Card key={product.id} className="relative">
               {product.mode === 'subscription' && (

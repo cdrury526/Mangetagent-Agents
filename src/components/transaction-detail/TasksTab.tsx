@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { useTasks } from '../../hooks/useTasks';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import { TaskList } from '../tasks/TaskList';
 import { TaskForm } from '../tasks/TaskForm';
 import type { Task } from '../../types/database';
@@ -43,8 +43,8 @@ export function TasksTab({ transactionId }: TasksTabProps) {
         sort_order: null,
       });
       setShowForm(false);
-    } catch (err: any) {
-      alert('Failed to create task: ' + err.message);
+    } catch (err: unknown) {
+      alert('Failed to create task: ' + (err instanceof Error ? err.message : String(err)));
     }
   };
 
@@ -58,8 +58,8 @@ export function TasksTab({ transactionId }: TasksTabProps) {
         description: taskData.description || null,
       });
       setParentTaskForSubtask(null);
-    } catch (err: any) {
-      alert('Failed to create subtask: ' + err.message);
+    } catch (err: unknown) {
+      alert('Failed to create subtask: ' + (err instanceof Error ? err.message : String(err)));
     }
   };
 
@@ -68,8 +68,8 @@ export function TasksTab({ transactionId }: TasksTabProps) {
     try {
       await updateTask(editingTask.id, taskData);
       setEditingTask(null);
-    } catch (err: any) {
-      alert('Failed to update task: ' + err.message);
+    } catch (err: unknown) {
+      alert('Failed to update task: ' + (err instanceof Error ? err.message : String(err)));
     }
   };
 
@@ -89,16 +89,16 @@ export function TasksTab({ transactionId }: TasksTabProps) {
       } else {
         await deleteTask(task.id);
       }
-    } catch (err: any) {
-      alert('Failed to delete task: ' + err.message);
+    } catch (err: unknown) {
+      alert('Failed to delete task: ' + (err instanceof Error ? err.message : String(err)));
     }
   };
 
   const handleToggleComplete = async (task: Task) => {
     try {
       await toggleComplete(task.id, task.completed);
-    } catch (err: any) {
-      alert('Failed to update task: ' + err.message);
+    } catch (err: unknown) {
+      alert('Failed to update task: ' + (err instanceof Error ? err.message : String(err)));
     }
   };
 

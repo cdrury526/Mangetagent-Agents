@@ -137,10 +137,11 @@ Deno.serve(async (req) => {
         },
       }
     );
-  } catch (error: any) {
-    console.error('Portal error:', error.message);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    console.error('Portal error:', errorMessage);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: errorMessage }),
       {
         status: 500,
         headers: {

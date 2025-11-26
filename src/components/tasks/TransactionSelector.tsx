@@ -17,7 +17,8 @@ export function TransactionSelector({ value, onChange, agentId }: TransactionSel
 
   useEffect(() => {
     fetchTransactions();
-  }, [agentId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [agentId]); // fetchTransactions is intentionally excluded - it's stable and including it would cause infinite loops
 
   async function fetchTransactions() {
     try {

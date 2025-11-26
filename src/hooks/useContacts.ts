@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Contact } from '../types/database';
+import { getErrorMessage } from '../utils/errorHandler';
 
 export function useContacts(agentId: string | undefined) {
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -34,7 +35,8 @@ export function useContacts(agentId: string | undefined) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [agentId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [agentId]); // fetchContacts is intentionally excluded - it's stable and including it would cause infinite loops
 
   async function fetchContacts() {
     try {
@@ -48,8 +50,8 @@ export function useContacts(agentId: string | undefined) {
       if (fetchError) throw fetchError;
       setContacts(data || []);
       setError(null);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }

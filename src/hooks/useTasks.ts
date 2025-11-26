@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { Task, TaskWithSubtasks } from '../types/database';
+import { getErrorMessage } from '../utils/errorHandler';
 
 interface UseTasksOptions {
   transactionId?: string | null;
@@ -45,7 +46,8 @@ export function useTasks(options: UseTasksOptions | string | undefined) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [transactionId, agentId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [transactionId, agentId]); // fetchTasks is intentionally excluded - it's stable and including it would cause infinite loops
 
   const parentTasks = useMemo(() => {
     return tasks.filter((t) => !t.parent_task_id);
@@ -96,8 +98,8 @@ export function useTasks(options: UseTasksOptions | string | undefined) {
       if (fetchError) throw fetchError;
       setTasks(data || []);
       setError(null);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }

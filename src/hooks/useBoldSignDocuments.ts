@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { BoldSignDocument } from '../types/database';
+import { getErrorMessage } from '../utils/errorHandler';
 
 export function useBoldSignDocuments(transactionId?: string) {
   const [documents, setDocuments] = useState<BoldSignDocument[]>([]);
@@ -29,7 +30,8 @@ export function useBoldSignDocuments(transactionId?: string) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [transactionId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [transactionId]); // fetchDocuments is intentionally excluded - it's stable and including it would cause infinite loops
 
   const fetchDocuments = async () => {
     try {
@@ -54,8 +56,8 @@ export function useBoldSignDocuments(transactionId?: string) {
       if (fetchError) throw fetchError;
 
       setDocuments(data || []);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -79,8 +81,8 @@ export function useBoldSignDocuments(transactionId?: string) {
 
       await fetchDocuments();
       return data;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(getErrorMessage(err));
       throw err;
     }
   };
@@ -98,8 +100,8 @@ export function useBoldSignDocuments(transactionId?: string) {
       if (updateError) throw updateError;
 
       await fetchDocuments();
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(getErrorMessage(err));
       throw err;
     }
   };

@@ -21,3 +21,6 @@ dist-ssr
 *.sln
 *.sw?
 .env
+
+# Plan backups (local only, one per day)
+Docs/Plans/.plan-backups/

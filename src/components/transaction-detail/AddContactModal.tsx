@@ -31,8 +31,8 @@ export function AddContactModal({
       setSubmitting(true);
       await addContactToTransaction(selectedContactId, contactType);
       onClose();
-    } catch (err: any) {
-      alert('Failed to add contact: ' + err.message);
+    } catch (err: unknown) {
+      alert('Failed to add contact: ' + (err instanceof Error ? err.message : String(err)));
     } finally {
       setSubmitting(false);
     }

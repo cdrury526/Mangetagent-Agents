@@ -9,7 +9,7 @@ interface FormToggleProps {
 }
 
 export const FormToggle = forwardRef<HTMLInputElement, FormToggleProps>(
-  ({ label, checked, onChange, helperText, disabled }, ref) => {
+  ({ label, checked, onChange, helperText, disabled }) => {
     return (
       <div>
         <div className="flex items-center">

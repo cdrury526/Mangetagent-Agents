@@ -27,8 +27,6 @@ export function TaskItem({
   isExpanded,
   onToggleExpanded,
   isSubtask,
-  subtaskCount,
-  completedSubtaskCount,
   completionPercentage,
   transactionName,
 }: TaskItemProps) {

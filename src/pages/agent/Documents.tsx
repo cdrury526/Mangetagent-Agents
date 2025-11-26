@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { FileText, Grid, List, Search } from 'lucide-react';
 import { AgentLayout } from '../../components/AgentLayout';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import { useDocuments } from '../../hooks/useDocuments';
 import { useBoldSignDocuments } from '../../hooks/useBoldSignDocuments';
 import { useTransactions } from '../../hooks/useTransactions';
@@ -12,7 +12,7 @@ import { DocumentGrid } from '../../components/documents/DocumentGrid';
 import { DocumentList } from '../../components/documents/DocumentList';
 import { DocumentFilters } from '../../components/documents/DocumentFilters';
 import { DocumentStats } from '../../components/documents/DocumentStats';
-import { Document, DocumentType, ESignatureStatus } from '../../types/database';
+import { DocumentType, ESignatureStatus } from '../../types/database';
 
 type ViewMode = 'grid' | 'list';
 

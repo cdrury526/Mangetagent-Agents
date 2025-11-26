@@ -1,10 +1,3 @@
-interface AddressComponent {
-  longText?: string;
-  shortText?: string;
-  types?: string[];
-  languageCode?: string;
-}
-
 interface ParsedAddress {
   streetAddress: string;
   city: string;
@@ -12,7 +5,15 @@ interface ParsedAddress {
   zip: string;
 }
 
-export function parseGooglePlacesAddress(addressComponents: any[]): ParsedAddress {
+interface GoogleAddressComponent {
+  types: string[];
+  long_name?: string;
+  short_name?: string;
+  longText?: string;
+  shortText?: string;
+}
+
+export function parseGooglePlacesAddress(addressComponents: GoogleAddressComponent[]): ParsedAddress {
   const result: ParsedAddress = {
     streetAddress: '',
     city: '',

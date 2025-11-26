@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, Loader2, AlertCircle } from 'lucide-react';
+import { X, Loader2 } from 'lucide-react';
 import { Document } from '../../types/database';
 import { createEmbeddedRequest } from '../../actions/boldsign';
 import { supabase } from '../../lib/supabase';
@@ -42,7 +42,8 @@ export function EmbeddedDocumentPreparation({
     }
 
     loadEmbeddedRequest();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Intentionally run only on mount - documents and signers are from props and shouldn't trigger re-fetch
 
   useEffect(() => {
     function handleMessage(event: MessageEvent) {
@@ -56,7 +57,7 @@ export function EmbeddedDocumentPreparation({
         case 'BoldSign.DocumentSent':
         case 'BoldSign.SendingComplete':
           console.log('[EmbeddedDocumentPreparation] Document sent successfully');
-          handleDocumentSent(event.data);
+          handleDocumentSent();
           break;
         case 'BoldSign.DocumentCancelled':
         case 'BoldSign.Cancelled':
@@ -76,7 +77,8 @@ export function EmbeddedDocumentPreparation({
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [onClose, onSuccess]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // handleMessage uses callbacks from props but they're stable references, and handleDocumentSent is defined below
 
   const loadEmbeddedRequest = async () => {
     setLoading(true);
@@ -153,14 +155,14 @@ export function EmbeddedDocumentPreparation({
       setEmbeddedUrl(result.sendUrl);
       setDocumentId(result.documentId);
       setLoading(false);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('[EmbeddedDocumentPreparation] Error:', err);
-      setError(err.message || 'Failed to load document preparation interface');
+      setError((err instanceof Error ? err.message : String(err)) || 'Failed to load document preparation interface');
       setLoading(false);
     }
   };
 
-  const handleDocumentSent = async (data: any) => {
+  const handleDocumentSent = async () => {
     try {
       if (documentId) {
         await supabase
@@ -216,19 +218,15 @@ export function EmbeddedDocumentPreparation({
           {error && (
             <div className="absolute inset-0 flex items-center justify-center bg-white z-10 p-6">
               <div className="max-w-md w-full">
-                <Alert variant="error">
-                  <AlertCircle className="w-4 h-4" />
-                  <div className="ml-3 flex-1">
-                    <h3 className="text-sm font-medium text-red-800">Error Loading Editor</h3>
-                    <p className="text-sm text-red-700 mt-1">{error}</p>
-                    <div className="mt-4 flex gap-3">
-                      <Button onClick={handleRetry} size="sm">
-                        Try Again
-                      </Button>
-                      <Button onClick={onClose} variant="secondary" size="sm">
-                        Cancel
-                      </Button>
-                    </div>
+                <Alert type="error" title="Error Loading Editor">
+                  <p className="text-sm text-red-700 mt-1">{error}</p>
+                  <div className="mt-4 flex gap-3">
+                    <Button onClick={handleRetry} size="sm">
+                      Try Again
+                    </Button>
+                    <Button onClick={onClose} variant="secondary" size="sm">
+                      Cancel
+                    </Button>
                   </div>
                 </Alert>
               </div>

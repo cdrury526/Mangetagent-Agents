@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { CheckCircle } from 'lucide-react'
 import { Button } from '../components/ui/Button'
@@ -38,13 +38,13 @@ export function Success() {
             )}
             
             <div className="space-y-3">
-              <Button asChild className="w-full">
-                <Link to="/">Go to Dashboard</Link>
-              </Button>
-              
-              <Button variant="outline" asChild className="w-full">
-                <Link to="/pricing">View Plans</Link>
-              </Button>
+              <Link to="/" className="block">
+                <Button className="w-full">Go to Dashboard</Button>
+              </Link>
+
+              <Link to="/pricing" className="block">
+                <Button variant="outline" className="w-full">View Plans</Button>
+              </Link>
             </div>
           </CardContent>
         </Card>

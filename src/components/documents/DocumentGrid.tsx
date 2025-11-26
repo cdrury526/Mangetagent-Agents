@@ -25,16 +25,16 @@ export function DocumentGrid({
     if (!confirm('Are you sure you want to delete this document?')) return;
     try {
       await deleteDocument(id);
-    } catch (err: any) {
-      alert('Failed to delete document: ' + err.message);
+    } catch (err: unknown) {
+      alert('Failed to delete document: ' + (err instanceof Error ? err.message : String(err)));
     }
   };
 
   const handleToggleVisibility = async (id: string, currentValue: boolean) => {
     try {
       await updateDocument(id, { visible_to_client: !currentValue });
-    } catch (err: any) {
-      alert('Failed to update document visibility: ' + err.message);
+    } catch (err: unknown) {
+      alert('Failed to update document visibility: ' + (err instanceof Error ? err.message : String(err)));
     }
   };
 

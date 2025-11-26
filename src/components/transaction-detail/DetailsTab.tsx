@@ -73,14 +73,14 @@ export function DetailsTab({ transaction, onUpdate }: DetailsTabProps) {
       await onUpdate(updates);
       setEditingSection(null);
       setFormData({});
-    } catch (err: any) {
-      setError(err.message || 'Failed to save changes');
+    } catch (err: unknown) {
+      setError((err instanceof Error ? err.message : String(err)) || 'Failed to save changes');
     } finally {
       setSaving(false);
     }
   };
 
-  const updateField = (field: keyof Transaction, value: any) => {
+  const updateField = (field: keyof Transaction, value: string | number | boolean | null | undefined | Record<string, unknown>) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 

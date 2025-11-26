@@ -162,7 +162,7 @@ export function DocumentCard({
 
       {showSendModal && (
         <SendDocumentModal
-          document={document}
+          documents={[document]}
           transactionId={document.transaction_id}
           onClose={() => setShowSendModal(false)}
           onSuccess={() => setShowSendModal(false)}

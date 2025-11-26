@@ -2,7 +2,7 @@ import { supabase } from '../lib/supabase';
 
 const BOLDSIGN_API_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/boldsign-api`;
 
-async function callBoldSignAPI(action: string, params: any) {
+async function callBoldSignAPI(action: string, params: Record<string, unknown>) {
   const { data: { session } } = await supabase.auth.getSession();
 
   if (!session) {
@@ -38,6 +38,7 @@ export interface SendDocumentParams {
   emailMessage?: string;
   subject?: string;
   expiryDays?: number;
+  [key: string]: unknown;
 }
 
 export async function sendDocumentForSignature(params: SendDocumentParams) {
@@ -47,6 +48,7 @@ export async function sendDocumentForSignature(params: SendDocumentParams) {
 export interface RevokeDocumentParams {
   documentId: string;
   revokeReason?: string;
+  [key: string]: unknown;
 }
 
 export async function revokeDocument(params: RevokeDocumentParams) {
@@ -61,6 +63,7 @@ export interface GenerateSigningLinkParams {
   documentId: string;
   signerEmail: string;
   redirectUrl?: string;
+  [key: string]: unknown;
 }
 
 export async function generateEmbeddedSigningLink(params: GenerateSigningLinkParams) {
@@ -112,6 +115,7 @@ export interface CreateEmbeddedRequestParams {
   showPreviewButton?: boolean;
   sendViewOption?: string;
   showTooltip?: boolean;
+  [key: string]: unknown;
 }
 
 export async function createEmbeddedRequest(params: CreateEmbeddedRequestParams) {

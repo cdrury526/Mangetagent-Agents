@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Document, BoldSignDocument, Transaction } from '../../types/database';
 import { DocumentStatusBadge } from '../boldsign/DocumentStatusBadge';
 import { SendDocumentModal } from '../boldsign/SendDocumentModal';
+import { Tooltip } from '../ui/Tooltip';
 
 interface DocumentListItemProps {
   document: Document;
@@ -44,17 +45,18 @@ export function DocumentListItem({
 
   return (
     <>
-      <div
-        className={`flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors ${
-          isSelected ? 'bg-blue-50 border-blue-300' : ''
-        }`}
-      >
-        <input
-          type="checkbox"
-          checked={isSelected}
-          onChange={() => onSelect(document.id)}
-          className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-        />
+        <div
+          className={`flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer ${
+            isSelected ? 'bg-blue-50 border-blue-300' : ''
+          }`}
+          onClick={() => onSelect(document.id)}
+        >
+          <input
+            type="checkbox"
+            checked={isSelected}
+            onChange={() => onSelect(document.id)}
+            className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 bg-white cursor-pointer"
+          />
 
         <div className="flex-shrink-0">
           <div className="w-10 h-10 bg-blue-100 rounded flex items-center justify-center">
@@ -100,52 +102,56 @@ export function DocumentListItem({
 
         <div className="flex items-center gap-2">
           {!boldSignDocument && (
-            <button
-              onClick={() => setShowSendModal(true)}
-              className="p-2 text-gray-400 hover:text-orange-600 rounded hover:bg-orange-50 transition-colors"
-              title="Send for signature"
-            >
-              <FileSignature className="w-4 h-4" />
-            </button>
+            <Tooltip content="Send for signature" position="top">
+              <button
+                onClick={() => setShowSendModal(true)}
+                className="p-2 text-gray-400 hover:text-orange-600 rounded hover:bg-orange-50 transition-colors"
+              >
+                <FileSignature className="w-4 h-4" />
+              </button>
+            </Tooltip>
           )}
 
-          <button
-            onClick={() => onToggleVisibility(document.id, document.visible_to_client)}
-            className={`p-2 rounded transition-colors ${
-              document.visible_to_client
-                ? 'text-green-600 hover:bg-green-50'
-                : 'text-gray-400 hover:bg-gray-100'
-            }`}
-            title={document.visible_to_client ? 'Hide from client' : 'Show to client'}
-          >
-            {document.visible_to_client ? (
-              <Eye className="w-4 h-4" />
-            ) : (
-              <EyeOff className="w-4 h-4" />
-            )}
-          </button>
+          <Tooltip content={document.visible_to_client ? 'Hide from client' : 'Show to client'} position="top">
+            <button
+              onClick={() => onToggleVisibility(document.id, document.visible_to_client)}
+              className={`p-2 rounded transition-colors ${
+                document.visible_to_client
+                  ? 'text-green-600 hover:bg-green-50'
+                  : 'text-gray-400 hover:bg-gray-100'
+              }`}
+            >
+              {document.visible_to_client ? (
+                <Eye className="w-4 h-4" />
+              ) : (
+                <EyeOff className="w-4 h-4" />
+              )}
+            </button>
+          </Tooltip>
 
-          <button
-            disabled
-            className="p-2 text-gray-400 hover:text-blue-600 rounded hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            title="Download feature coming soon"
-          >
-            <Download className="w-4 h-4" />
-          </button>
+          <Tooltip content="Download feature coming soon" position="top">
+            <button
+              disabled
+              className="p-2 text-gray-400 hover:text-blue-600 rounded hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Download className="w-4 h-4" />
+            </button>
+          </Tooltip>
 
-          <button
-            onClick={() => onDelete(document.id)}
-            className="p-2 text-gray-400 hover:text-red-600 rounded hover:bg-red-50 transition-colors"
-            title="Delete document"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
+          <Tooltip content="Delete document" position="top">
+            <button
+              onClick={() => onDelete(document.id)}
+              className="p-2 text-gray-400 hover:text-red-600 rounded hover:bg-red-50 transition-colors"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </Tooltip>
         </div>
       </div>
 
       {showSendModal && (
         <SendDocumentModal
-          document={document}
+          documents={[document]}
           transactionId={document.transaction_id}
           onClose={() => setShowSendModal(false)}
           onSuccess={() => setShowSendModal(false)}

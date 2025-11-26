@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AgentLayout } from '../../components/AgentLayout';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import { supabase } from '../../lib/supabase';
 import { Transaction } from '../../types/database';
 import {
   TrendingUp,
-  FileText,
   CheckCircle,
   DollarSign,
   Plus,
@@ -29,7 +28,8 @@ export function Dashboard() {
     if (user?.id) {
       fetchData();
     }
-  }, [user?.id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]); // fetchData is intentionally excluded - it's stable and including it would cause infinite loops
 
   async function fetchData() {
     try {

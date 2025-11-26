@@ -142,7 +142,7 @@ export function DocumentUploadModal({
       handleClose();
     } catch (err) {
       console.error('Upload error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to upload documents');
+      setError(err instanceof Error ? (err instanceof Error ? err.message : String(err)) : 'Failed to upload documents');
     } finally {
       setUploading(false);
     }

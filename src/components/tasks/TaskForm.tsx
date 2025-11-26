@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { X } from 'lucide-react';
 import { TransactionSelector } from './TransactionSelector';
 import { DatePicker } from '../forms/DatePicker';
-import type { Task } from '../../types/database';
+import type { Task, TaskPhase } from '../../types/database';
 
 interface TaskFormProps {
   task?: Task;
@@ -36,11 +36,13 @@ export function TaskForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { transaction_name, ...taskData } = formData;
+    // transaction_name is only used for UI display, not submitted
     onSubmit({
       ...taskData,
       description: taskData.description || null,
-      phase: isSubtask ? null : (taskData.phase || null),
+      phase: isSubtask ? null : (taskData.phase as TaskPhase | null),
       due_date: isSubtask ? null : (taskData.due_date || null),
       transaction_id: taskData.transaction_id,
     });

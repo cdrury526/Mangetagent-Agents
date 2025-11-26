@@ -7,7 +7,7 @@ import { useTransactionContacts } from '../../hooks/useTransactionContacts';
 import { sendDocumentForSignature } from '../../actions/boldsign';
 import { supabase } from '../../lib/supabase';
 import { Document } from '../../types/database';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 
 interface Signer {
   email: string;
@@ -52,7 +52,7 @@ export function SendDocumentModal({ documents, transactionId, onClose, onSuccess
     setSigners(signers.filter((_, i) => i !== index));
   };
 
-  const updateSigner = (index: number, field: keyof Signer, value: any) => {
+  const updateSigner = (index: number, field: keyof Signer, value: string | number) => {
     const updated = [...signers];
     updated[index] = { ...updated[index], [field]: value };
     setSigners(updated);
@@ -160,8 +160,8 @@ export function SendDocumentModal({ documents, transactionId, onClose, onSuccess
       await refreshProfile();
 
       onSuccess();
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
     }

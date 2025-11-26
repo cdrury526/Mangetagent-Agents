@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { Plus, Trash2, Mail, Phone, Building, UserPlus } from 'lucide-react';
 import { useTransactionContacts } from '../../hooks/useTransactionContacts';
 import { useContacts } from '../../hooks/useContacts';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import { AddContactModal } from './AddContactModal';
 import { NewContactModal } from './NewContactModal';
+import type { Contact, TransactionContact } from '../../types/database';
 
 interface ContactsTabProps {
   transactionId: string;
@@ -22,8 +23,8 @@ export function ContactsTab({ transactionId }: ContactsTabProps) {
     if (!confirm('Remove this contact from the transaction?')) return;
     try {
       await removeContactFromTransaction(id);
-    } catch (err: any) {
-      alert('Failed to remove contact: ' + err.message);
+    } catch (err: unknown) {
+      alert('Failed to remove contact: ' + (err instanceof Error ? err.message : String(err)));
     }
   };
 
@@ -95,8 +96,12 @@ export function ContactsTab({ transactionId }: ContactsTabProps) {
   );
 }
 
+interface TransactionContactWithDetails extends TransactionContact {
+  contact: Contact;
+}
+
 interface ContactCardProps {
-  transactionContact: any;
+  transactionContact: TransactionContactWithDetails;
   onRemove: (id: string) => void;
   onUpdateType: (id: string, type: string) => Promise<void>;
 }
@@ -110,8 +115,8 @@ function ContactCard({ transactionContact, onRemove, onUpdateType }: ContactCard
     try {
       await onUpdateType(transactionContact.id, selectedType);
       setIsEditingType(false);
-    } catch (err: any) {
-      alert('Failed to update contact type: ' + err.message);
+    } catch (err: unknown) {
+      alert('Failed to update contact type: ' + (err instanceof Error ? err.message : String(err)));
     }
   };
 
@@ -137,7 +142,7 @@ function ContactCard({ transactionContact, onRemove, onUpdateType }: ContactCard
             <div className="mt-2 flex items-center space-x-2">
               <select
                 value={selectedType}
-                onChange={(e) => setSelectedType(e.target.value)}
+                onChange={(e) => setSelectedType(e.target.value as typeof selectedType)}
                 className="text-sm px-2 py-1 border border-gray-300 rounded"
               >
                 {contactTypes.map((type) => (

@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Plus, CheckSquare } from 'lucide-react';
 import { AgentLayout } from '../../components/AgentLayout';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import { useTasks } from '../../hooks/useTasks';
 import { TaskList } from '../../components/tasks/TaskList';
 import { TaskStats } from '../../components/tasks/TaskStats';
@@ -31,13 +31,14 @@ export function Tasks() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'incomplete' | 'completed'>('all');
   const [typeFilter, setTypeFilter] = useState<'all' | 'personal' | 'transaction'>('all');
   const [sortBy, setSortBy] = useState<'dueDate' | 'created' | 'phase'>('dueDate');
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [transactions, setTransactions] = useState<Pick<Transaction, 'id' | 'name'>[]>([]);
 
   useEffect(() => {
     if (user?.id) {
       fetchTransactions();
     }
-  }, [user?.id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]); // fetchTransactions is intentionally excluded - it's stable and including it would cause infinite loops
 
   async function fetchTransactions() {
     const { data } = await supabase
@@ -46,7 +47,7 @@ export function Tasks() {
       .eq('agent_id', user!.id);
 
     if (data) {
-      setTransactions(data);
+      setTransactions(data as Pick<Transaction, 'id' | 'name'>[]);
     }
   }
 
@@ -107,8 +108,8 @@ export function Tasks() {
         sort_order: null,
       });
       setShowForm(false);
-    } catch (err: any) {
-      alert('Failed to create task: ' + err.message);
+    } catch (err: unknown) {
+      alert('Failed to create task: ' + (err instanceof Error ? (err instanceof Error ? err.message : String(err)) : String(err)));
     }
   };
 
@@ -122,8 +123,8 @@ export function Tasks() {
         description: taskData.description || null,
       });
       setParentTaskForSubtask(null);
-    } catch (err: any) {
-      alert('Failed to create subtask: ' + err.message);
+    } catch (err: unknown) {
+      alert('Failed to create subtask: ' + ((err instanceof Error ? (err instanceof Error ? err.message : String(err)) : String(err))));
     }
   };
 
@@ -132,8 +133,8 @@ export function Tasks() {
     try {
       await updateTask(editingTask.id, taskData);
       setEditingTask(null);
-    } catch (err: any) {
-      alert('Failed to update task: ' + err.message);
+    } catch (err: unknown) {
+      alert('Failed to update task: ' + ((err instanceof Error ? (err instanceof Error ? err.message : String(err)) : String(err))));
     }
   };
 
@@ -153,16 +154,16 @@ export function Tasks() {
       } else {
         await deleteTask(task.id);
       }
-    } catch (err: any) {
-      alert('Failed to delete task: ' + err.message);
+    } catch (err: unknown) {
+      alert('Failed to delete task: ' + ((err instanceof Error ? (err instanceof Error ? err.message : String(err)) : String(err))));
     }
   };
 
   const handleToggleComplete = async (task: Task) => {
     try {
       await toggleComplete(task.id, task.completed);
-    } catch (err: any) {
-      alert('Failed to update task: ' + err.message);
+    } catch (err: unknown) {
+      alert('Failed to update task: ' + ((err instanceof Error ? (err instanceof Error ? err.message : String(err)) : String(err))));
     }
   };
 

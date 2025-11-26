@@ -1,5 +1,4 @@
-import React from 'react'
-import { useAuth } from '../contexts/AuthContext'
+import { useAuth } from '../hooks/useAuth'
 import { useSubscription } from '../hooks/useSubscription'
 import { Card, CardContent, CardHeader } from '../components/ui/Card'
 import { Button } from '../components/ui/Button'
@@ -10,9 +9,10 @@ export function Dashboard() {
   const { user } = useAuth()
   const { subscription, activePlan, isActive, loading } = useSubscription()
 
-  const formatDate = (timestamp: number | null) => {
+  const formatDate = (timestamp: number | string | null) => {
     if (!timestamp) return 'N/A'
-    return new Date(timestamp * 1000).toLocaleDateString()
+    const date = typeof timestamp === 'number' ? new Date(timestamp * 1000) : new Date(timestamp)
+    return date.toLocaleDateString()
   }
 
   return (
@@ -67,9 +67,9 @@ export function Dashboard() {
               ) : (
                 <div>
                   <p className="text-gray-600 mb-2">No active subscription</p>
-                  <Button asChild size="sm">
-                    <Link to="/pricing">View Plans</Link>
-                  </Button>
+                  <Link to="/pricing">
+                    <Button size="sm">View Plans</Button>
+                  </Link>
                 </div>
               )}
             </CardContent>
@@ -84,13 +84,13 @@ export function Dashboard() {
               </div>
             </CardHeader>
             <CardContent className="space-y-2">
-              <Button asChild variant="outline" size="sm" className="w-full">
-                <Link to="/pricing">View Pricing</Link>
-              </Button>
+              <Link to="/pricing" className="block">
+                <Button variant="outline" size="sm" className="w-full">View Pricing</Button>
+              </Link>
               {!activePlan && (
-                <Button asChild size="sm" className="w-full">
-                  <Link to="/pricing">Get Started</Link>
-                </Button>
+                <Link to="/pricing" className="block">
+                  <Button size="sm" className="w-full">Get Started</Button>
+                </Link>
               )}
             </CardContent>
           </Card>
@@ -106,7 +106,7 @@ export function Dashboard() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
                   <p className="text-sm text-gray-600">Status</p>
-                  <p className="font-medium capitalize">{subscription.subscription_status}</p>
+                  <p className="font-medium capitalize">{subscription.status}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Current Period Start</p>

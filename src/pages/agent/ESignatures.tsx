@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
-import { FileSignature, Grid, List, Search, Plus, Filter } from 'lucide-react';
+import { FileSignature, Grid, List, Search, Filter } from 'lucide-react';
 import { AgentLayout } from '../../components/AgentLayout';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import { useBoldSignDocuments } from '../../hooks/useBoldSignDocuments';
 import { useTransactions } from '../../hooks/useTransactions';
 import { Input } from '../../components/ui/Input';
