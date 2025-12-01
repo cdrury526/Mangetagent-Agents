@@ -1,0 +1,565 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "shadcn/ui Dialog Modal Migration Plan",
+  "description": "Migrate all custom modals to use shadcn/ui Dialog component for accessibility, consistency, and maintainability",
+  "metadata": {
+    "created": "2025-11-26T10:00:00-08:00",
+    "created_by": "claude-opus-4-5-20251101",
+    "plan_id": "d8f3a2b1-4c5e-6f7a-8b9c-0d1e2f3a4b5c",
+    "version": "1.0"
+  },
+  "planning": {
+    "goal": "Replace all 5 custom modal implementations with shadcn/ui Dialog components to standardize modal behavior, improve accessibility (WCAG compliance), and reduce code duplication",
+    "reason": "Current modals have inconsistent styling (max-w-md to max-w-4xl, rounded-lg to rounded-2xl), duplicate backdrop/centering code, and lack proper accessibility features (focus trap, ARIA labels, keyboard handling). shadcn/ui Dialog provides all this out-of-the-box with Radix UI primitives.",
+    "scope": "Includes: Install shadcn/ui Dialog, create BaseModal wrapper if needed, migrate all 5 modals (ConfirmModal, SendDocumentModal, DocumentUploadModal, AddContactModal, NewContactModal), update all usage sites. Excludes: Adding new modal features, changing modal business logic, drawer components.",
+    "success_metrics": [
+      "All 5 modals use shadcn/ui Dialog primitives",
+      "Modals close on Escape key press",
+      "Focus is trapped within open modals",
+      "Screen readers properly announce modal content",
+      "Consistent styling across all modals (same border radius, backdrop opacity)",
+      "No duplicate modal infrastructure code"
+    ],
+    "estimated_timeline": "8-12 hours",
+    "priority": "Medium"
+  },
+  "files_impacted": [
+    {
+      "path": "components.json",
+      "type": "created",
+      "reason": "Initialize shadcn/ui configuration for the project",
+      "estimated_changes": "+15 lines"
+    },
+    {
+      "path": "src/components/ui/dialog.tsx",
+      "type": "created",
+      "reason": "Install shadcn/ui Dialog component",
+      "estimated_changes": "+80 lines"
+    },
+    {
+      "path": "src/lib/utils.ts",
+      "type": "created",
+      "reason": "Add cn() utility for className merging (required by shadcn)",
+      "estimated_changes": "+10 lines"
+    },
+    {
+      "path": "src/components/ui/ConfirmModal.tsx",
+      "type": "modified",
+      "reason": "Refactor to use Dialog primitives (DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription)",
+      "estimated_changes": "Major refactor, ~50 lines changed"
+    },
+    {
+      "path": "src/components/boldsign/SendDocumentModal.tsx",
+      "type": "modified",
+      "reason": "Refactor to use Dialog primitives, largest modal with form content",
+      "estimated_changes": "Major refactor, ~80 lines changed"
+    },
+    {
+      "path": "src/components/documents/DocumentUploadModal.tsx",
+      "type": "modified",
+      "reason": "Refactor to use Dialog primitives, includes file upload area",
+      "estimated_changes": "Major refactor, ~60 lines changed"
+    },
+    {
+      "path": "src/components/transaction-detail/AddContactModal.tsx",
+      "type": "modified",
+      "reason": "Refactor to use Dialog primitives, simple form modal",
+      "estimated_changes": "Major refactor, ~40 lines changed"
+    },
+    {
+      "path": "src/components/transaction-detail/NewContactModal.tsx",
+      "type": "modified",
+      "reason": "Refactor to use Dialog primitives, complex form modal",
+      "estimated_changes": "Major refactor, ~60 lines changed"
+    },
+    {
+      "path": "package.json",
+      "type": "modified",
+      "reason": "Add Radix UI Dialog, clsx, tailwind-merge dependencies",
+      "estimated_changes": "+4 dependencies"
+    },
+    {
+      "path": "tailwind.config.js",
+      "type": "modified",
+      "reason": "Add shadcn/ui animation keyframes if not present",
+      "estimated_changes": "+20 lines"
+    }
+  ],
+  "phases": [
+    {
+      "number": 1,
+      "name": "shadcn/ui Setup and Dialog Installation",
+      "description": "Initialize shadcn/ui in the project and install the Dialog component with all required dependencies",
+      "status": "not_started",
+      "completion_percentage": 0,
+      "estimated_effort": "1.5",
+      "assigned_subagent": "shadcn-ui-designer",
+      "steps": [
+        {
+          "number": 1,
+          "task": "Initialize shadcn/ui with components.json",
+          "status": "not_started",
+          "details": "Run 'npx shadcn@latest init' to create components.json with project configuration (TypeScript, Tailwind CSS path, components alias, utils location)",
+          "estimated_effort": "0.25"
+        },
+        {
+          "number": 2,
+          "task": "Create cn() utility function",
+          "status": "not_started",
+          "details": "Create src/lib/utils.ts with cn() function using clsx and tailwind-merge for className composition",
+          "estimated_effort": "0.25"
+        },
+        {
+          "number": 3,
+          "task": "Install Dialog component",
+          "status": "not_started",
+          "details": "Run 'npx shadcn@latest add dialog' to install Radix Dialog primitive and styled component",
+          "estimated_effort": "0.25"
+        },
+        {
+          "number": 4,
+          "task": "Update Tailwind config for animations",
+          "status": "not_started",
+          "details": "Ensure tailwind.config.js includes dialog animation keyframes (fadeIn, fadeOut, slideIn, etc.) from shadcn defaults",
+          "estimated_effort": "0.5"
+        },
+        {
+          "number": 5,
+          "task": "Verify installation",
+          "status": "not_started",
+          "details": "Create a simple test to verify Dialog component renders correctly with all primitives (Dialog, DialogTrigger, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription, DialogClose)",
+          "estimated_effort": "0.25"
+        }
+      ],
+      "dependencies": [],
+      "blockers": [
+        {
+          "issue": "shadcn CLI may fail if project structure doesn't match expected paths",
+          "mitigation": "Manually configure components.json with correct paths for src/components/ui and src/lib",
+          "severity": "Low"
+        }
+      ],
+      "deliverables": [
+        "components.json - shadcn configuration",
+        "src/lib/utils.ts - cn() utility",
+        "src/components/ui/dialog.tsx - Dialog component",
+        "Updated tailwind.config.js with animations"
+      ]
+    },
+    {
+      "number": 2,
+      "name": "ConfirmModal Migration",
+      "description": "Migrate the simplest modal (ConfirmModal) first to establish the migration pattern and validate the approach",
+      "status": "not_started",
+      "completion_percentage": 0,
+      "estimated_effort": "1.5",
+      "assigned_subagent": "shadcn-ui-designer",
+      "steps": [
+        {
+          "number": 1,
+          "task": "Analyze ConfirmModal structure",
+          "status": "not_started",
+          "details": "Document current props interface (isOpen, onClose, onConfirm, title, message, confirmText, cancelText, confirmVariant, isDangerous, isLoading) to preserve API compatibility",
+          "estimated_effort": "0.25"
+        },
+        {
+          "number": 2,
+          "task": "Refactor ConfirmModal to use Dialog",
+          "status": "not_started",
+          "details": "Replace custom backdrop/container with Dialog, DialogContent. Use DialogHeader with DialogTitle. Replace custom close button with DialogClose. Keep existing Button components for actions.",
+          "estimated_effort": "0.75"
+        },
+        {
+          "number": 3,
+          "task": "Add DialogDescription for accessibility",
+          "status": "not_started",
+          "details": "Wrap message prop in DialogDescription for proper ARIA labeling",
+          "estimated_effort": "0.25"
+        },
+        {
+          "number": 4,
+          "task": "Test ConfirmModal behavior",
+          "status": "not_started",
+          "details": "Verify: Escape closes modal, click outside closes modal, focus trapped, screen reader announces title/description, isDangerous styling preserved, loading state works",
+          "estimated_effort": "0.25"
+        }
+      ],
+      "dependencies": ["Phase 1"],
+      "blockers": [],
+      "deliverables": [
+        "Refactored src/components/ui/ConfirmModal.tsx using Dialog primitives",
+        "Preserved API compatibility (no changes to consuming components)"
+      ]
+    },
+    {
+      "number": 3,
+      "name": "Simple Form Modals Migration",
+      "description": "Migrate AddContactModal and NewContactModal which are form-based modals with similar patterns",
+      "status": "not_started",
+      "completion_percentage": 0,
+      "estimated_effort": "2.5",
+      "assigned_subagent": "shadcn-ui-designer",
+      "steps": [
+        {
+          "number": 1,
+          "task": "Migrate AddContactModal",
+          "status": "not_started",
+          "details": "Refactor to use Dialog, DialogContent (max-w-md), DialogHeader, DialogTitle. Move form inside DialogContent. Use DialogFooter for Cancel/Submit buttons. Preserve all form logic unchanged.",
+          "estimated_effort": "1"
+        },
+        {
+          "number": 2,
+          "task": "Migrate NewContactModal",
+          "status": "not_started",
+          "details": "Refactor to use Dialog, DialogContent (max-w-2xl). Handle sticky header by using DialogHeader properly. Preserve AddressAutocomplete and all form fields. Move buttons to DialogFooter.",
+          "estimated_effort": "1"
+        },
+        {
+          "number": 3,
+          "task": "Test form submission in both modals",
+          "status": "not_started",
+          "details": "Verify form validation, submission, error display, and modal close on success all work correctly",
+          "estimated_effort": "0.5"
+        }
+      ],
+      "dependencies": ["Phase 2"],
+      "blockers": [],
+      "deliverables": [
+        "Refactored src/components/transaction-detail/AddContactModal.tsx",
+        "Refactored src/components/transaction-detail/NewContactModal.tsx"
+      ]
+    },
+    {
+      "number": 4,
+      "name": "Complex Modals Migration",
+      "description": "Migrate SendDocumentModal and DocumentUploadModal which have more complex UIs with scrolling content",
+      "status": "not_started",
+      "completion_percentage": 0,
+      "estimated_effort": "3",
+      "assigned_subagent": "shadcn-ui-designer",
+      "steps": [
+        {
+          "number": 1,
+          "task": "Migrate DocumentUploadModal",
+          "status": "not_started",
+          "details": "Refactor to use Dialog, DialogContent (max-w-4xl). Handle scrollable content area with max-h-[90vh]. Preserve file upload drop zone, file list with metadata editing, and upload progress.",
+          "estimated_effort": "1.25"
+        },
+        {
+          "number": 2,
+          "task": "Migrate SendDocumentModal",
+          "status": "not_started",
+          "details": "Refactor to use Dialog, DialogContent (max-w-3xl). Handle scrollable form with flex-1 overflow-y-auto pattern. Preserve document ordering drag-and-drop, signers form, credit check display.",
+          "estimated_effort": "1.25"
+        },
+        {
+          "number": 3,
+          "task": "Test complex interactions",
+          "status": "not_started",
+          "details": "Verify drag-and-drop document ordering, dynamic signer adding/removing, file selection, and scroll behavior all work within Dialog constraints",
+          "estimated_effort": "0.5"
+        }
+      ],
+      "dependencies": ["Phase 3"],
+      "blockers": [
+        {
+          "issue": "Drag-and-drop inside Dialog may have z-index or event propagation issues",
+          "mitigation": "Test thoroughly; may need to adjust Dialog overlay z-index or use portal for drag preview",
+          "severity": "Medium"
+        }
+      ],
+      "deliverables": [
+        "Refactored src/components/documents/DocumentUploadModal.tsx",
+        "Refactored src/components/boldsign/SendDocumentModal.tsx"
+      ]
+    },
+    {
+      "number": 5,
+      "name": "Testing, Polish, and Documentation",
+      "description": "Comprehensive testing across all modals, style consistency audit, and documentation updates",
+      "status": "not_started",
+      "completion_percentage": 0,
+      "estimated_effort": "2",
+      "assigned_subagent": "human",
+      "steps": [
+        {
+          "number": 1,
+          "task": "Accessibility audit",
+          "status": "not_started",
+          "details": "Test all 5 modals with keyboard-only navigation, screen reader (NVDA/VoiceOver), and verify ARIA attributes are correct",
+          "estimated_effort": "0.5"
+        },
+        {
+          "number": 2,
+          "task": "Visual consistency audit",
+          "status": "not_started",
+          "details": "Verify all modals have consistent: border-radius, backdrop opacity, header padding, footer alignment, responsive behavior on mobile",
+          "estimated_effort": "0.5"
+        },
+        {
+          "number": 3,
+          "task": "Run full application tests",
+          "status": "not_started",
+          "details": "Run npm run build, npm run lint to catch any TypeScript or linting issues from refactor",
+          "estimated_effort": "0.5"
+        },
+        {
+          "number": 4,
+          "task": "Update documentation",
+          "status": "not_started",
+          "details": "Document Dialog usage pattern in Docs/Patterns/ for future modal implementations",
+          "estimated_effort": "0.5"
+        }
+      ],
+      "dependencies": ["Phase 4"],
+      "blockers": [],
+      "deliverables": [
+        "All modals pass accessibility audit",
+        "Build and lint pass with no errors",
+        "Documentation for Dialog pattern"
+      ]
+    }
+  ],
+  "subagent_assignments": [
+    {
+      "subagent": "shadcn-ui-designer",
+      "domain": "UI component design, shadcn/ui, Tailwind CSS, accessibility",
+      "responsibilities": "Install and configure shadcn/ui Dialog, migrate all 5 modals to use Dialog primitives while preserving existing functionality and improving accessibility",
+      "phases_involved": [1, 2, 3, 4],
+      "estimated_effort": "8.5",
+      "key_deliverables": [
+        "components.json configuration",
+        "src/lib/utils.ts with cn()",
+        "src/components/ui/dialog.tsx",
+        "Refactored ConfirmModal.tsx",
+        "Refactored AddContactModal.tsx",
+        "Refactored NewContactModal.tsx",
+        "Refactored DocumentUploadModal.tsx",
+        "Refactored SendDocumentModal.tsx"
+      ]
+    }
+  ],
+  "reference_documents": [
+    {
+      "path": "Docs/Shadcnui_UI_UX/01-Shadcn-UI-Overview.md",
+      "relevance": "Reference for shadcn/ui setup and component patterns",
+      "status": "reference",
+      "sections": "Installation, Component Usage"
+    },
+    {
+      "path": "Docs/Shadcnui_UI_UX/06-Modern-UI-UX-Patterns.md",
+      "relevance": "Reference for Dialog usage patterns mentioned",
+      "status": "reference",
+      "sections": "Dialog patterns"
+    },
+    {
+      "path": "Docs/Patterns/Dialog-Usage.md",
+      "relevance": "Document the Dialog migration pattern for future reference",
+      "status": "create",
+      "sections": "New documentation for modal/dialog patterns"
+    }
+  ],
+  "potential_blockers": [
+    {
+      "issue": "shadcn CLI initialization may not work with existing project structure",
+      "likelihood": "Low",
+      "impact": "Low",
+      "mitigation_strategy": "Manually create components.json and install dependencies if CLI fails",
+      "fallback_plan": "Copy Dialog component source directly from shadcn/ui GitHub"
+    },
+    {
+      "issue": "Existing modal consumers may expect specific behavior that Dialog changes",
+      "likelihood": "Medium",
+      "impact": "Medium",
+      "mitigation_strategy": "Preserve exact prop interface, only change internal implementation",
+      "fallback_plan": "Create wrapper component that maps old API to Dialog API"
+    },
+    {
+      "issue": "Dialog animations may conflict with existing Tailwind animation config",
+      "likelihood": "Low",
+      "impact": "Low",
+      "mitigation_strategy": "Merge animation keyframes carefully, test transitions",
+      "fallback_plan": "Disable Dialog animations if conflicts are severe"
+    },
+    {
+      "issue": "Drag-and-drop in SendDocumentModal may break inside Dialog overlay",
+      "likelihood": "Medium",
+      "impact": "Medium",
+      "mitigation_strategy": "Test drag behavior thoroughly, adjust z-index if needed",
+      "fallback_plan": "Use react-beautiful-dnd portal feature to render drag preview outside Dialog"
+    }
+  ],
+  "success_criteria": [
+    {
+      "criterion": "All 5 modals render using shadcn/ui Dialog primitives with no visual regression",
+      "how_to_verify": "Visual comparison of each modal before/after migration, verify layout, spacing, colors match",
+      "priority": "Critical",
+      "acceptance_test": "Given each modal is opened, when visually inspected, then styling matches design spec within acceptable tolerance"
+    },
+    {
+      "criterion": "Modals close when Escape key is pressed",
+      "how_to_verify": "Open each modal, press Escape, verify modal closes",
+      "priority": "Critical",
+      "acceptance_test": "Given modal is open, when user presses Escape, then modal closes and focus returns to trigger element"
+    },
+    {
+      "criterion": "Focus is trapped within open modals",
+      "how_to_verify": "Open modal, Tab through all focusable elements, verify focus cycles within modal",
+      "priority": "Critical",
+      "acceptance_test": "Given modal is open, when user tabs past last element, then focus moves to first focusable element in modal"
+    },
+    {
+      "criterion": "Screen readers announce modal title and description",
+      "how_to_verify": "Open modal with screen reader active, verify title and description are announced",
+      "priority": "High",
+      "acceptance_test": "Given modal opens with screen reader active, when modal appears, then screen reader announces modal title followed by description"
+    },
+    {
+      "criterion": "All existing modal functionality preserved (forms submit, files upload, documents send)",
+      "how_to_verify": "Execute full user flows for each modal, verify all actions complete successfully",
+      "priority": "Critical",
+      "acceptance_test": "Given user interacts with any modal, when they complete the intended action, then the action succeeds identically to pre-migration behavior"
+    },
+    {
+      "criterion": "Build and lint pass with no new errors",
+      "how_to_verify": "Run 'npm run build' and 'npm run lint', verify zero errors",
+      "priority": "Critical",
+      "acceptance_test": "Given migration is complete, when build and lint are run, then both complete with exit code 0"
+    }
+  ],
+  "risks_and_assumptions": [
+    {
+      "type": "assumption",
+      "description": "Project can add new dependencies (Radix UI Dialog, clsx, tailwind-merge)",
+      "impact": "Cannot proceed with shadcn/ui approach if dependencies are restricted",
+      "owner": "human"
+    },
+    {
+      "type": "assumption",
+      "description": "Tailwind CSS v3.4.1 is compatible with shadcn/ui Dialog component",
+      "impact": "May need to adjust Tailwind config or upgrade if incompatible",
+      "owner": "shadcn-ui-designer"
+    },
+    {
+      "type": "risk",
+      "description": "Migration may introduce subtle behavior changes that affect user workflows",
+      "impact": "Users may experience unexpected modal behavior changes",
+      "owner": "human"
+    },
+    {
+      "type": "assumption",
+      "description": "No other code depends on the internal modal structure (only props interface)",
+      "impact": "Would need to update additional code if internal structure is used elsewhere",
+      "owner": "shadcn-ui-designer"
+    }
+  ],
+  "technical_approach": {
+    "architecture": "Replace custom modal implementations with shadcn/ui Dialog (built on Radix UI Dialog primitive) while preserving existing component APIs for backwards compatibility",
+    "key_decisions": [
+      {
+        "decision": "Use shadcn/ui Dialog instead of building custom BaseModal",
+        "rationale": "shadcn/ui provides production-ready accessibility (focus trap, ARIA, keyboard handling), animations, and is already compatible with project's Tailwind setup. Building custom would require reimplementing these features.",
+        "alternatives_considered": [
+          "Custom BaseModal component",
+          "Headless UI Dialog",
+          "React Modal library"
+        ],
+        "trade_offs": "Adds ~15KB to bundle, but gains full WCAG compliance and removes custom accessibility code burden"
+      },
+      {
+        "decision": "Preserve existing prop interfaces for all modals",
+        "rationale": "Allows migration without changing any consuming components, reducing scope and risk",
+        "alternatives_considered": [
+          "Refactor to standard Dialog API everywhere",
+          "Create new modal components alongside old ones"
+        ],
+        "trade_offs": "May result in some wrapper code, but eliminates migration risk for consumers"
+      },
+      {
+        "decision": "Migrate simplest modal (ConfirmModal) first",
+        "rationale": "Establishes pattern and validates approach before tackling complex modals with forms and drag-and-drop",
+        "alternatives_considered": [
+          "Migrate all at once",
+          "Start with most complex to uncover issues early"
+        ],
+        "trade_offs": "Slightly longer overall timeline, but reduces risk of large-scale rework"
+      }
+    ],
+    "tech_stack": [
+      "shadcn/ui Dialog component",
+      "Radix UI Dialog primitive (@radix-ui/react-dialog)",
+      "clsx + tailwind-merge (via cn() utility)",
+      "Existing: React 18.3, TypeScript 5.5, Tailwind CSS 3.4.1"
+    ],
+    "integration_points": [
+      {
+        "system": "Radix UI Dialog",
+        "interaction": "Provides accessible dialog primitives (trigger, content, overlay, close)",
+        "authentication": "N/A - client-side only"
+      },
+      {
+        "system": "Existing Button component",
+        "interaction": "Continue using existing Button in DialogFooter for consistent action styling",
+        "authentication": "N/A"
+      }
+    ]
+  },
+  "testing_strategy": {
+    "unit_tests": "N/A - visual components, prefer manual testing",
+    "integration_tests": "Test complete modal flows (open, interact, submit, close) for each modal",
+    "manual_tests": [
+      {
+        "test_case": "ConfirmModal keyboard accessibility",
+        "steps": "1. Open ConfirmModal, 2. Press Tab to cycle focus, 3. Press Enter on Confirm, 4. Verify action executes and modal closes",
+        "expected_result": "Focus cycles through modal elements only, Enter triggers confirm action"
+      },
+      {
+        "test_case": "SendDocumentModal form submission",
+        "steps": "1. Open SendDocumentModal, 2. Add signer, 3. Fill form fields, 4. Click Quick Send, 5. Verify document sends",
+        "expected_result": "Form submits successfully, modal closes, document sent"
+      },
+      {
+        "test_case": "DocumentUploadModal file selection",
+        "steps": "1. Open modal, 2. Click upload area, 3. Select files, 4. Edit metadata, 5. Upload",
+        "expected_result": "Files upload successfully with correct metadata"
+      },
+      {
+        "test_case": "Modal close on backdrop click",
+        "steps": "1. Open any modal, 2. Click backdrop (outside modal content)",
+        "expected_result": "Modal closes"
+      },
+      {
+        "test_case": "Modal close on Escape key",
+        "steps": "1. Open any modal, 2. Press Escape key",
+        "expected_result": "Modal closes"
+      }
+    ],
+    "edge_cases": [
+      "Modal opened while another modal is already open",
+      "Form validation errors prevent modal close",
+      "Long content requiring scroll within modal",
+      "Mobile viewport with virtual keyboard open",
+      "Screen reader navigation through complex modal (SendDocumentModal)"
+    ]
+  },
+  "rollout_plan": {
+    "deployment_phases": [
+      {
+        "phase": "Development",
+        "when": "After all phases complete",
+        "verification": "Run npm run build && npm run lint, verify all modals work in dev server",
+        "rollback_plan": "Git revert to pre-migration commit"
+      },
+      {
+        "phase": "Production",
+        "when": "After development verification",
+        "verification": "Test each modal in production environment",
+        "rollback_plan": "Redeploy previous version from git tag"
+      }
+    ],
+    "feature_flags": "None needed - this is a refactor with same external behavior",
+    "monitoring": "Monitor for user reports of modal issues, check for JavaScript console errors related to Dialog components"
+  },
+  "execution_history": [],
+  "notes": "This migration improves accessibility and code quality without changing user-facing behavior. The main risk is subtle behavior changes from Radix Dialog (e.g., click-outside handling, focus management). Testing should focus on verifying existing workflows continue to work identically."
+}

@@ -1,24 +1,36 @@
-import { useState } from 'react';
-import { X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, Trash2 } from 'lucide-react';
 import { TransactionSelector } from './TransactionSelector';
 import { DatePicker } from '../forms/DatePicker';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import type { Task, TaskPhase } from '../../types/database';
 
 interface TaskFormProps {
+  isOpen: boolean;
+  onClose: () => void;
   task?: Task;
   parentTask?: Task;
-  onSubmit: (data: Partial<Task>) => void;
-  onCancel: () => void;
+  initialSubtasks?: Task[];
+  onSubmit: (data: Partial<Task>, newSubtasks: string[], subtaskIdsToDelete: string[]) => void;
   agentId: string;
   transactionId?: string | null;
   showTransactionSelector?: boolean;
 }
 
 export function TaskForm({
+  isOpen,
+  onClose,
   task,
   parentTask,
+  initialSubtasks = [],
   onSubmit,
-  onCancel,
   agentId,
   transactionId,
   showTransactionSelector = false,
@@ -34,18 +46,62 @@ export function TaskForm({
     transaction_name: '',
   });
 
+  const [newSubtasks, setNewSubtasks] = useState<string[]>([]);
+  const [subtaskIdsToDelete, setSubtaskIdsToDelete] = useState<string[]>([]);
+  const [currentSubtaskInput, setCurrentSubtaskInput] = useState('');
+
+  // Reset form state when dialog opens
+  useEffect(() => {
+    if (isOpen) {
+      setFormData({
+        name: task?.name || '',
+        description: task?.description || '',
+        phase: task?.phase || '',
+        due_date: task?.due_date || '',
+        transaction_id: task?.transaction_id || transactionId || null,
+        transaction_name: '',
+      });
+      setNewSubtasks([]);
+      setSubtaskIdsToDelete([]);
+      setCurrentSubtaskInput('');
+    }
+  }, [isOpen, task, transactionId]);
+
+  // Filter out deleted initial subtasks for display
+  const visibleInitialSubtasks = initialSubtasks.filter(
+    (st) => !subtaskIdsToDelete.includes(st.id)
+  );
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { transaction_name, ...taskData } = formData;
-    // transaction_name is only used for UI display, not submitted
-    onSubmit({
-      ...taskData,
-      description: taskData.description || null,
-      phase: isSubtask ? null : (taskData.phase as TaskPhase | null),
-      due_date: isSubtask ? null : (taskData.due_date || null),
-      transaction_id: taskData.transaction_id,
-    });
+    
+    onSubmit(
+      {
+        ...taskData,
+        description: taskData.description || null,
+        phase: isSubtask ? null : (taskData.phase as TaskPhase | null),
+        due_date: isSubtask ? null : (taskData.due_date || null),
+        transaction_id: taskData.transaction_id,
+      },
+      newSubtasks,
+      subtaskIdsToDelete
+    );
+  };
+
+  const handleAddSubtask = () => {
+    if (!currentSubtaskInput.trim()) return;
+    setNewSubtasks([...newSubtasks, currentSubtaskInput.trim()]);
+    setCurrentSubtaskInput('');
+  };
+
+  const handleRemoveNewSubtask = (index: number) => {
+    setNewSubtasks(newSubtasks.filter((_, i) => i !== index));
+  };
+
+  const handleRemoveInitialSubtask = (id: string) => {
+    setSubtaskIdsToDelete([...subtaskIdsToDelete, id]);
   };
 
   const handleTransactionChange = (transactionId: string | null, transactionName?: string) => {
@@ -56,34 +112,29 @@ export function TaskForm({
     });
   };
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white z-10 flex items-center justify-between p-4 border-b border-gray-200">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">
-              {task ? (isSubtask ? 'Edit Subtask' : 'Edit Task') : (isSubtask ? 'New Subtask' : 'New Task')}
-            </h3>
-            {isSubtask && parentTask && (
-              <p className="text-sm text-gray-500 mt-1">
-                Parent: {parentTask.name}
-              </p>
-            )}
-            {!isSubtask && !showTransactionSelector && transactionId && (
-              <p className="text-sm text-emerald-600 mt-1">
-                Linked to current transaction
-              </p>
-            )}
-          </div>
-          <button
-            onClick={onCancel}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+  const titleText = task
+    ? (isSubtask ? 'Edit Subtask' : 'Edit Task')
+    : (isSubtask ? 'New Subtask' : 'New Task');
 
-        <form onSubmit={handleSubmit} className="p-4 space-y-4">
+  const descriptionText = isSubtask && parentTask
+    ? `Parent: ${parentTask.name}`
+    : !isSubtask && !showTransactionSelector && transactionId
+      ? 'Linked to current transaction'
+      : undefined;
+
+  return (
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{titleText}</DialogTitle>
+          {descriptionText && (
+            <DialogDescription className={isSubtask ? 'text-gray-500' : 'text-emerald-600'}>
+              {descriptionText}
+            </DialogDescription>
+          )}
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               {isSubtask ? 'Subtask' : 'Task'} Name *
@@ -98,19 +149,6 @@ export function TaskForm({
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Description
-            </label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder={isSubtask ? 'Add subtask description (optional)' : 'Add task description (optional)'}
-            />
-          </div>
-
           {!isSubtask && showTransactionSelector && (
             <TransactionSelector
               value={formData.transaction_id}
@@ -120,33 +158,71 @@ export function TaskForm({
           )}
 
           {!isSubtask && (
-            <>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Phase
-                </label>
-                <select
-                  value={formData.phase}
-                  onChange={(e) => setFormData({ ...formData, phase: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">Select phase</option>
-                  <option value="pre_offer">Pre-Offer</option>
-                  <option value="offer">Offer</option>
-                  <option value="inspection">Inspection</option>
-                  <option value="appraisal">Appraisal</option>
-                  <option value="financing">Financing</option>
-                  <option value="closing">Closing</option>
-                  <option value="post_closing">Post-Closing</option>
-                </select>
+            <DatePicker
+              label="Due Date"
+              value={formData.due_date}
+              onChange={(value) => setFormData({ ...formData, due_date: value })}
+            />
+          )}
+
+          {!isSubtask && (
+            <div className="border-t border-gray-200 pt-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Subtasks
+              </label>
+              
+              {/* List existing subtasks */}
+              <div className="space-y-2 mb-3">
+                {visibleInitialSubtasks.map((st) => (
+                  <div key={st.id} className="flex items-center justify-between bg-gray-50 p-2 rounded text-sm">
+                    <span className="truncate">{st.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveInitialSubtask(st.id)}
+                      className="text-gray-400 hover:text-red-600"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+                {newSubtasks.map((stName, idx) => (
+                  <div key={`new-${idx}`} className="flex items-center justify-between bg-blue-50 p-2 rounded text-sm border border-blue-100">
+                    <span className="truncate">{stName}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveNewSubtask(idx)}
+                      className="text-blue-400 hover:text-red-600"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
               </div>
 
-              <DatePicker
-                label="Due Date"
-                value={formData.due_date}
-                onChange={(value) => setFormData({ ...formData, due_date: value })}
-              />
-            </>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={currentSubtaskInput}
+                  onChange={(e) => setCurrentSubtaskInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleAddSubtask();
+                    }
+                  }}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  placeholder="Add a subtask..."
+                />
+                <button
+                  type="button"
+                  onClick={handleAddSubtask}
+                  disabled={!currentSubtaskInput.trim()}
+                  className="px-3 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Plus className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
           )}
 
           {isSubtask && (
@@ -157,10 +233,10 @@ export function TaskForm({
             </div>
           )}
 
-          <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+          <DialogFooter className="pt-4 border-t border-gray-200">
             <button
               type="button"
-              onClick={onCancel}
+              onClick={onClose}
               className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
             >
               Cancel
@@ -171,9 +247,9 @@ export function TaskForm({
             >
               {task ? 'Update' : 'Create'}
             </button>
-          </div>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

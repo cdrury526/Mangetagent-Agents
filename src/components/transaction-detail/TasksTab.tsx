@@ -28,9 +28,14 @@ export function TasksTab({ transactionId }: TasksTabProps) {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [parentTaskForSubtask, setParentTaskForSubtask] = useState<Task | null>(null);
 
-  const handleCreateTask = async (taskData: Partial<Task>) => {
+  const handleCreateTask = async (
+    taskData: Partial<Task>,
+    newSubtasks: string[] = [],
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    subtaskIdsToDelete: string[] = []
+  ) => {
     try {
-      await createTask({
+      const newTask = await createTask({
         agent_id: user!.id,
         transaction_id: transactionId,
         parent_task_id: null,
@@ -42,6 +47,19 @@ export function TasksTab({ transactionId }: TasksTabProps) {
         completed_at: null,
         sort_order: null,
       });
+
+      if (newTask && newSubtasks.length > 0) {
+        await Promise.all(
+          newSubtasks.map((name) =>
+            createSubtask(newTask.id, {
+              agent_id: user!.id,
+              transaction_id: transactionId,
+              name,
+              description: null,
+            })
+          )
+        );
+      }
       setShowForm(false);
     } catch (err: unknown) {
       alert('Failed to create task: ' + (err instanceof Error ? err.message : String(err)));
@@ -63,10 +81,32 @@ export function TasksTab({ transactionId }: TasksTabProps) {
     }
   };
 
-  const handleUpdateTask = async (taskData: Partial<Task>) => {
+  const handleUpdateTask = async (
+    taskData: Partial<Task>,
+    newSubtasks: string[] = [],
+    subtaskIdsToDelete: string[] = []
+  ) => {
     if (!editingTask) return;
     try {
       await updateTask(editingTask.id, taskData);
+
+      if (newSubtasks.length > 0) {
+        await Promise.all(
+          newSubtasks.map((name) =>
+            createSubtask(editingTask.id, {
+              agent_id: user!.id,
+              transaction_id: transactionId,
+              name,
+              description: null,
+            })
+          )
+        );
+      }
+
+      if (subtaskIdsToDelete.length > 0) {
+        await Promise.all(subtaskIdsToDelete.map((id) => deleteTask(id)));
+      }
+
       setEditingTask(null);
     } catch (err: unknown) {
       alert('Failed to update task: ' + (err instanceof Error ? err.message : String(err)));
@@ -134,35 +174,33 @@ export function TasksTab({ transactionId }: TasksTabProps) {
         />
       )}
 
-      {showForm && (
-        <TaskForm
-          onSubmit={handleCreateTask}
-          onCancel={() => setShowForm(false)}
-          agentId={user!.id}
-          transactionId={transactionId}
-        />
-      )}
+      <TaskForm
+        isOpen={showForm}
+        onClose={() => setShowForm(false)}
+        onSubmit={handleCreateTask}
+        agentId={user!.id}
+        transactionId={transactionId}
+      />
 
-      {editingTask && (
-        <TaskForm
-          task={editingTask}
-          parentTask={editingTask.parent_task_id ? parentTasksWithSubtasks.find((p) => p.id === editingTask.parent_task_id) : undefined}
-          onSubmit={handleUpdateTask}
-          onCancel={() => setEditingTask(null)}
-          agentId={user!.id}
-          transactionId={transactionId}
-        />
-      )}
+      <TaskForm
+        isOpen={!!editingTask}
+        onClose={() => setEditingTask(null)}
+        task={editingTask ?? undefined}
+        parentTask={editingTask?.parent_task_id ? parentTasksWithSubtasks.find((p) => p.id === editingTask.parent_task_id) : undefined}
+        initialSubtasks={editingTask && !editingTask.parent_task_id ? getSubtasks(editingTask.id) : []}
+        onSubmit={handleUpdateTask}
+        agentId={user!.id}
+        transactionId={transactionId}
+      />
 
-      {parentTaskForSubtask && (
-        <TaskForm
-          parentTask={parentTaskForSubtask}
-          onSubmit={handleCreateSubtask}
-          onCancel={() => setParentTaskForSubtask(null)}
-          agentId={user!.id}
-          transactionId={transactionId}
-        />
-      )}
+      <TaskForm
+        isOpen={!!parentTaskForSubtask}
+        onClose={() => setParentTaskForSubtask(null)}
+        parentTask={parentTaskForSubtask ?? undefined}
+        onSubmit={handleCreateSubtask}
+        agentId={user!.id}
+        transactionId={transactionId}
+      />
     </div>
   );
 }

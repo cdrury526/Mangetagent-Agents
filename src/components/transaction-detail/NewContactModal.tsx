@@ -1,11 +1,17 @@
 import { useState } from 'react';
-import { X } from 'lucide-react';
 import { useContacts } from '../../hooks/useContacts';
 import { useTransactionContacts } from '../../hooks/useTransactionContacts';
 import { useAuth } from '../../hooks/useAuth';
 import { ContactType } from '../../types/database';
 import { AddressAutocomplete } from '../forms/AddressAutocomplete';
 import { formatPhoneNumber } from '../../utils/phoneFormatter';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 interface NewContactModalProps {
   transactionId: string;
@@ -100,16 +106,13 @@ export function NewContactModal({ transactionId, onClose, onSuccess }: NewContac
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b border-slate-200 p-6 flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-slate-900">Create New Contact</h2>
-          <button onClick={onClose} className="text-slate-500 hover:text-slate-700">
-            <X className="w-6 h-6" />
-          </button>
-        </div>
+    <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Create New Contact</DialogTitle>
+        </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
             <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
               {error}
@@ -255,7 +258,7 @@ export function NewContactModal({ transactionId, onClose, onSuccess }: NewContac
             </div>
           </div>
 
-          <div className="flex gap-3 justify-end pt-4 border-t border-slate-200">
+          <DialogFooter className="gap-3">
             <button
               type="button"
               onClick={onClose}
@@ -270,9 +273,9 @@ export function NewContactModal({ transactionId, onClose, onSuccess }: NewContac
             >
               {submitting ? 'Creating...' : 'Create & Add to Transaction'}
             </button>
-          </div>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

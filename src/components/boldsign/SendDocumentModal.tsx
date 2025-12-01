@@ -1,8 +1,15 @@
 import { useState } from 'react';
-import { X, Plus, Trash2, AlertCircle, Coins, GripVertical, FileText } from 'lucide-react';
+import { Plus, Trash2, AlertCircle, Coins, GripVertical, FileText } from 'lucide-react';
 import { FormInput } from '../forms/FormInput';
 import { FormSelect } from '../forms/FormSelect';
 import { Button } from '../ui/Button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { useTransactionContacts } from '../../hooks/useTransactionContacts';
 import { sendDocumentForSignature } from '../../actions/boldsign';
 import { supabase } from '../../lib/supabase';
@@ -168,23 +175,17 @@ export function SendDocumentModal({ documents, transactionId, onClose, onSuccess
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-        <div className="flex items-center justify-between p-6 border-b border-slate-200">
-          <div>
-            <h2 className="text-xl font-semibold text-slate-900">Send for Signature</h2>
-            <p className="text-sm text-slate-600 mt-1">{orderedDocs.length} document{orderedDocs.length > 1 ? 's' : ''} selected</p>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+    <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
+          <DialogTitle>Send for Signature</DialogTitle>
+          <DialogDescription>
+            {orderedDocs.length} document{orderedDocs.length > 1 ? 's' : ''} selected
+          </DialogDescription>
+        </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto p-6">
-          <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="flex-1 overflow-y-auto">
+          <form onSubmit={handleSubmit} className="space-y-6" id="send-document-form">
             {orderedDocs.length > 1 && (
               <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
                 <h3 className="text-sm font-medium text-slate-900 mb-3">Document Order</h3>
@@ -366,43 +367,44 @@ export function SendDocumentModal({ documents, transactionId, onClose, onSuccess
               />
             </div>
 
-            <div className="flex justify-between items-center gap-3 pt-4">
-              <div className="flex-1">
-                {onPrepareDocument && (
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={() => {
-                      if (signers.length === 0) {
-                        setError('Please add at least one signer before preparing the document');
-                        return;
-                      }
-                      for (const signer of signers) {
-                        if (!signer.email || !signer.firstName) {
-                          setError('All signers must have an email and first name');
-                          return;
-                        }
-                      }
-                      onPrepareDocument(signers);
-                    }}
-                    disabled={signers.length === 0}
-                  >
-                    Prepare Document
-                  </Button>
-                )}
-              </div>
-              <div className="flex gap-3">
-                <Button type="button" variant="secondary" onClick={onClose}>
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={loading || !hasEnoughCredits}>
-                  {loading ? 'Sending...' : 'Quick Send'}
-                </Button>
-              </div>
-            </div>
           </form>
         </div>
-      </div>
-    </div>
+
+        <div className="flex justify-between items-center gap-3 flex-shrink-0 pt-4 border-t">
+          <div className="flex-1">
+            {onPrepareDocument && (
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => {
+                  if (signers.length === 0) {
+                    setError('Please add at least one signer before preparing the document');
+                    return;
+                  }
+                  for (const signer of signers) {
+                    if (!signer.email || !signer.firstName) {
+                      setError('All signers must have an email and first name');
+                      return;
+                    }
+                  }
+                  onPrepareDocument(signers);
+                }}
+                disabled={signers.length === 0}
+              >
+                Prepare Document
+              </Button>
+            )}
+          </div>
+          <div className="flex gap-3">
+            <Button type="button" variant="secondary" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button type="submit" form="send-document-form" disabled={loading || !hasEnoughCredits}>
+              {loading ? 'Sending...' : 'Quick Send'}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

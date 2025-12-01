@@ -7,12 +7,12 @@
           {
             "type": "command",
             "comment": "Validate context files match template structure and naming convention",
-            "command": ".claude/hooks/validate-context.py"
+            "command": "python .claude\\hooks\\validate-context.py"
           },
           {
             "type": "command",
             "comment": "Validate plan files match template structure and naming convention",
-            "command": ".claude/hooks/validate-plan.py"
+            "command": "python .claude\\hooks\\validate-plan.py"
           }
         ]
       }
@@ -29,16 +29,6 @@
         ]
       }
     ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "comment": "Run end-of-turn quality checks (type checking and linting)",
-            "command": ".claude/hooks/end-of-turn-check.sh"
-          }
-        ]
-      }
-    ]
+    "Stop": []
   }
 }

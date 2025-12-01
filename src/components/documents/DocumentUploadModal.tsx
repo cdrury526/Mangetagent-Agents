@@ -1,7 +1,15 @@
 import { useState, useRef, ChangeEvent } from 'react';
-import { X, Upload, FileText, File, Image as ImageIcon, Trash2 } from 'lucide-react';
+import { Upload, FileText, File, Image as ImageIcon, Trash2 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { supabase } from '../../lib/supabase';
 import { DocumentType } from '../../types/database';
 
@@ -154,22 +162,17 @@ export function DocumentUploadModal({
     onClose();
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col">
-        <div className="flex items-center justify-between p-6 border-b border-slate-200">
-          <h2 className="text-xl font-semibold text-slate-900">Upload Documents</h2>
-          <button
-            onClick={handleClose}
-            className="text-slate-400 hover:text-slate-600 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
+      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
+          <DialogTitle>Upload Documents</DialogTitle>
+          <DialogDescription>
+            Select and configure files to upload to this transaction
+          </DialogDescription>
+        </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto">
           {error && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
               {error}
@@ -300,7 +303,7 @@ export function DocumentUploadModal({
           )}
         </div>
 
-        <div className="flex items-center justify-end gap-3 p-6 border-t border-slate-200">
+        <DialogFooter className="flex-shrink-0">
           <Button variant="outline" onClick={handleClose} disabled={uploading}>
             Cancel
           </Button>
@@ -310,8 +313,8 @@ export function DocumentUploadModal({
           >
             {uploading ? 'Uploading...' : `Upload ${files.length} ${files.length === 1 ? 'File' : 'Files'}`}
           </Button>
-        </div>
-      </div>
-    </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

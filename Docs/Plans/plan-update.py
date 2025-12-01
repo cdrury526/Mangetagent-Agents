@@ -11,6 +11,12 @@ Usage:
   plan-update.py <plan-file> --add-history --context <context-file> --notes "<text>"
   plan-update.py <plan-file> --summary
 
+  # Quick workflow commands (agents can use without parsing full plan):
+  plan-update.py <plan-file> --start-next           # Start next available phase
+  plan-update.py <plan-file> --complete-current     # Complete current in_progress phase
+  plan-update.py <plan-file> --status-check         # Show current status and next actions
+  plan-update.py <plan-file> --my-assignment <agent> # Show phases assigned to agent
+
 Features:
   - Atomic writes (temp file + atomic rename)
   - Daily backups to .plan-backups/
@@ -19,6 +25,9 @@ Features:
   - Smart defaults (auto-update metadata.last_updated, etc.)
   - Status transition validation
   - Multi-update support (all in one transaction)
+  - Auto-archive to Completed/ when all phases done
+  - Phase index for quick status lookups
+  - Dependency validation before starting phases
 
 Exit Codes:
   0 - Success
@@ -54,6 +63,7 @@ STATUS_TRANSITIONS = {
     "completed": [],
 }
 BACKUP_DIR = ".plan-backups"
+COMPLETED_DIR = "Completed"
 
 
 class PlanUpdater:
@@ -199,8 +209,277 @@ class PlanUpdater:
                 return step
         self.error(f"Step {step_num} not found in Phase {phase_num}")
 
-    def update_phase_status(self, phase_num: int, status: str) -> None:
-        """Update phase status with validation"""
+    def _check_dependencies_satisfied(self, phase: Dict[str, Any]) -> Tuple[bool, List[str]]:
+        """Check if all dependency phases are completed. Returns (satisfied, blocking_phases)"""
+        dependencies = phase.get("dependencies", [])
+        blocking = []
+
+        for dep in dependencies:
+            # Handle both "Phase 1" string and integer formats
+            if isinstance(dep, str):
+                if dep.lower().startswith("phase "):
+                    dep_num = int(dep.split()[-1])
+                else:
+                    try:
+                        dep_num = int(dep)
+                    except ValueError:
+                        # Skip non-numeric dependencies (named references)
+                        continue
+            else:
+                dep_num = int(dep)
+
+            try:
+                dep_phase = self.get_phase(dep_num)
+                if dep_phase.get("status") != "completed":
+                    blocking.append(f"Phase {dep_num} ({dep_phase.get('status', 'not_started')})")
+            except SystemExit:
+                # Phase doesn't exist, skip
+                continue
+
+        return len(blocking) == 0, blocking
+
+    def update_phase_index(self) -> None:
+        """Update the phase_index field for quick status lookups"""
+        phases = self.data.get("phases", [])
+
+        completed = []
+        in_progress = []
+        blocked = []
+        not_started = []
+        current_in_progress = None
+        next_available = None
+
+        for phase in phases:
+            num = phase.get("number")
+            status = phase.get("status", "not_started")
+
+            if status == "completed":
+                completed.append(num)
+            elif status == "in_progress":
+                in_progress.append(num)
+                if current_in_progress is None:
+                    current_in_progress = num
+            elif status == "blocked":
+                blocked.append(num)
+            else:
+                not_started.append(num)
+                # Find next available (first not_started with satisfied dependencies)
+                if next_available is None:
+                    satisfied, _ = self._check_dependencies_satisfied(phase)
+                    if satisfied:
+                        next_available = num
+
+        self.data["phase_index"] = {
+            "total": len(phases),
+            "current_in_progress": current_in_progress,
+            "completed": completed,
+            "blocked": blocked,
+            "not_started": not_started,
+            "next_available": next_available
+        }
+
+    def start_next_phase(self) -> bool:
+        """Find first not_started phase with satisfied dependencies and mark in_progress"""
+        phases = self.data.get("phases", [])
+
+        # Check if there's already an in_progress phase
+        in_progress = [p for p in phases if p.get("status") == "in_progress"]
+        if in_progress:
+            self.warning(f"Phase {in_progress[0].get('number')} is already in_progress. Complete it first or use --force.")
+            return False
+
+        for phase in phases:
+            if phase.get("status") == "not_started":
+                satisfied, blocking = self._check_dependencies_satisfied(phase)
+                if satisfied:
+                    phase_num = phase.get("number")
+                    phase["status"] = "in_progress"
+                    self.success(f"Started Phase {phase_num}: {phase.get('name', 'Unnamed')}")
+                    self.info(f"Assigned to: {phase.get('assigned_subagent', 'unassigned')}")
+                    return True
+                else:
+                    self.info(f"Phase {phase.get('number')} blocked by: {', '.join(blocking)}")
+
+        self.warning("No eligible phases to start (all completed or blocked by dependencies)")
+        return False
+
+    def complete_current_phase(self, notes: Optional[str] = None, effort: Optional[float] = None) -> bool:
+        """Complete the currently in_progress phase with optional notes and effort"""
+        phases = self.data.get("phases", [])
+
+        for phase in phases:
+            if phase.get("status") == "in_progress":
+                phase_num = phase.get("number")
+                phase["status"] = "completed"
+                phase["completion_percentage"] = 100
+
+                # Add completion notes if provided
+                if notes:
+                    phase["completion_notes"] = notes
+                    self.info(f"Added completion notes")
+
+                # Add actual effort if provided
+                if effort is not None:
+                    phase["actual_effort"] = str(effort)
+                    self.info(f"Recorded actual effort: {effort}h")
+
+                self.success(f"Completed Phase {phase_num}: {phase.get('name', 'Unnamed')}")
+                return True
+
+        self.warning("No phase currently in_progress")
+        return False
+
+    def check_and_archive_if_complete(self) -> bool:
+        """Move plan to Completed/ folder if all phases are done"""
+        phases = self.data.get("phases", [])
+        if not phases:
+            return False
+
+        all_completed = all(p.get("status") == "completed" for p in phases)
+
+        if all_completed:
+            completed_dir = self.plan_file.parent / COMPLETED_DIR
+            completed_dir.mkdir(exist_ok=True)
+
+            # Add completion metadata
+            if "metadata" not in self.data:
+                self.data["metadata"] = {}
+            self.data["metadata"]["completed_at"] = datetime.now().isoformat()
+            self.data["metadata"]["status"] = "completed"
+
+            # Calculate total actual effort
+            total_effort = 0
+            for phase in phases:
+                try:
+                    total_effort += float(phase.get("actual_effort", 0))
+                except (ValueError, TypeError):
+                    pass
+            if total_effort > 0:
+                self.data["metadata"]["total_actual_effort"] = str(total_effort)
+
+            dest = completed_dir / self.plan_file.name
+
+            # Write final version
+            self.write_plan()
+
+            # Move to completed folder
+            try:
+                shutil.move(str(self.plan_file), str(dest))
+                self.success(f"Plan completed! Archived to: {dest}")
+                return True
+            except Exception as e:
+                self.warning(f"Failed to archive plan: {e}")
+                return False
+
+        return False
+
+    def display_status_check(self) -> None:
+        """Show current status and next actions (quick view for agents)"""
+        phases = self.data.get("phases", [])
+        planning = self.data.get("planning", {})
+
+        print(f"\n{BOLD}Plan: {self.plan_file.name}{RESET}")
+        print(f"Goal: {planning.get('goal', 'N/A')}")
+
+        # Count by status
+        completed = [p for p in phases if p.get("status") == "completed"]
+        in_progress = [p for p in phases if p.get("status") == "in_progress"]
+        blocked = [p for p in phases if p.get("status") == "blocked"]
+        not_started = [p for p in phases if p.get("status") == "not_started"]
+
+        print(f"\n{BOLD}Status:{RESET} {len(completed)}/{len(phases)} phases completed")
+
+        # Current work
+        if in_progress:
+            p = in_progress[0]
+            print(f"\n{BOLD}Currently In Progress:{RESET}")
+            print(f"  Phase {p.get('number')}: {p.get('name')}")
+            print(f"  Assigned: {p.get('assigned_subagent', 'unassigned')}")
+            print(f"  Completion: {p.get('completion_percentage', 0)}%")
+            steps = p.get("steps", [])
+            completed_steps = sum(1 for s in steps if s.get("status") == "completed")
+            print(f"  Steps: {completed_steps}/{len(steps)} completed")
+
+        # Next up
+        if not_started:
+            print(f"\n{BOLD}Next Available:{RESET}")
+            for p in not_started[:3]:  # Show up to 3
+                satisfied, blocking = self._check_dependencies_satisfied(p)
+                status_icon = "→" if satisfied else "⊘"
+                print(f"  {status_icon} Phase {p.get('number')}: {p.get('name')} [{p.get('assigned_subagent', 'unassigned')}]")
+                if not satisfied:
+                    print(f"    Blocked by: {', '.join(blocking)}")
+
+        # Blocked phases
+        if blocked:
+            print(f"\n{BOLD}Blocked:{RESET}")
+            for p in blocked:
+                print(f"  ⚠ Phase {p.get('number')}: {p.get('name')}")
+                blockers = p.get("blockers", [])
+                for b in blockers[:2]:
+                    print(f"    - {b.get('issue', 'Unknown issue')}")
+
+        # Quick commands
+        print(f"\n{BOLD}Quick Commands:{RESET}")
+        if in_progress:
+            print(f"  --complete-current  # Complete Phase {in_progress[0].get('number')}")
+        if not_started:
+            for p in not_started:
+                satisfied, _ = self._check_dependencies_satisfied(p)
+                if satisfied:
+                    print(f"  --start-next        # Start Phase {p.get('number')}")
+                    break
+        print()
+
+    def display_my_assignments(self, agent_name: str) -> None:
+        """Show phases assigned to a specific agent"""
+        phases = self.data.get("phases", [])
+        planning = self.data.get("planning", {})
+
+        # Find matching phases (case-insensitive partial match)
+        agent_lower = agent_name.lower()
+        my_phases = [p for p in phases if agent_lower in p.get("assigned_subagent", "").lower()]
+
+        if not my_phases:
+            print(f"\n{YELLOW}No phases assigned to '{agent_name}'{RESET}")
+            print(f"Available assignments: {', '.join(set(p.get('assigned_subagent', 'unassigned') for p in phases))}")
+            return
+
+        print(f"\n{BOLD}Plan: {self.plan_file.name}{RESET}")
+        print(f"Goal: {planning.get('goal', 'N/A')}")
+        print(f"\n{BOLD}Your Assignments ({agent_name}):{RESET}")
+
+        for p in my_phases:
+            status = p.get("status", "not_started")
+            status_icon = {
+                "not_started": "○",
+                "in_progress": "⟳",
+                "completed": "✓",
+                "blocked": "⚠"
+            }.get(status, "?")
+
+            print(f"\n  {status_icon} Phase {p.get('number')}: {p.get('name')}")
+            print(f"    Status: {status} | Completion: {p.get('completion_percentage', 0)}%")
+            print(f"    Estimated: {p.get('estimated_effort', '?')}h | Actual: {p.get('actual_effort', 'N/A')}h")
+
+            # Show dependencies if not started
+            if status == "not_started":
+                satisfied, blocking = self._check_dependencies_satisfied(p)
+                if not satisfied:
+                    print(f"    {YELLOW}Blocked by: {', '.join(blocking)}{RESET}")
+                else:
+                    print(f"    {GREEN}Ready to start{RESET}")
+
+            # Show steps
+            steps = p.get("steps", [])
+            if steps:
+                completed_steps = sum(1 for s in steps if s.get("status") == "completed")
+                print(f"    Steps: {completed_steps}/{len(steps)}")
+
+        print()
+
+    def update_phase_status(self, phase_num: int, status: str, notes: Optional[str] = None) -> None:
+        """Update phase status with validation and optional completion notes"""
         self.validate_phase_number(phase_num)
         self.validate_status(status)
 
@@ -215,6 +494,10 @@ class PlanUpdater:
         if status == "completed":
             phase["completion_percentage"] = 100
             self.info(f"Auto-set completion to 100% (status = completed)")
+            # Add completion notes if provided
+            if notes:
+                phase["completion_notes"] = notes
+                self.info(f"Added completion notes")
         elif status == "not_started":
             phase["completion_percentage"] = 0
             self.info(f"Auto-set completion to 0% (status = not_started)")
@@ -317,6 +600,9 @@ class PlanUpdater:
         """Write plan to file atomically"""
         # Update metadata
         self.update_metadata()
+
+        # Update phase index for quick lookups
+        self.update_phase_index()
 
         # Write to temp file first
         temp_fd, temp_path = tempfile.mkstemp(
@@ -456,6 +742,17 @@ Examples:
 
   # Multi-update (all in one transaction)
   plan-update.py plan-stripe-11-23-25.json --phase 2 --status in_progress --completion 50 --actual-effort 3
+
+  # Quick workflow commands (for agents):
+  plan-update.py plan-stripe-11-23-25.json --start-next
+  plan-update.py plan-stripe-11-23-25.json --complete-current
+  plan-update.py plan-stripe-11-23-25.json --complete-current --completion-notes "Implemented webhook handler with retry logic"
+  plan-update.py plan-stripe-11-23-25.json --complete-current --completion-notes "Done" --actual-effort 4.5
+  plan-update.py plan-stripe-11-23-25.json --status-check
+  plan-update.py plan-stripe-11-23-25.json --my-assignment supabase-backend-specialist
+
+  # Complete specific phase with notes
+  plan-update.py plan-stripe-11-23-25.json --phase 2 --status completed --completion-notes "All tests passing"
         """
     )
 
@@ -471,6 +768,18 @@ Examples:
     parser.add_argument("--summary", action="store_true", help="Display plan summary (read-only)")
     parser.add_argument("--force", action="store_true", help="Allow backward status transitions")
     parser.add_argument("--no-backup", action="store_true", help="Skip backup creation")
+
+    # Quick workflow commands for agents
+    parser.add_argument("--start-next", action="store_true",
+                        help="Start the next available phase (checks dependencies)")
+    parser.add_argument("--complete-current", action="store_true",
+                        help="Complete the currently in_progress phase")
+    parser.add_argument("--completion-notes", metavar="TEXT",
+                        help="Notes to add when completing a phase (use with --complete-current or --status completed)")
+    parser.add_argument("--status-check", action="store_true",
+                        help="Show current status and next actions (read-only)")
+    parser.add_argument("--my-assignment", metavar="AGENT",
+                        help="Show phases assigned to agent (read-only)")
 
     args = parser.parse_args()
 
@@ -491,9 +800,17 @@ Examples:
     plan_path = Path(args.plan_file)
     updater = PlanUpdater(plan_path, force=args.force)
 
-    # Summary mode (read-only)
+    # Read-only modes (no backup needed)
     if args.summary:
         updater.display_summary()
+        sys.exit(0)
+
+    if args.status_check:
+        updater.display_status_check()
+        sys.exit(0)
+
+    if args.my_assignment:
+        updater.display_my_assignments(args.my_assignment)
         sys.exit(0)
 
     # Check if any updates requested
@@ -501,11 +818,13 @@ Examples:
         args.status,
         args.completion is not None,
         args.actual_effort is not None,
-        args.add_history
+        args.add_history,
+        args.start_next,
+        args.complete_current
     ])
 
     if not has_updates:
-        parser.error("No updates specified. Use --summary for read-only display or specify update operations.")
+        parser.error("No updates specified. Use --summary, --status-check, or --my-assignment for read-only display, or specify update operations.")
 
     # Create backup
     if not args.no_backup:
@@ -513,6 +832,20 @@ Examples:
 
     try:
         # Perform updates (all in one transaction)
+
+        # Quick workflow commands
+        if args.start_next:
+            if not updater.start_next_phase():
+                sys.exit(1)
+
+        if args.complete_current:
+            if not updater.complete_current_phase(
+                notes=args.completion_notes,
+                effort=args.actual_effort
+            ):
+                sys.exit(1)
+
+        # Specific phase/step updates
         if args.phase:
             if args.step:
                 # Step update
@@ -521,7 +854,7 @@ Examples:
             else:
                 # Phase updates
                 if args.status:
-                    updater.update_phase_status(args.phase, args.status)
+                    updater.update_phase_status(args.phase, args.status, notes=args.completion_notes)
                 if args.completion is not None:
                     updater.update_phase_completion(args.phase, args.completion)
                 if args.actual_effort is not None:
@@ -530,7 +863,12 @@ Examples:
         if args.add_history:
             updater.add_execution_history(args.context, args.notes or "")
 
-        # Write changes
+        # Check if plan is complete and should be archived
+        if updater.check_and_archive_if_complete():
+            # Plan was archived, exit successfully
+            sys.exit(0)
+
+        # Write changes (if not already archived)
         updater.write_plan()
 
         # Run validation

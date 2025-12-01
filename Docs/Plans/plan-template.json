@@ -1,14 +1,27 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Claude Code Feature Plan Template",
-  "description": "Template for creating structured feature implementation plans with subagent assignments and progress tracking",
+  "description": "Template for creating structured feature implementation plans with subagent assignments, progress tracking, and enhanced planning features",
   "type": "object",
   "metadata": {
     "created": "ISO-8601 timestamp when plan was created (e.g., 2025-11-23T14:30:00-08:00)",
     "created_by": "Claude model identifier (e.g., claude-sonnet-4-5-20250929)",
     "plan_id": "Unique identifier (UUID format)",
-    "version": "1.0",
-    "last_updated": "ISO-8601 timestamp of last modification (optional)"
+    "version": "2.1",
+    "last_updated": "ISO-8601 timestamp of last modification (auto-updated by plan-update.py)",
+    "template_version": "2.1 - Added phase_index for quick lookups, auto-archive on completion",
+    "status": "active|completed|archived - Overall plan status (auto-set to 'completed' when archived)",
+    "completed_at": "ISO-8601 timestamp when plan was completed (auto-set when all phases done)",
+    "total_actual_effort": "Total hours spent across all phases (auto-calculated on completion)"
+  },
+  "phase_index": {
+    "_description": "Auto-updated by plan-update.py for quick status lookups without parsing full plan",
+    "total": "Number of phases in the plan",
+    "current_in_progress": "Phase number currently being worked on (null if none)",
+    "completed": ["Array of completed phase numbers"],
+    "blocked": ["Array of blocked phase numbers"],
+    "not_started": ["Array of not_started phase numbers"],
+    "next_available": "Next phase number that can be started (dependencies satisfied)"
   },
   "planning": {
     "goal": "Clear, concise statement of what we're trying to achieve (e.g., 'Implement Stripe subscription billing with recurring payments and webhook handling')",
@@ -20,6 +33,23 @@
     ],
     "estimated_timeline": "Total estimated time in hours or days (e.g., '18 hours' or '3 days')",
     "priority": "Critical|High|Medium|Low - Overall feature priority"
+  },
+  "exploration_summary": {
+    "similar_features_found": [
+      "List of related existing code paths found during research (e.g., 'src/hooks/useSubscription.ts - existing subscription logic')"
+    ],
+    "reusable_components": [
+      "Hooks, components, utilities that can be leveraged (e.g., 'useSupabaseQuery hook for data fetching')"
+    ],
+    "existing_tables": [
+      "Database tables that could be extended (e.g., 'users table has stripe_customer_id column')"
+    ],
+    "patterns_to_follow": [
+      "Established patterns in codebase to replicate (e.g., 'Edge Function pattern from stripe-webhook-handler')"
+    ],
+    "new_code_required": [
+      "What must be built from scratch (e.g., 'New subscriptions table', 'Checkout session Edge Function')"
+    ]
   },
   "files_impacted": [
     {
@@ -37,7 +67,8 @@
       "status": "not_started|in_progress|completed|blocked",
       "completion_percentage": 0,
       "estimated_effort": "Estimated hours for this phase (e.g., '4')",
-      "actual_effort": "Actual hours spent (optional, filled during execution)",
+      "actual_effort": "Actual hours spent (filled on completion, e.g., '5.5')",
+      "completion_notes": "Notes added when phase is completed (e.g., 'Implemented webhook handler with retry logic, all tests passing')",
       "assigned_subagent": "Subagent name from agent-index.md or 'human' (e.g., 'supabase-backend-specialist')",
       "steps": [
         {
@@ -93,6 +124,8 @@
       "issue": "Description of potential blocker (e.g., 'Stripe webhook endpoint SSL certificate verification in development')",
       "likelihood": "High|Medium|Low",
       "impact": "High|Medium|Low - Impact if this blocker occurs",
+      "risk_score": "Calculated as likelihood(H=3,M=2,L=1) × impact(H=3,M=2,L=1), range 1-9",
+      "priority_rank": "Critical (7-9) | High (4-6) | Low (1-3)",
       "mitigation_strategy": "Proactive plan to handle it (e.g., 'Use Stripe CLI for local webhook testing with request forwarding')",
       "fallback_plan": "Alternative approach if mitigation fails (optional)"
     }
@@ -183,6 +216,66 @@
     ],
     "feature_flags": "Feature flags to use (optional)",
     "monitoring": "What to monitor after deployment (e.g., 'Watch for failed webhook deliveries, subscription creation errors')"
+  },
+  "rollback_strategy": {
+    "database": {
+      "approach": "Migration down scripts or manual revert steps",
+      "scripts": [
+        "List of migration files that would need reverting (e.g., 'supabase/migrations/20251123_subscriptions.sql')"
+      ],
+      "data_impact": "Description of any data that would be lost (e.g., 'Subscription records would be deleted')"
+    },
+    "code": {
+      "approach": "Git revert or feature flag disable",
+      "commits_to_revert": "Description of commits/branches to revert (e.g., 'All commits on feature/stripe-subscriptions branch')",
+      "feature_flags": [
+        "List any feature flags that control this feature"
+      ]
+    },
+    "external_services": {
+      "stripe": "Steps to clean up Stripe resources (e.g., 'Delete webhook endpoint, archive products')",
+      "boldsign": "Steps to clean up BoldSign resources (e.g., 'Delete templates')",
+      "other": "Other service cleanup steps"
+    },
+    "estimated_rollback_time": "How long rollback would take (e.g., '30 minutes')",
+    "rollback_risks": [
+      "Things that could go wrong during rollback (e.g., 'Active subscriptions would be orphaned')"
+    ]
+  },
+  "dependency_graph": {
+    "ascii": "ASCII visualization of phase dependencies (e.g., 'Phase 1 → Phase 2 → Phase 3')",
+    "critical_path": [
+      "Ordered list of phases on the critical path (e.g., 'Phase 1', 'Phase 2', 'Phase 4')"
+    ],
+    "parallelizable": [
+      ["Groups of phases that can run in parallel (e.g., ['Phase 2', 'Phase 3'])"]
+    ],
+    "bottlenecks": [
+      "Phases that block multiple downstream phases (e.g., 'Phase 2 blocks both Phase 3 and Phase 4')"
+    ]
+  },
+  "effort_estimation": {
+    "base_hours": "Base effort estimate before multipliers (e.g., 8)",
+    "multipliers_applied": [
+      {
+        "factor": "Complexity factor name (e.g., 'External API integration')",
+        "multiplier": "Multiplier value (e.g., 1.5)",
+        "reason": "Why this multiplier applies (e.g., 'Stripe API integration with webhooks')"
+      }
+    ],
+    "calculated_hours": "Result after applying multipliers (e.g., 12)",
+    "final_estimate": "Final estimate with buffer (e.g., 14)",
+    "confidence": "Low|Medium|High - Confidence in estimate",
+    "assumptions": [
+      "Assumptions that affect the estimate (e.g., 'Stripe account already configured')"
+    ]
+  },
+  "context_integration": {
+    "created_in_session": "Context file from planning session if applicable (e.g., 'context-11-23-25-2-30pm.json')",
+    "related_contexts": [
+      "List of context files related to this plan"
+    ],
+    "continuation_notes": "Important context for resuming work on this plan"
   },
   "notes": "Additional planning notes, considerations, or context that doesn't fit elsewhere"
 }

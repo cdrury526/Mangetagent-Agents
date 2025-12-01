@@ -1,7 +1,13 @@
 import { useState } from 'react';
-import { X } from 'lucide-react';
 import { useTransactionContacts } from '../../hooks/useTransactionContacts';
 import type { Contact } from '../../types/database';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 interface AddContactModalProps {
   transactionId: string;
@@ -50,16 +56,13 @@ export function AddContactModal({
   ];
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">Add Contact to Transaction</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+    <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Add Contact to Transaction</DialogTitle>
+        </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="p-4 space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {availableContacts.length === 0 ? (
             <div className="text-center py-6 text-gray-500">
               All your contacts have been added to this transaction.
@@ -106,7 +109,7 @@ export function AddContactModal({
                 </select>
               </div>
 
-              <div className="flex justify-end space-x-3 pt-4">
+              <DialogFooter>
                 <button
                   type="button"
                   onClick={onClose}
@@ -122,11 +125,11 @@ export function AddContactModal({
                 >
                   {submitting ? 'Adding...' : 'Add Contact'}
                 </button>
-              </div>
+              </DialogFooter>
             </>
           )}
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
