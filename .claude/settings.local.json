@@ -1,6 +1,14 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(dir /s /b C:UsersdrurydevMangetagent-Agentssrc)",
+      "Bash(cat:*)",
+      "Bash(git ls-tree:*)",
+      "WebFetch(domain:tanstack.com)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "shadcn"
-  ],
-  "enableAllProjectMcpServers": true
+  ]
 }

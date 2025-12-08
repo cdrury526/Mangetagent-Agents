@@ -16,6 +16,7 @@ const STATUS_OPTIONS: { value: TransactionStatus; label: string }[] = [
   { value: 'closing', label: 'Closing' },
   { value: 'closed', label: 'Closed' },
   { value: 'cancelled', label: 'Cancelled' },
+  { value: 'archived', label: 'Archived' },
 ];
 
 export function Transactions() {
@@ -30,7 +31,10 @@ export function Transactions() {
   const [error, setError] = useState('');
 
   const filtered = transactions.filter((tx) => {
-    const matchStatus = filterStatus === 'all' || tx.status === filterStatus;
+    // Hide archived transactions from 'All Statuses' view - only show when specifically filtered
+    const matchStatus = filterStatus === 'all'
+      ? tx.status !== 'archived'
+      : tx.status === filterStatus;
     const matchSide = filterSide === 'all' || tx.side === filterSide;
     const matchSearch =
       tx.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -103,6 +107,7 @@ export function Transactions() {
     closing: 'bg-green-100 text-green-700',
     closed: 'bg-slate-800 text-white',
     cancelled: 'bg-red-100 text-red-700',
+    archived: 'bg-slate-200 text-slate-600',
   };
 
   const isFreeUser = user?.subscription_plan === 'free';

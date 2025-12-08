@@ -29,6 +29,16 @@
         ]
       }
     ],
-    "Stop": []
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "comment": "Remind about active plans with in_progress phases that need updating",
+            "command": "python .claude\\hooks\\plan-update-reminder.py"
+          }
+        ]
+      }
+    ]
   }
 }

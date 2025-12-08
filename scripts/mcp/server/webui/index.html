@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MCP Bridge Dashboard</title>
+  <style>
+    /* Reset and base styles */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* Layout */
+    .app {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    /* Header */
+    header {
+      background: #1e293b;
+      border-bottom: 1px solid #334155;
+      padding: 1rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .header-title {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .header-title h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #f1f5f9;
+    }
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.375rem 0.75rem;
+      background: #0f172a;
+      border-radius: 0.375rem;
+      font-size: 0.875rem;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .header-info {
+      display: flex;
+      gap: 2rem;
+      font-size: 0.875rem;
+      color: #94a3b8;
+    }
+
+    .header-info-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .header-info-label {
+      color: #64748b;
+    }
+
+    .header-info-value {
+      color: #e2e8f0;
+      font-weight: 500;
+    }
+
+    /* Main content area */
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 300px 1fr 400px;
+      grid-template-rows: 1fr auto;
+      gap: 0;
+      overflow: hidden;
+    }
+
+    /* Panels */
+    .panel {
+      background: #1e293b;
+      border-right: 1px solid #334155;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .panel:last-child {
+      border-right: none;
+    }
+
+    .panel-header {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid #334155;
+      font-weight: 600;
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #94a3b8;
+      flex-shrink: 0;
+    }
+
+    .panel-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem;
+    }
+
+    /* Server browser */
+    .search-box {
+      margin-bottom: 1rem;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 0.375rem;
+      color: #e2e8f0;
+      font-size: 0.875rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .search-input:focus {
+      border-color: #3b82f6;
+    }
+
+    .server-list {
+      list-style: none;
+    }
+
+    .server-item {
+      margin-bottom: 0.5rem;
+    }
+
+    .server-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 0.375rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .server-header:hover {
+      background: #1e293b;
+      border-color: #3b82f6;
+    }
+
+    .server-header.active {
+      background: #1e293b;
+      border-color: #3b82f6;
+    }
+
+    .server-name {
+      font-weight: 500;
+      color: #f1f5f9;
+    }
+
+    .tool-count {
+      background: #334155;
+      padding: 0.125rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      color: #94a3b8;
+    }
+
+    .tool-list {
+      list-style: none;
+      margin-top: 0.5rem;
+      padding-left: 0.5rem;
+    }
+
+    .tool-item {
+      padding: 0.5rem 0.75rem;
+      margin-bottom: 0.25rem;
+      background: #1e293b;
+      border-left: 2px solid #334155;
+      cursor: pointer;
+      transition: all 0.2s;
+      border-radius: 0 0.25rem 0.25rem 0;
+    }
+
+    .tool-item:hover {
+      background: #0f172a;
+      border-left-color: #3b82f6;
+    }
+
+    .tool-item.active {
+      background: #0f172a;
+      border-left-color: #3b82f6;
+    }
+
+    .tool-item-name {
+      font-size: 0.875rem;
+      color: #e2e8f0;
+      font-weight: 500;
+    }
+
+    .tool-item-tags {
+      display: flex;
+      gap: 0.25rem;
+      margin-top: 0.25rem;
+      flex-wrap: wrap;
+    }
+
+    .tag {
+      background: #334155;
+      padding: 0.125rem 0.375rem;
+      border-radius: 0.25rem;
+      font-size: 0.625rem;
+      color: #94a3b8;
+    }
+
+    /* Tool details */
+    .tool-details {
+      padding: 1.5rem;
+    }
+
+    .tool-details-empty {
+      text-align: center;
+      color: #64748b;
+      padding: 3rem 1rem;
+    }
+
+    .tool-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #f1f5f9;
+      margin-bottom: 0.5rem;
+    }
+
+    .tool-description {
+      color: #94a3b8;
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+    }
+
+    .tool-section {
+      margin-bottom: 1.5rem;
+    }
+
+    .tool-section-title {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #cbd5e1;
+      margin-bottom: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .tool-meta {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .tool-meta-item {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      font-size: 0.875rem;
+    }
+
+    .tool-meta-label {
+      color: #64748b;
+    }
+
+    .tool-meta-value {
+      color: #e2e8f0;
+      font-weight: 500;
+    }
+
+    .schema-display {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 0.375rem;
+      padding: 1rem;
+      font-family: 'Courier New', monospace;
+      font-size: 0.75rem;
+      color: #94a3b8;
+      overflow-x: auto;
+    }
+
+    .example-list {
+      list-style: none;
+    }
+
+    .example-item {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 0.375rem;
+      padding: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .example-label {
+      font-size: 0.75rem;
+      color: #64748b;
+      margin-bottom: 0.25rem;
+    }
+
+    .example-code {
+      font-family: 'Courier New', monospace;
+      font-size: 0.75rem;
+      color: #3b82f6;
+    }
+
+    /* Execution panel */
+    .execution-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    label {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #cbd5e1;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 150px;
+      padding: 0.75rem;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 0.375rem;
+      color: #e2e8f0;
+      font-family: 'Courier New', monospace;
+      font-size: 0.75rem;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    textarea:focus {
+      border-color: #3b82f6;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    button {
+      padding: 0.625rem 1.25rem;
+      border: none;
+      border-radius: 0.375rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-primary {
+      background: #3b82f6;
+      color: white;
+      flex: 1;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: #2563eb;
+    }
+
+    .btn-primary:disabled {
+      background: #334155;
+      color: #64748b;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: #334155;
+      color: #e2e8f0;
+    }
+
+    .btn-secondary:hover {
+      background: #475569;
+    }
+
+    .result-display {
+      margin-top: 1rem;
+    }
+
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .result-label {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #cbd5e1;
+    }
+
+    .result-status {
+      padding: 0.25rem 0.75rem;
+      border-radius: 0.25rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+
+    .result-status.success {
+      background: #22c55e;
+      color: white;
+    }
+
+    .result-status.error {
+      background: #ef4444;
+      color: white;
+    }
+
+    .result-content {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 0.375rem;
+      padding: 1rem;
+      max-height: 300px;
+      overflow: auto;
+    }
+
+    .result-content pre {
+      font-family: 'Courier New', monospace;
+      font-size: 0.75rem;
+      color: #e2e8f0;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .result-content.success pre {
+      color: #86efac;
+    }
+
+    .result-content.error pre {
+      color: #fca5a5;
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid #334155;
+      border-top-color: #3b82f6;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* History panel */
+    .history-panel {
+      grid-column: 1 / -1;
+      border-top: 1px solid #334155;
+      border-right: none;
+      max-height: 300px;
+    }
+
+    .history-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid #334155;
+    }
+
+    .history-title {
+      font-weight: 600;
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #94a3b8;
+    }
+
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+
+    .history-table th {
+      text-align: left;
+      padding: 0.75rem 1rem;
+      background: #0f172a;
+      color: #64748b;
+      font-weight: 500;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      position: sticky;
+      top: 0;
+    }
+
+    .history-table td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid #334155;
+      color: #cbd5e1;
+    }
+
+    .history-table tbody tr {
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .history-table tbody tr:hover {
+      background: #0f172a;
+    }
+
+    .history-status {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.25rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+
+    .history-status.success {
+      background: rgba(34, 197, 94, 0.2);
+      color: #22c55e;
+    }
+
+    .history-status.error {
+      background: rgba(239, 68, 68, 0.2);
+      color: #ef4444;
+    }
+
+    .history-empty {
+      text-align: center;
+      color: #64748b;
+      padding: 2rem;
+    }
+
+    .history-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .btn-success {
+      background: #22c55e;
+      color: white;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      padding: 0.75rem 1.25rem;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 0.5rem;
+      color: #e2e8f0;
+      font-size: 0.875rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
+      animation: slideIn 0.3s ease-out;
+    }
+
+    .toast.success {
+      border-color: #22c55e;
+      background: rgba(34, 197, 94, 0.1);
+    }
+
+    .toast.error {
+      border-color: #ef4444;
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateY(1rem);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    /* Utilities */
+    .hidden {
+      display: none !important;
+    }
+
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header>
+      <div class="header-title">
+        <h1>MCP Bridge Dashboard</h1>
+        <div class="status-indicator">
+          <div class="status-dot"></div>
+          <span id="status-text">Connected</span>
+        </div>
+      </div>
+      <div class="header-info">
+        <div class="header-info-item">
+          <span class="header-info-label">Uptime:</span>
+          <span class="header-info-value" id="uptime">--</span>
+        </div>
+        <div class="header-info-item">
+          <span class="header-info-label">Version:</span>
+          <span class="header-info-value" id="version">--</span>
+        </div>
+        <div class="header-info-item">
+          <span class="header-info-label">Servers:</span>
+          <span class="header-info-value" id="server-count">--</span>
+        </div>
+        <div class="header-info-item">
+          <span class="header-info-label">Tools:</span>
+          <span class="header-info-value" id="tool-count">--</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main content -->
+    <main>
+      <!-- Server Browser Panel -->
+      <div class="panel">
+        <div class="panel-header">Servers & Tools</div>
+        <div class="panel-content">
+          <div class="search-box">
+            <input
+              type="text"
+              class="search-input"
+              id="search-input"
+              placeholder="Search tools..."
+            />
+          </div>
+          <ul class="server-list" id="server-list">
+            <!-- Populated by JavaScript -->
+          </ul>
+        </div>
+      </div>
+
+      <!-- Tool Details Panel -->
+      <div class="panel">
+        <div class="panel-header">Tool Details</div>
+        <div class="panel-content" id="tool-details">
+          <div class="tool-details-empty">
+            Select a tool to view details
+          </div>
+        </div>
+      </div>
+
+      <!-- Execution Panel -->
+      <div class="panel">
+        <div class="panel-header">Execute Tool</div>
+        <div class="panel-content">
+          <form class="execution-form" id="execution-form">
+            <div class="form-group">
+              <label for="input-json">Input (JSON)</label>
+              <textarea
+                id="input-json"
+                placeholder='{"key": "value"}'
+                disabled
+              ></textarea>
+            </div>
+            <div class="button-group">
+              <button type="submit" class="btn-primary" id="execute-btn" disabled>
+                <span id="execute-btn-text">Execute</span>
+              </button>
+              <button type="button" class="btn-secondary" id="clear-btn">
+                Clear
+              </button>
+            </div>
+            <div class="result-display hidden" id="result-display">
+              <div class="result-header">
+                <span class="result-label">Result</span>
+                <span class="result-status" id="result-status"></span>
+              </div>
+              <div class="result-content" id="result-content">
+                <pre id="result-text"></pre>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- History Panel -->
+      <div class="panel history-panel">
+        <div class="history-header">
+          <span class="history-title">Execution History</span>
+          <div class="history-actions">
+            <button class="btn-secondary" id="export-history-btn" title="Copy history as JSON to clipboard">Export JSON</button>
+            <button class="btn-secondary" id="clear-history-btn">Clear History</button>
+          </div>
+        </div>
+        <div class="panel-content">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Server</th>
+                <th>Tool</th>
+                <th>Status</th>
+                <th>Duration</th>
+              </tr>
+            </thead>
+            <tbody id="history-tbody">
+              <!-- Populated by JavaScript -->
+            </tbody>
+          </table>
+          <div class="history-empty hidden" id="history-empty">
+            No execution history yet
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // API configuration
+    const API_BASE = '/mcp';
+
+    // State
+    let servers = [];
+    let selectedServer = null;
+    let selectedTool = null;
+    let history = [];
+    let healthData = null;
+
+    // DOM elements
+    const elements = {
+      statusText: document.getElementById('status-text'),
+      uptime: document.getElementById('uptime'),
+      version: document.getElementById('version'),
+      serverCount: document.getElementById('server-count'),
+      toolCount: document.getElementById('tool-count'),
+      searchInput: document.getElementById('search-input'),
+      serverList: document.getElementById('server-list'),
+      toolDetails: document.getElementById('tool-details'),
+      inputJson: document.getElementById('input-json'),
+      executeBtn: document.getElementById('execute-btn'),
+      executeBtnText: document.getElementById('execute-btn-text'),
+      clearBtn: document.getElementById('clear-btn'),
+      resultDisplay: document.getElementById('result-display'),
+      resultStatus: document.getElementById('result-status'),
+      resultContent: document.getElementById('result-content'),
+      resultText: document.getElementById('result-text'),
+      historyTbody: document.getElementById('history-tbody'),
+      historyEmpty: document.getElementById('history-empty'),
+      clearHistoryBtn: document.getElementById('clear-history-btn'),
+      exportHistoryBtn: document.getElementById('export-history-btn'),
+      executionForm: document.getElementById('execution-form'),
+    };
+
+    // Toast notification helper
+    function showToast(message, type = 'success') {
+      // Remove existing toast if any
+      const existingToast = document.querySelector('.toast');
+      if (existingToast) {
+        existingToast.remove();
+      }
+
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+
+      // Auto-remove after 3 seconds
+      setTimeout(() => {
+        toast.remove();
+      }, 3000);
+    }
+
+    // API functions
+    async function fetchHealth() {
+      const response = await fetch(`${API_BASE}/health`);
+      return response.json();
+    }
+
+    async function fetchStats() {
+      const response = await fetch(`${API_BASE}/stats`);
+      const data = await response.json();
+      // API returns { success: true, data: { totalServers, totalTools, ... } }
+      return data.data || data;
+    }
+
+    async function fetchServers() {
+      const response = await fetch(`${API_BASE}/servers`);
+      const data = await response.json();
+      // API returns { success: true, data: { servers: [...] } }
+      return data.data?.servers || data.servers || [];
+    }
+
+    async function fetchServerManifest(server) {
+      const response = await fetch(`${API_BASE}/servers/${server}`);
+      const data = await response.json();
+      // API returns { success: true, data: { name, tools, ... } }
+      return data.data || data;
+    }
+
+    async function fetchToolDetails(server, tool) {
+      const response = await fetch(`${API_BASE}/servers/${server}/tools/${tool}`);
+      const data = await response.json();
+      // API returns { success: true, data: { name, description, ... } }
+      return data.data || data;
+    }
+
+    async function executeTool(server, tool, input) {
+      const response = await fetch(`${API_BASE}/servers/${server}/tools/${tool}/run`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ input }),
+      });
+      return response.json();
+    }
+
+    async function fetchHistory() {
+      const response = await fetch(`${API_BASE}/history`);
+      const data = await response.json();
+      // API returns { success: true, data: { history: [...] } }
+      return data.data?.history || data.history || [];
+    }
+
+    // UI rendering functions
+    function formatUptime(seconds) {
+      const hours = Math.floor(seconds / 3600);
+      const minutes = Math.floor((seconds % 3600) / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${hours}h ${minutes}m ${secs}s`;
+    }
+
+    function updateHeader(health, stats) {
+      healthData = health;
+      elements.uptime.textContent = formatUptime(health.uptime);
+      elements.version.textContent = health.version;
+      elements.serverCount.textContent = stats.totalServers;
+      elements.toolCount.textContent = stats.totalTools;
+    }
+
+    function renderServerList(serversData) {
+      servers = serversData;
+      elements.serverList.innerHTML = '';
+
+      serversData.forEach(serverData => {
+        const li = document.createElement('li');
+        li.className = 'server-item';
+
+        const header = document.createElement('div');
+        header.className = 'server-header';
+        header.innerHTML = `
+          <span class="server-name">${serverData.name}</span>
+          <span class="tool-count">${serverData.tools?.length || 0}</span>
+        `;
+
+        const toolList = document.createElement('ul');
+        toolList.className = 'tool-list hidden';
+
+        if (serverData.tools) {
+          serverData.tools.forEach(tool => {
+            const toolLi = document.createElement('li');
+            toolLi.className = 'tool-item';
+
+            const tags = tool.tags?.map(tag => `<span class="tag">${tag}</span>`).join('') || '';
+
+            toolLi.innerHTML = `
+              <div class="tool-item-name">${tool.name}</div>
+              ${tags ? `<div class="tool-item-tags">${tags}</div>` : ''}
+            `;
+
+            toolLi.addEventListener('click', (e) => {
+              e.stopPropagation();
+              selectTool(serverData.name, tool.name);
+            });
+
+            toolList.appendChild(toolLi);
+          });
+        }
+
+        header.addEventListener('click', () => {
+          const wasActive = header.classList.contains('active');
+
+          // Close all servers
+          document.querySelectorAll('.server-header').forEach(h => h.classList.remove('active'));
+          document.querySelectorAll('.tool-list').forEach(t => t.classList.add('hidden'));
+
+          // Open clicked server if it wasn't active
+          if (!wasActive) {
+            header.classList.add('active');
+            toolList.classList.remove('hidden');
+          }
+        });
+
+        li.appendChild(header);
+        li.appendChild(toolList);
+        elements.serverList.appendChild(li);
+      });
+    }
+
+    async function selectTool(server, tool) {
+      selectedServer = server;
+      selectedTool = tool;
+
+      // Update UI
+      document.querySelectorAll('.tool-item').forEach(t => t.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+
+      // Fetch tool details
+      try {
+        const details = await fetchToolDetails(server, tool);
+        renderToolDetails(details);
+
+        // Enable execution
+        elements.inputJson.disabled = false;
+        elements.executeBtn.disabled = false;
+
+        // Pre-fill with example if available
+        if (details.examples && details.examples.length > 0) {
+          elements.inputJson.value = JSON.stringify(details.examples[0], null, 2);
+        } else {
+          elements.inputJson.value = '{}';
+        }
+      } catch (error) {
+        console.error('Error fetching tool details:', error);
+        elements.toolDetails.innerHTML = `
+          <div class="tool-details-empty" style="color: #ef4444;">
+            Error loading tool details
+          </div>
+        `;
+      }
+    }
+
+    function renderToolDetails(tool) {
+      const schema = tool.inputSchema ? JSON.stringify(tool.inputSchema, null, 2) : 'No schema available';
+      const examples = tool.examples?.map(ex => `
+        <li class="example-item">
+          <div class="example-code">${JSON.stringify(ex, null, 2)}</div>
+        </li>
+      `).join('') || '<li class="example-item"><div class="example-label">No examples available</div></li>';
+
+      const tags = tool.tags?.map(tag => `<span class="tag">${tag}</span>`).join('') || '';
+
+      elements.toolDetails.innerHTML = `
+        <div class="tool-details">
+          <h2 class="tool-title">${tool.name}</h2>
+          <p class="tool-description">${tool.description || 'No description available'}</p>
+
+          <div class="tool-meta">
+            <div class="tool-meta-item">
+              <span class="tool-meta-label">Server:</span>
+              <span class="tool-meta-value">${selectedServer}</span>
+            </div>
+            ${tags ? `<div class="tool-item-tags">${tags}</div>` : ''}
+          </div>
+
+          <div class="tool-section">
+            <h3 class="tool-section-title">Input Schema</h3>
+            <div class="schema-display"><pre>${schema}</pre></div>
+          </div>
+
+          <div class="tool-section">
+            <h3 class="tool-section-title">Examples</h3>
+            <ul class="example-list">${examples}</ul>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderHistory(historyData) {
+      history = historyData;
+      elements.historyTbody.innerHTML = '';
+
+      if (historyData.length === 0) {
+        elements.historyEmpty.classList.remove('hidden');
+        return;
+      }
+
+      elements.historyEmpty.classList.add('hidden');
+
+      historyData.slice().reverse().forEach(item => {
+        const tr = document.createElement('tr');
+        const time = new Date(item.timestamp).toLocaleTimeString();
+        // result.success is inside the result object
+        const isSuccess = item.result?.success ?? false;
+        const status = isSuccess ? 'success' : 'error';
+        const statusText = isSuccess ? 'Success' : 'Error';
+
+        tr.innerHTML = `
+          <td>${time}</td>
+          <td>${item.server}</td>
+          <td>${item.tool}</td>
+          <td><span class="history-status ${status}">${statusText}</span></td>
+          <td>${item.durationMs}ms</td>
+        `;
+
+        tr.addEventListener('click', () => {
+          showHistoryDetails(item);
+        });
+
+        elements.historyTbody.appendChild(tr);
+      });
+    }
+
+    function showHistoryDetails(item) {
+      const isSuccess = item.result?.success ?? false;
+      elements.resultDisplay.classList.remove('hidden');
+      elements.resultStatus.textContent = isSuccess ? 'Success' : 'Error';
+      elements.resultStatus.className = `result-status ${isSuccess ? 'success' : 'error'}`;
+      elements.resultContent.className = `result-content ${isSuccess ? 'success' : 'error'}`;
+
+      // Show the full result object
+      elements.resultText.textContent = JSON.stringify(item.result, null, 2);
+
+      // Scroll to result
+      elements.resultDisplay.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    // Event handlers
+    elements.searchInput.addEventListener('input', (e) => {
+      const query = e.target.value.toLowerCase();
+
+      document.querySelectorAll('.server-item').forEach(serverItem => {
+        const serverHeader = serverItem.querySelector('.server-header');
+        const toolList = serverItem.querySelector('.tool-list');
+        const tools = toolList.querySelectorAll('.tool-item');
+
+        let hasVisibleTools = false;
+
+        tools.forEach(tool => {
+          const name = tool.querySelector('.tool-item-name').textContent.toLowerCase();
+          const tags = Array.from(tool.querySelectorAll('.tag')).map(t => t.textContent.toLowerCase()).join(' ');
+
+          if (name.includes(query) || tags.includes(query)) {
+            tool.style.display = '';
+            hasVisibleTools = true;
+          } else {
+            tool.style.display = 'none';
+          }
+        });
+
+        if (query && hasVisibleTools) {
+          serverHeader.classList.add('active');
+          toolList.classList.remove('hidden');
+        }
+
+        serverItem.style.display = hasVisibleTools || !query ? '' : 'none';
+      });
+    });
+
+    elements.executionForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      if (!selectedServer || !selectedTool) return;
+
+      // Parse input
+      let input;
+      try {
+        input = JSON.parse(elements.inputJson.value || '{}');
+      } catch (error) {
+        alert('Invalid JSON input');
+        return;
+      }
+
+      // Show loading state
+      elements.executeBtn.disabled = true;
+      elements.executeBtnText.innerHTML = '<div class="loading-spinner"></div> Executing...';
+
+      try {
+        const startTime = Date.now();
+        const result = await executeTool(selectedServer, selectedTool, input);
+        const duration = Date.now() - startTime;
+
+        // Show result
+        elements.resultDisplay.classList.remove('hidden');
+        elements.resultStatus.textContent = result.success ? 'Success' : 'Error';
+        elements.resultStatus.className = `result-status ${result.success ? 'success' : 'error'}`;
+        elements.resultContent.className = `result-content ${result.success ? 'success' : 'error'}`;
+        elements.resultText.textContent = JSON.stringify(result.success ? result.result : result.error, null, 2);
+
+        // Refresh history
+        refreshHistory();
+      } catch (error) {
+        elements.resultDisplay.classList.remove('hidden');
+        elements.resultStatus.textContent = 'Error';
+        elements.resultStatus.className = 'result-status error';
+        elements.resultContent.className = 'result-content error';
+        elements.resultText.textContent = error.message;
+      } finally {
+        elements.executeBtn.disabled = false;
+        elements.executeBtnText.textContent = 'Execute';
+      }
+    });
+
+    elements.clearBtn.addEventListener('click', () => {
+      elements.inputJson.value = '{}';
+      elements.resultDisplay.classList.add('hidden');
+    });
+
+    elements.clearHistoryBtn.addEventListener('click', async () => {
+      if (confirm('Clear execution history?')) {
+        // Note: This would require a backend endpoint to clear history
+        // For now, just refresh
+        await refreshHistory();
+      }
+    });
+
+    elements.exportHistoryBtn.addEventListener('click', async () => {
+      try {
+        // Create export object with metadata
+        const exportData = {
+          exportedAt: new Date().toISOString(),
+          serverVersion: healthData?.version || 'unknown',
+          historyCount: history.length,
+          history: history
+        };
+
+        const jsonStr = JSON.stringify(exportData, null, 2);
+
+        // Copy to clipboard
+        await navigator.clipboard.writeText(jsonStr);
+        showToast(`Copied ${history.length} history entries to clipboard`, 'success');
+      } catch (error) {
+        console.error('Failed to copy to clipboard:', error);
+        showToast('Failed to copy to clipboard', 'error');
+      }
+    });
+
+    // Refresh functions
+    async function refreshHealth() {
+      try {
+        const health = await fetchHealth();
+        const stats = await fetchStats();
+        updateHeader(health, stats);
+      } catch (error) {
+        console.error('Error fetching health:', error);
+        elements.statusText.textContent = 'Disconnected';
+      }
+    }
+
+    async function refreshServers() {
+      try {
+        const serverNames = await fetchServers();
+        const serversData = await Promise.all(
+          serverNames.map(name => fetchServerManifest(name))
+        );
+        renderServerList(serversData);
+      } catch (error) {
+        console.error('Error fetching servers:', error);
+      }
+    }
+
+    async function refreshHistory() {
+      try {
+        const historyData = await fetchHistory();
+        renderHistory(historyData);
+      } catch (error) {
+        console.error('Error fetching history:', error);
+      }
+    }
+
+    // Initialize dashboard
+    async function init() {
+      await refreshHealth();
+      await refreshServers();
+      await refreshHistory();
+
+      // Auto-refresh health every 5 seconds
+      setInterval(refreshHealth, 5000);
+
+      // Auto-refresh history every 10 seconds
+      setInterval(refreshHistory, 10000);
+    }
+
+    // Start the dashboard
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

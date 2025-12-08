@@ -2,7 +2,7 @@
 
 > Comprehensive registry of all subagents in the Bolt-Magnet-Agent-2025 project
 
-**Last Updated:** 2025-11-23
+**Last Updated:** 2025-12-01
 **Total Agents:** 10
 **Active Categories:** 4
 
@@ -657,6 +657,53 @@ Meta-agents are responsible for managing and maintaining the subagent system its
   > Refresh the agent index with current best practices
   > Create a Supabase Edge Functions specialist agent
   ```
+
+---
+
+## Plan Execution Workflow (ALL AGENTS)
+
+When working on a phase in an active implementation plan, ALL subagents MUST follow this workflow:
+
+### Before Starting Phase Work
+
+```bash
+# Check plan status (understand context)
+python Docs/Plans/plan-update.py <plan-file>.json --status-check
+
+# Check your assignments
+python Docs/Plans/plan-update.py <plan-file>.json --my-assignment <your-agent-name>
+
+# Start the phase (marks it in_progress)
+python Docs/Plans/plan-update.py <plan-file>.json --start-next
+```
+
+### During Phase Work
+
+Update progress periodically:
+```bash
+# Update completion percentage
+python Docs/Plans/plan-update.py <plan-file>.json --phase N --completion 50
+
+# Mark individual steps complete
+python Docs/Plans/plan-update.py <plan-file>.json --phase N --step M --status completed
+```
+
+### After Completing Phase
+
+```bash
+# Complete with notes and effort tracking (REQUIRED)
+python Docs/Plans/plan-update.py <plan-file>.json --complete-current \
+  --completion-notes "Brief summary of what was implemented" \
+  --actual-effort 4.5
+```
+
+### Rules for All Subagents
+
+1. **ALWAYS check** if your task is part of an active plan
+2. **ALWAYS run `--start-next`** before beginning work on a plan phase
+3. **ALWAYS run `--complete-current`** with notes and effort when finishing
+4. **NEVER leave phases `in_progress`** at the end of your work - complete or document blockers
+5. **Report blockers** by updating phase status to `blocked` with notes
 
 ---
 

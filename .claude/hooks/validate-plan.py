@@ -49,7 +49,7 @@ def load_valid_subagents() -> Set[str]:
             print(f"{YELLOW}Warning: Agent index not found at {agent_index}{RESET}", file=sys.stderr)
             return set()
 
-        with open(agent_index, 'r') as f:
+        with open(agent_index, 'r', encoding='utf-8') as f:
             content = f.read()
 
         # Extract subagent names from the quick reference table
@@ -492,7 +492,7 @@ def main():
         project_dir = os.environ.get("CLAUDE_PROJECT_DIR", os.getcwd())
         full_path = Path(project_dir) / file_path
         if full_path.exists():
-            with open(full_path, 'r') as f:
+            with open(full_path, 'r', encoding='utf-8') as f:
                 content = f.read()
 
     if not content:

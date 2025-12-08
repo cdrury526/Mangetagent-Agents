@@ -1,0 +1,27 @@
+{
+  "name": "mcp-bridge",
+  "version": "1.0.0",
+  "description": "MCP Code Execution Bridge - CLI wrappers for Supabase and shadcn tools",
+  "type": "module",
+  "scripts": {
+    "tool": "npx tsx cli/mcp-tool.ts",
+    "generate-registry": "npx tsx cli/generate-registry.ts",
+    "list-servers": "npx tsx cli/mcp-tool.ts list-servers",
+    "list-tools": "npx tsx cli/mcp-tool.ts list-tools"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "zod": "^3.23.8",
+    "fastify": "^4.28.0",
+    "@fastify/cors": "^9.0.0",
+    "@fastify/static": "^7.0.0",
+    "pino": "^9.0.0",
+    "pino-pretty": "^11.0.0",
+    "chokidar": "^3.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.0"
+  }
+}

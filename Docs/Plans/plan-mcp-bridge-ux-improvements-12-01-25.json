@@ -1,0 +1,455 @@
+{
+  "metadata": {
+    "created": "2025-12-01T17:25:00-08:00",
+    "created_by": "claude-opus-4-5-20251101",
+    "plan_id": "a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d",
+    "version": "2.1",
+    "last_updated": "2025-12-01T17:25:00-08:00",
+    "template_version": "2.1 - Added phase_index for quick lookups, auto-archive on completion",
+    "status": "active",
+    "completed_at": null,
+    "total_actual_effort": null
+  },
+  "phase_index": {
+    "total": 4,
+    "current_in_progress": null,
+    "completed": [],
+    "blocked": [],
+    "not_started": [1, 2, 3, 4],
+    "next_available": 1
+  },
+  "planning": {
+    "goal": "Improve MCP Code Execution Bridge UX with quieter output, convenience shortcuts, file path uploads, and better Windows support",
+    "reason": "Current CLI output is noisy with dotenv warnings, base64 file encoding is cumbersome, and complex JSON input is difficult on Windows",
+    "scope": "Includes: Suppress dotenv warnings, add --quiet flag, add common shortcuts (mcp:count, mcp:users), file path support for uploads, --input-file for complex queries. Excludes: New tool functionality, API changes, breaking changes to existing commands",
+    "success_metrics": [
+      "CLI output has no dotenv tip messages",
+      "npm run mcp:count <table> returns just the count number",
+      "npm run mcp:users lists users with clean output",
+      "upload-file accepts filePath parameter for local files",
+      "--quiet flag returns data-only JSON without metadata wrapper",
+      "--input-file reads JSON input from file instead of command line"
+    ],
+    "estimated_timeline": "4 hours",
+    "priority": "Medium"
+  },
+  "exploration_summary": {
+    "similar_features_found": [
+      "scripts/mcp/servers/supabase/config.ts:13 - dotenv.config() without quiet option",
+      "scripts/mcp/cli/mcp-tool.ts:30-31 - CLI argument parsing (no flags support)",
+      "scripts/mcp/cli/mcp-tool.ts:214 - JSON output with full metadata"
+    ],
+    "reusable_components": [
+      "scripts/mcp/core/discovery.ts - Registry and tool lookup",
+      "scripts/mcp/types/index.ts - MCPToolResult structure with metadata",
+      "scripts/mcp/core/api-executor.ts - executeApiCall pattern"
+    ],
+    "existing_tables": [],
+    "patterns_to_follow": [
+      "Zod schema validation for new input parameters",
+      "MCPToolResult<T> for consistent return types",
+      "npm scripts pattern in package.json"
+    ],
+    "new_code_required": [
+      "CLI flag parser for --quiet, --input-file",
+      "Shortcut scripts (mcp-count.ts, mcp-users.ts)",
+      "File path handling in storage-upload.ts"
+    ]
+  },
+  "files_impacted": [
+    {
+      "path": "scripts/mcp/servers/supabase/config.ts",
+      "type": "modified",
+      "reason": "Add quiet: true to dotenv.config()",
+      "estimated_changes": "+1 line"
+    },
+    {
+      "path": "scripts/mcp/cli/mcp-tool.ts",
+      "type": "modified",
+      "reason": "Add --quiet and --input-file flag parsing, modify output formatting",
+      "estimated_changes": "+40 lines"
+    },
+    {
+      "path": "scripts/mcp/cli/mcp-count.ts",
+      "type": "created",
+      "reason": "Shortcut script for counting table rows",
+      "estimated_changes": "+30 lines"
+    },
+    {
+      "path": "scripts/mcp/cli/mcp-users.ts",
+      "type": "created",
+      "reason": "Shortcut script for listing users",
+      "estimated_changes": "+25 lines"
+    },
+    {
+      "path": "scripts/mcp/servers/supabase/storage-upload.ts",
+      "type": "modified",
+      "reason": "Add filePath parameter support for local file uploads",
+      "estimated_changes": "+25 lines"
+    },
+    {
+      "path": "package.json",
+      "type": "modified",
+      "reason": "Add new npm script shortcuts",
+      "estimated_changes": "+4 lines"
+    },
+    {
+      "path": ".claude/skills/mcp-bridge/SKILL.md",
+      "type": "modified",
+      "reason": "Document new flags and shortcuts",
+      "estimated_changes": "+30 lines"
+    }
+  ],
+  "phases": [
+    {
+      "number": 1,
+      "name": "Suppress Dotenv Warnings & Add Output Flags",
+      "description": "Fix noisy CLI output by suppressing dotenv messages and adding --quiet flag for data-only output",
+      "status": "not_started",
+      "completion_percentage": 0,
+      "estimated_effort": "1",
+      "actual_effort": null,
+      "completion_notes": null,
+      "assigned_subagent": "script-writer-specialist",
+      "steps": [
+        {
+          "number": 1,
+          "task": "Add quiet: true to dotenv.config() in config.ts",
+          "status": "not_started",
+          "details": "Update line 13 in scripts/mcp/servers/supabase/config.ts to suppress tip messages"
+        },
+        {
+          "number": 2,
+          "task": "Add CLI flag parser for --quiet",
+          "status": "not_started",
+          "details": "Parse --quiet flag from argv before command processing in mcp-tool.ts"
+        },
+        {
+          "number": 3,
+          "task": "Modify output formatting based on --quiet flag",
+          "status": "not_started",
+          "details": "When --quiet, output only result.data instead of full JSON with metadata"
+        },
+        {
+          "number": 4,
+          "task": "Test quiet mode output",
+          "status": "not_started",
+          "details": "Verify npm run mcp -- run supabase list-users '{}' --quiet returns clean data"
+        }
+      ],
+      "dependencies": [],
+      "blockers": [],
+      "deliverables": [
+        "Clean CLI output without dotenv warnings",
+        "--quiet flag for data-only JSON output"
+      ]
+    },
+    {
+      "number": 2,
+      "name": "Add Input File Support",
+      "description": "Add --input-file flag to read JSON input from a file, solving Windows shell escaping issues",
+      "status": "not_started",
+      "completion_percentage": 0,
+      "estimated_effort": "1",
+      "actual_effort": null,
+      "completion_notes": null,
+      "assigned_subagent": "script-writer-specialist",
+      "steps": [
+        {
+          "number": 1,
+          "task": "Add --input-file flag parser",
+          "status": "not_started",
+          "details": "Parse --input-file <path> from argv, extract file path"
+        },
+        {
+          "number": 2,
+          "task": "Implement file reading for JSON input",
+          "status": "not_started",
+          "details": "Read JSON from file path, parse it, use as tool input instead of command line arg"
+        },
+        {
+          "number": 3,
+          "task": "Handle errors gracefully",
+          "status": "not_started",
+          "details": "File not found, invalid JSON, etc. should show clear error messages"
+        },
+        {
+          "number": 4,
+          "task": "Test with complex queries",
+          "status": "not_started",
+          "details": "Create test JSON file with complex query, verify it works on Windows"
+        }
+      ],
+      "dependencies": [1],
+      "blockers": [],
+      "deliverables": [
+        "--input-file flag for reading JSON from file",
+        "Better Windows compatibility for complex queries"
+      ]
+    },
+    {
+      "number": 3,
+      "name": "Add Convenience Shortcuts",
+      "description": "Create shortcut scripts for common operations like counting rows and listing users",
+      "status": "not_started",
+      "completion_percentage": 0,
+      "estimated_effort": "1",
+      "actual_effort": null,
+      "completion_notes": null,
+      "assigned_subagent": "script-writer-specialist",
+      "steps": [
+        {
+          "number": 1,
+          "task": "Create mcp-count.ts shortcut script",
+          "status": "not_started",
+          "details": "Usage: npm run mcp:count <table> - runs SELECT COUNT(*) and outputs just the number"
+        },
+        {
+          "number": 2,
+          "task": "Create mcp-users.ts shortcut script",
+          "status": "not_started",
+          "details": "Usage: npm run mcp:users - lists auth users with formatted output"
+        },
+        {
+          "number": 3,
+          "task": "Add npm scripts to package.json",
+          "status": "not_started",
+          "details": "Add mcp:count and mcp:users scripts pointing to new CLI files"
+        },
+        {
+          "number": 4,
+          "task": "Test shortcuts",
+          "status": "not_started",
+          "details": "Verify npm run mcp:count transactions outputs '3' (or current count)"
+        }
+      ],
+      "dependencies": [1],
+      "blockers": [],
+      "deliverables": [
+        "npm run mcp:count <table> shortcut",
+        "npm run mcp:users shortcut",
+        "Updated package.json with new scripts"
+      ]
+    },
+    {
+      "number": 4,
+      "name": "File Path Upload Support & Documentation",
+      "description": "Add filePath parameter to upload-file tool and update documentation",
+      "status": "not_started",
+      "completion_percentage": 0,
+      "estimated_effort": "1",
+      "actual_effort": null,
+      "completion_notes": null,
+      "assigned_subagent": "script-writer-specialist",
+      "steps": [
+        {
+          "number": 1,
+          "task": "Add filePath to upload-file input schema",
+          "status": "not_started",
+          "details": "Add optional filePath: string to Zod schema, make content optional when filePath provided"
+        },
+        {
+          "number": 2,
+          "task": "Implement file reading in upload-file",
+          "status": "not_started",
+          "details": "If filePath provided, read file with fs.readFile, auto-detect content type from extension"
+        },
+        {
+          "number": 3,
+          "task": "Update SKILL.md documentation",
+          "status": "not_started",
+          "details": "Document --quiet, --input-file flags, new shortcuts, filePath upload option"
+        },
+        {
+          "number": 4,
+          "task": "Test file path upload",
+          "status": "not_started",
+          "details": "Upload a local file using filePath parameter, verify it works"
+        }
+      ],
+      "dependencies": [1],
+      "blockers": [],
+      "deliverables": [
+        "filePath parameter for upload-file tool",
+        "Auto content-type detection from file extension",
+        "Updated SKILL.md with all new features"
+      ]
+    }
+  ],
+  "subagent_assignments": [
+    {
+      "subagent": "script-writer-specialist",
+      "domain": "TypeScript automation scripts and CLI development",
+      "responsibilities": "Implement all CLI improvements, flag parsing, shortcut scripts, and file handling",
+      "phases_involved": [1, 2, 3, 4],
+      "estimated_effort": "4",
+      "key_deliverables": [
+        "Quiet dotenv and --quiet flag",
+        "--input-file flag for Windows support",
+        "mcp:count and mcp:users shortcuts",
+        "filePath upload support"
+      ]
+    }
+  ],
+  "reference_documents": [
+    {
+      "path": "scripts/mcp/cli/mcp-tool.ts",
+      "relevance": "Main CLI entry point to modify",
+      "status": "reference",
+      "sections": "Command parsing, output formatting"
+    },
+    {
+      "path": "scripts/mcp/servers/supabase/config.ts",
+      "relevance": "Dotenv configuration location",
+      "status": "update",
+      "sections": "Line 13 dotenv.config()"
+    },
+    {
+      "path": ".claude/skills/mcp-bridge/SKILL.md",
+      "relevance": "Documentation to update with new features",
+      "status": "update"
+    }
+  ],
+  "potential_blockers": [
+    {
+      "issue": "Windows file path handling differences",
+      "likelihood": "Medium",
+      "impact": "Medium",
+      "risk_score": 4,
+      "priority_rank": "High",
+      "mitigation_strategy": "Use path.resolve() and normalize paths, test on Windows",
+      "fallback_plan": "Document Windows-specific path format requirements"
+    },
+    {
+      "issue": "Content-type detection accuracy for file uploads",
+      "likelihood": "Low",
+      "impact": "Low",
+      "risk_score": 1,
+      "priority_rank": "Low",
+      "mitigation_strategy": "Use mime-types package or simple extension mapping",
+      "fallback_plan": "Allow manual contentType override"
+    }
+  ],
+  "success_criteria": [
+    {
+      "criterion": "CLI output has no dotenv tip messages",
+      "how_to_verify": "Run any mcp command, verify no '[dotenv@...]' messages appear",
+      "priority": "Critical",
+      "acceptance_test": "Given running npm run mcp -- run supabase list-users '{}', when output displays, then no dotenv tips appear"
+    },
+    {
+      "criterion": "--quiet flag returns data-only JSON",
+      "how_to_verify": "Run command with --quiet, verify output is just the data array/object",
+      "priority": "High",
+      "acceptance_test": "Given --quiet flag, when command executes, then output is data without success/metadata wrapper"
+    },
+    {
+      "criterion": "mcp:count shortcut works correctly",
+      "how_to_verify": "Run npm run mcp:count transactions, verify it outputs just the count number",
+      "priority": "High",
+      "acceptance_test": "Given table 'transactions' with 3 rows, when running mcp:count transactions, then output is '3'"
+    },
+    {
+      "criterion": "File path upload works without base64",
+      "how_to_verify": "Run upload-file with filePath parameter pointing to local file",
+      "priority": "Medium",
+      "acceptance_test": "Given local file at ./test.txt, when uploading with filePath, then file appears in storage bucket"
+    }
+  ],
+  "technical_approach": {
+    "architecture": "Extend existing CLI infrastructure with flag parsing layer and shortcut scripts",
+    "key_decisions": [
+      {
+        "decision": "Add flag parsing before command switch statement",
+        "rationale": "Keeps flag handling centralized and allows all commands to benefit from --quiet",
+        "alternatives_considered": ["Per-command flag handling"],
+        "trade_offs": "Slightly more complex argument parsing but cleaner overall"
+      },
+      {
+        "decision": "Create separate shortcut scripts instead of adding to main CLI",
+        "rationale": "Keeps main CLI focused, shortcuts can have specialized output formatting",
+        "alternatives_considered": ["Add shortcuts as aliases in main CLI"],
+        "trade_offs": "More files but clearer separation of concerns"
+      }
+    ],
+    "tech_stack": [
+      "TypeScript with tsx runner",
+      "Node.js fs for file operations",
+      "Existing Zod validation patterns"
+    ],
+    "integration_points": [
+      {
+        "system": "Existing MCP CLI",
+        "interaction": "Extend with new flags and shortcuts",
+        "authentication": "N/A - local CLI tool"
+      }
+    ]
+  },
+  "dependency_graph": {
+    "ascii": "Phase 1 (Quiet Output) ──┬──→ Phase 2 (Input File)\n                         ├──→ Phase 3 (Shortcuts)\n                         └──→ Phase 4 (File Upload + Docs)",
+    "critical_path": ["Phase 1", "Phase 4"],
+    "parallelizable": [["Phase 2", "Phase 3", "Phase 4"]],
+    "bottlenecks": ["Phase 1 must complete first as it establishes flag parsing pattern"]
+  },
+  "effort_estimation": {
+    "base_hours": 3,
+    "multipliers_applied": [
+      {"factor": "Existing patterns", "multiplier": 0.8, "reason": "Following established CLI patterns"},
+      {"factor": "Multiple small changes", "multiplier": 1.2, "reason": "Several files to modify"}
+    ],
+    "calculated_hours": 2.88,
+    "final_estimate": 4,
+    "confidence": "High",
+    "assumptions": [
+      "Existing CLI structure is well understood",
+      "No breaking changes to existing commands needed"
+    ]
+  },
+  "testing_strategy": {
+    "unit_tests": "Manual verification of each flag and shortcut",
+    "integration_tests": "End-to-end tests of full command flows",
+    "manual_tests": [
+      {
+        "test_case": "Quiet output mode",
+        "steps": "1. Run mcp command without --quiet, note output format. 2. Run same command with --quiet. 3. Compare outputs.",
+        "expected_result": "--quiet output has no success/metadata wrapper, just data"
+      },
+      {
+        "test_case": "Input file mode",
+        "steps": "1. Create input.json with complex query. 2. Run command with --input-file input.json. 3. Verify query executes correctly.",
+        "expected_result": "Command executes with input from file"
+      }
+    ],
+    "edge_cases": [
+      "Empty result with --quiet (should output null or empty array)",
+      "Invalid JSON in input file (clear error message)",
+      "Non-existent file path for upload (clear error message)",
+      "File path with spaces on Windows"
+    ]
+  },
+  "rollback_strategy": {
+    "database": {
+      "approach": "No database changes",
+      "scripts": [],
+      "data_impact": "None"
+    },
+    "code": {
+      "approach": "Git revert the CLI changes",
+      "commits_to_revert": "Single commit with all UX improvements",
+      "feature_flags": []
+    },
+    "external_services": {
+      "stripe": "N/A",
+      "boldsign": "N/A",
+      "other": "No external service changes"
+    },
+    "estimated_rollback_time": "5 minutes",
+    "rollback_risks": ["None - purely additive changes, no breaking changes"]
+  },
+  "context_integration": {
+    "created_in_session": null,
+    "related_contexts": [],
+    "continuation_notes": "This plan improves the MCP bridge UX based on feedback from using the newly created tools (Auth Admin, Storage Upload, Edge Functions, Type Generation)."
+  },
+  "notes": "These improvements are non-breaking enhancements to make the MCP bridge more pleasant to use. All existing commands continue to work unchanged. The --quiet flag and shortcuts are purely additive."
+}

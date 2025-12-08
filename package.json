@@ -8,9 +8,17 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit -p tsconfig.app.json"
+    "typecheck": "tsc --noEmit -p tsconfig.app.json",
+    "mcp": "npx tsx scripts/mcp/cli/mcp-tool.ts",
+    "mcp:list": "npx tsx scripts/mcp/cli/mcp-tool.ts list-servers",
+    "mcp:search": "npx tsx scripts/mcp/cli/mcp-tool.ts search",
+    "mcp:registry": "npx tsx scripts/mcp/cli/generate-registry.ts",
+    "mcp:count": "npx tsx scripts/mcp/cli/mcp-count.ts",
+    "mcp:users": "npx tsx scripts/mcp/cli/mcp-users.ts",
+    "mcp:server": "npx tsx scripts/mcp/server/index.ts"
   },
   "dependencies": {
+    "@fastify/static": "^8.3.0",
     "@radix-ui/react-dialog": "^1.1.15",
     "@supabase/supabase-js": "^2.57.4",
     "clsx": "^2.1.1",
@@ -24,22 +32,27 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",
+    "@fastify/cors": "^11.1.0",
     "@tailwindcss/forms": "^0.5.10",
     "@types/node": "^24.10.1",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
     "autoprefixer": "^10.4.18",
+    "chokidar": "^5.0.0",
     "eslint": "^9.9.1",
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
     "eslint-plugin-react-refresh": "^0.4.11",
+    "fastify": "^5.6.2",
     "globals": "^15.9.0",
     "postcss": "^8.4.35",
     "shadcn": "^3.5.0",
     "supabase": "^2.58.5",
     "tailwindcss": "^3.4.1",
+    "tsx": "^4.21.0",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.3.0",
-    "vite": "^5.4.2"
+    "vite": "^5.4.2",
+    "zod": "^4.1.13"
   }
 }

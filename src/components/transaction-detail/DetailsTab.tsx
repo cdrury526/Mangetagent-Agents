@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Transaction, TransactionStatus, TransactionSide } from '../../types/database';
-import { DollarSign, Calendar, Home, FileText, Edit2, Save, X, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { DollarSign, Calendar, Home, FileText, Edit2, Save, X, AlertCircle, ChevronDown, ChevronUp, Archive } from 'lucide-react';
+import { ConfirmModal } from '../ui/ConfirmModal';
 import { FormInput } from '../forms/FormInput';
 import { FormSelect } from '../forms/FormSelect';
 import { FormTextarea } from '../forms/FormTextarea';
@@ -19,11 +21,14 @@ interface DetailsTabProps {
 type EditSection = 'property' | 'financial' | 'dates' | 'additional' | null;
 
 export function DetailsTab({ transaction, onUpdate }: DetailsTabProps) {
+  const navigate = useNavigate();
   const [editingSection, setEditingSection] = useState<EditSection>(null);
   const [formData, setFormData] = useState<Partial<Transaction>>({});
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
+  const [showArchiveModal, setShowArchiveModal] = useState(false);
+  const [archiving, setArchiving] = useState(false);
 
   const completionPercentage = calculateCompletionPercentage(transaction);
 
@@ -124,7 +129,21 @@ export function DetailsTab({ transaction, onUpdate }: DetailsTabProps) {
     { value: 'closing', label: 'Closing' },
     { value: 'closed', label: 'Closed' },
     { value: 'cancelled', label: 'Cancelled' },
+    { value: 'archived', label: 'Archived' },
   ];
+
+  const handleArchive = async () => {
+    try {
+      setArchiving(true);
+      await onUpdate({ status: 'archived' });
+      setShowArchiveModal(false);
+      navigate('/transactions');
+    } catch (err: unknown) {
+      setError((err instanceof Error ? err.message : String(err)) || 'Failed to archive transaction');
+    } finally {
+      setArchiving(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -573,6 +592,42 @@ export function DetailsTab({ transaction, onUpdate }: DetailsTabProps) {
           </Section>
         </div>
       </div>
+
+      {/* Archive Transaction Section */}
+      {transaction.status !== 'archived' && (
+        <div className="border border-amber-200 rounded-lg p-6 bg-gradient-to-br from-amber-50 to-orange-50">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <Archive className="w-5 h-5 text-amber-600 mr-3" />
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Archive Transaction</h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  Remove this transaction from your active list. Archived transactions can be viewed by filtering for "Archived" status.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowArchiveModal(true)}
+              className="px-4 py-2 text-sm font-medium text-amber-700 bg-white border border-amber-300 rounded-lg hover:bg-amber-50 transition-colors flex items-center"
+            >
+              <Archive className="w-4 h-4 mr-2" />
+              Archive
+            </button>
+          </div>
+        </div>
+      )}
+
+      <ConfirmModal
+        isOpen={showArchiveModal}
+        onClose={() => setShowArchiveModal(false)}
+        onConfirm={handleArchive}
+        title="Archive Transaction"
+        message={`Are you sure you want to archive "${transaction.name}"? This will remove it from your active transactions list. You can still view it by filtering for "Archived" status.`}
+        confirmText="Archive"
+        cancelText="Cancel"
+        isDangerous={true}
+        isLoading={archiving}
+      />
     </div>
   );
 }
@@ -738,6 +793,7 @@ function getStatusColor(status: TransactionStatus): string {
     closing: 'bg-teal-100 text-teal-800',
     closed: 'bg-green-100 text-green-800',
     cancelled: 'bg-red-100 text-red-800',
+    archived: 'bg-slate-200 text-slate-600',
   };
   return colors[status] || 'bg-gray-100 text-gray-800';
 }

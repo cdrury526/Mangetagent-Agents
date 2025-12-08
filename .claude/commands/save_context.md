@@ -22,6 +22,29 @@ This command analyzes your current work session and creates a comprehensive cont
 
 You are saving the current Claude Code session context so that a future session can pick up exactly where we left off.
 
+### Step 0: Check and Update Active Plans (REQUIRED)
+
+Before saving context, check for active plans and update their status:
+
+1. **Find active plans:**
+   ```bash
+   # List all active plans (not in Completed/)
+   ls Docs/Plans/plan-*.json 2>/dev/null | head -5
+   ```
+
+2. **For each active plan found:**
+   - Run `python Docs/Plans/plan-update.py <plan-file> --status-check` to see current status
+   - If any phase is `in_progress`:
+     - Either complete it: `--complete-current --completion-notes "..." --actual-effort X`
+     - Or mark it blocked with notes
+   - **NEVER leave phases as `in_progress` when saving context**
+
+3. **Link plan to context:**
+   - Note the plan filename in the context file's `context.plan.active_plans` array
+   - Record current phase progress
+
+**Why This Matters:** Plans drift from reality without updates. Checking plans at context save ensures progress is captured before switching sessions.
+
 ### Step 1: Analyze Session Context
 
 Review the above git information and the conversation history to understand:
@@ -66,6 +89,8 @@ After saving, confirm:
 - ✅ All required fields are populated
 - ✅ Summary provides clear overview for future sessions
 - ✅ Next steps are specific and actionable
+- ✅ **Active plans updated** (no phases left `in_progress`)
+- ✅ **Plan linked to context** (plan filename in context's active_plans array)
 
 ### Output to User
 

@@ -1,0 +1,2425 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2025-12-01T21:47:47.990Z",
+  "servers": {
+    "supabase": {
+      "name": "supabase",
+      "description": "Supabase database, storage, auth, edge functions, and management via REST APIs",
+      "version": "4.2.0",
+      "cliPrefix": "npx supabase",
+      "apiBaseUrl": "Uses VITE_SUPABASE_URL from .env",
+      "tools": [
+        {
+          "name": "query-table",
+          "mcpName": "mcp__supabase__query_table",
+          "apiEndpoint": "{SUPABASE_URL}/rest/v1/{table}",
+          "description": "Query a table using Supabase REST API. Supports select, filter, order, limit.",
+          "tags": [
+            "database",
+            "query",
+            "select",
+            "api",
+            "postgrest"
+          ],
+          "examples": [
+            {
+              "description": "Get first 10 profiles",
+              "input": {
+                "table": "profiles",
+                "limit": 10
+              },
+              "expectedOutput": "[{ id: \"...\", email: \"...\" }]"
+            },
+            {
+              "description": "Query with filter and select",
+              "input": {
+                "table": "transactions",
+                "select": "id,status,property_address",
+                "filter": "status=eq.active",
+                "order": "created_at.desc",
+                "limit": 5
+              },
+              "expectedOutput": "[{ id: \"...\", status: \"active\", property_address: \"...\" }]"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "insert-row",
+          "mcpName": "mcp__supabase__insert_row",
+          "apiEndpoint": "{SUPABASE_URL}/rest/v1/{table}",
+          "description": "Insert a row into a table using Supabase REST API",
+          "tags": [
+            "database",
+            "insert",
+            "create",
+            "api",
+            "postgrest"
+          ],
+          "examples": [
+            {
+              "description": "Insert a contact",
+              "input": {
+                "table": "contacts",
+                "data": {
+                  "name": "John Doe",
+                  "email": "john@example.com"
+                }
+              },
+              "expectedOutput": "{ id: \"...\", name: \"John Doe\", email: \"john@example.com\" }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "update-rows",
+          "mcpName": "mcp__supabase__update_rows",
+          "apiEndpoint": "{SUPABASE_URL}/rest/v1/{table}",
+          "description": "Update rows in a table using Supabase REST API. Filter is required.",
+          "tags": [
+            "database",
+            "update",
+            "patch",
+            "api",
+            "postgrest"
+          ],
+          "examples": [
+            {
+              "description": "Update a profile by ID",
+              "input": {
+                "table": "profiles",
+                "filter": "id=eq.abc-123",
+                "data": {
+                  "display_name": "New Name"
+                }
+              },
+              "expectedOutput": "[{ id: \"abc-123\", display_name: \"New Name\", ... }]"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "delete-rows",
+          "mcpName": "mcp__supabase__delete_rows",
+          "apiEndpoint": "{SUPABASE_URL}/rest/v1/{table}",
+          "description": "Delete rows from a table using Supabase REST API. Filter is required.",
+          "tags": [
+            "database",
+            "delete",
+            "remove",
+            "api",
+            "postgrest"
+          ],
+          "examples": [
+            {
+              "description": "Delete a contact by ID",
+              "input": {
+                "table": "contacts",
+                "filter": "id=eq.abc-123"
+              },
+              "expectedOutput": "[{ id: \"abc-123\", ... }]"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "list-buckets",
+          "mcpName": "mcp__supabase__list_buckets",
+          "apiEndpoint": "{SUPABASE_URL}/storage/v1/bucket",
+          "description": "List all storage buckets",
+          "tags": [
+            "storage",
+            "buckets",
+            "list",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "List all buckets",
+              "input": {},
+              "expectedOutput": "[{ id: \"...\", name: \"documents\", public: false }]"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "create-bucket",
+          "mcpName": "mcp__supabase__create_bucket",
+          "apiEndpoint": "{SUPABASE_URL}/storage/v1/bucket",
+          "description": "Create a new storage bucket",
+          "tags": [
+            "storage",
+            "buckets",
+            "create",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "Create a private bucket",
+              "input": {
+                "name": "documents",
+                "public": false
+              },
+              "expectedOutput": "{ name: \"documents\" }"
+            },
+            {
+              "description": "Create bucket with restrictions",
+              "input": {
+                "name": "images",
+                "public": true,
+                "fileSizeLimit": 5242880,
+                "allowedMimeTypes": [
+                  "image/png",
+                  "image/jpeg"
+                ]
+              },
+              "expectedOutput": "{ name: \"images\" }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "delete-bucket",
+          "mcpName": "mcp__supabase__delete_bucket",
+          "apiEndpoint": "{SUPABASE_URL}/storage/v1/bucket/{name}",
+          "description": "Delete a storage bucket (must be empty)",
+          "tags": [
+            "storage",
+            "buckets",
+            "delete",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "Delete a bucket",
+              "input": {
+                "name": "old-bucket"
+              },
+              "expectedOutput": "{ message: \"Successfully deleted\" }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "get-bucket",
+          "mcpName": "mcp__supabase__get_bucket",
+          "apiEndpoint": "{SUPABASE_URL}/storage/v1/bucket/{name}",
+          "description": "Get details of a specific bucket",
+          "tags": [
+            "storage",
+            "buckets",
+            "get",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "Get bucket details",
+              "input": {
+                "name": "documents"
+              },
+              "expectedOutput": "{ id: \"...\", name: \"documents\", public: false, ... }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "list-files",
+          "mcpName": "mcp__supabase__list_files",
+          "apiEndpoint": "{SUPABASE_URL}/storage/v1/object/list/{bucket}",
+          "description": "List files in a storage bucket or folder",
+          "tags": [
+            "storage",
+            "files",
+            "list",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "List files in bucket root",
+              "input": {
+                "bucket": "documents",
+                "path": ""
+              },
+              "expectedOutput": "[{ name: \"contract.pdf\", ... }]"
+            },
+            {
+              "description": "List files in a folder",
+              "input": {
+                "bucket": "documents",
+                "path": "contracts/"
+              },
+              "expectedOutput": "[{ name: \"2024-sale.pdf\", ... }]"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "delete-file",
+          "mcpName": "mcp__supabase__delete_file",
+          "apiEndpoint": "{SUPABASE_URL}/storage/v1/object/{bucket}",
+          "description": "Delete one or more files from a bucket",
+          "tags": [
+            "storage",
+            "files",
+            "delete",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "Delete a single file",
+              "input": {
+                "bucket": "documents",
+                "paths": [
+                  "old-contract.pdf"
+                ]
+              },
+              "expectedOutput": "{ message: \"Successfully deleted\" }"
+            },
+            {
+              "description": "Delete multiple files",
+              "input": {
+                "bucket": "documents",
+                "paths": [
+                  "file1.pdf",
+                  "file2.pdf"
+                ]
+              },
+              "expectedOutput": "{ message: \"Successfully deleted\" }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "get-public-url",
+          "mcpName": "mcp__supabase__get_public_url",
+          "apiEndpoint": "{SUPABASE_URL}/storage/v1/object/public/{bucket}/{path}",
+          "description": "Get the public URL for a file (bucket must be public)",
+          "tags": [
+            "storage",
+            "files",
+            "url",
+            "public",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "Get public URL for an image",
+              "input": {
+                "bucket": "images",
+                "path": "logo.png"
+              },
+              "expectedOutput": "{ publicUrl: \"https://xxx.supabase.co/storage/v1/object/public/images/logo.png\" }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "create-signed-url",
+          "mcpName": "mcp__supabase__create_signed_url",
+          "apiEndpoint": "{SUPABASE_URL}/storage/v1/object/sign/{bucket}/{path}",
+          "description": "Create a signed URL for temporary access to a private file",
+          "tags": [
+            "storage",
+            "files",
+            "url",
+            "signed",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "Create 1-hour signed URL",
+              "input": {
+                "bucket": "documents",
+                "path": "contract.pdf",
+                "expiresIn": 3600
+              },
+              "expectedOutput": "{ signedUrl: \"https://...\" }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "move-file",
+          "mcpName": "mcp__supabase__move_file",
+          "apiEndpoint": "{SUPABASE_URL}/storage/v1/object/move",
+          "description": "Move or rename a file within a bucket",
+          "tags": [
+            "storage",
+            "files",
+            "move",
+            "rename",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "Rename a file",
+              "input": {
+                "bucket": "documents",
+                "fromPath": "draft.pdf",
+                "toPath": "final.pdf"
+              },
+              "expectedOutput": "{ message: \"Successfully moved\" }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "upload-file",
+          "mcpName": "mcp__supabase__upload_file",
+          "apiEndpoint": "{SUPABASE_URL}/storage/v1/object/{bucket}/{path}",
+          "description": "Upload a file to a storage bucket (from local file path or base64 content)",
+          "tags": [
+            "storage",
+            "files",
+            "upload",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "Upload from local file path (auto-detects content type)",
+              "input": {
+                "bucket": "documents",
+                "path": "contracts/deal-2024.pdf",
+                "filePath": "./local/contract.pdf"
+              },
+              "expectedOutput": "{ key: \"contracts/deal-2024.pdf\", message: \"File uploaded successfully\" }"
+            },
+            {
+              "description": "Upload base64-encoded content",
+              "input": {
+                "bucket": "documents",
+                "path": "contracts/deal-2024.pdf",
+                "content": "JVBERi0xLjQK...",
+                "contentType": "application/pdf"
+              },
+              "expectedOutput": "{ key: \"contracts/deal-2024.pdf\", message: \"File uploaded successfully\" }"
+            },
+            {
+              "description": "Upload and overwrite existing file",
+              "input": {
+                "bucket": "images",
+                "path": "logo.png",
+                "filePath": "./assets/logo.png",
+                "upsert": true
+              },
+              "expectedOutput": "{ key: \"logo.png\", message: \"File uploaded successfully\" }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "download-file",
+          "mcpName": "mcp__supabase__download_file",
+          "apiEndpoint": "{SUPABASE_URL}/storage/v1/object/{bucket}/{path}",
+          "description": "Download a file from a storage bucket (returns base64-encoded content)",
+          "tags": [
+            "storage",
+            "files",
+            "download",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "Download a PDF document",
+              "input": {
+                "bucket": "documents",
+                "path": "contracts/deal-2024.pdf"
+              },
+              "expectedOutput": "{ content: \"JVBERi0xLjQK...\", contentType: \"application/pdf\", size: 51234 }"
+            },
+            {
+              "description": "Download an image",
+              "input": {
+                "bucket": "images",
+                "path": "logo.png"
+              },
+              "expectedOutput": "{ content: \"iVBORw0KGgo...\", contentType: \"image/png\", size: 12845 }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "invoke-function",
+          "mcpName": "mcp__supabase__invoke_function",
+          "apiEndpoint": "{SUPABASE_URL}/functions/v1/{function_name}",
+          "description": "Invoke an Edge Function with optional payload (uses anon key by default, or service role key)",
+          "tags": [
+            "functions",
+            "edge",
+            "serverless",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "Invoke function with payload (anon key)",
+              "input": {
+                "name": "hello-world",
+                "payload": {
+                  "name": "John Doe"
+                }
+              },
+              "expectedOutput": "{ message: \"Hello, John Doe!\" }"
+            },
+            {
+              "description": "Invoke admin function with service role",
+              "input": {
+                "name": "admin-task",
+                "useServiceRole": true,
+                "payload": {
+                  "action": "cleanup"
+                }
+              },
+              "expectedOutput": "{ success: true, message: \"Cleanup completed\" }"
+            },
+            {
+              "description": "Invoke function without payload",
+              "input": {
+                "name": "health-check"
+              },
+              "expectedOutput": "{ status: \"ok\" }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "list-functions",
+          "mcpName": "mcp__supabase__list_functions",
+          "apiEndpoint": "https://api.supabase.com/v1/projects/{ref}/functions",
+          "description": "List all deployed Edge Functions using the Management API (requires SUPABASE_ACCESS_TOKEN)",
+          "tags": [
+            "functions",
+            "edge",
+            "serverless",
+            "list",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "List all Edge Functions",
+              "input": {},
+              "expectedOutput": "[{ id: \"...\", slug: \"hello-world\", name: \"hello-world\", status: \"ACTIVE\", ... }]"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "create-user",
+          "mcpName": "mcp__supabase__create_user",
+          "apiEndpoint": "{SUPABASE_URL}/auth/v1/admin/users",
+          "description": "Create a new user with email and password (uses service role key)",
+          "tags": [
+            "auth",
+            "admin",
+            "users",
+            "create",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "Create user with auto-confirmed email",
+              "input": {
+                "email": "agent@example.com",
+                "password": "secure123",
+                "email_confirm": true
+              },
+              "expectedOutput": "{ id: \"uuid\", email: \"agent@example.com\", ... }"
+            },
+            {
+              "description": "Create user with metadata",
+              "input": {
+                "email": "agent@example.com",
+                "password": "secure123",
+                "email_confirm": true,
+                "user_metadata": {
+                  "first_name": "John",
+                  "last_name": "Doe"
+                },
+                "app_metadata": {
+                  "role": "agent"
+                }
+              },
+              "expectedOutput": "{ id: \"uuid\", email: \"agent@example.com\", user_metadata: {...}, ... }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "list-users",
+          "mcpName": "mcp__supabase__list_users",
+          "apiEndpoint": "{SUPABASE_URL}/auth/v1/admin/users",
+          "description": "List all users with pagination (uses service role key)",
+          "tags": [
+            "auth",
+            "admin",
+            "users",
+            "list",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "List first 50 users",
+              "input": {
+                "page": 1,
+                "per_page": 50
+              },
+              "expectedOutput": "{ users: [...], total: 150 }"
+            },
+            {
+              "description": "List page 2 with 100 users per page",
+              "input": {
+                "page": 2,
+                "per_page": 100
+              },
+              "expectedOutput": "{ users: [...], total: 150 }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "get-user",
+          "mcpName": "mcp__supabase__get_user",
+          "apiEndpoint": "{SUPABASE_URL}/auth/v1/admin/users/{id}",
+          "description": "Get a user by UUID (uses service role key)",
+          "tags": [
+            "auth",
+            "admin",
+            "users",
+            "get",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "Get user by ID",
+              "input": {
+                "id": "550e8400-e29b-41d4-a716-446655440000"
+              },
+              "expectedOutput": "{ id: \"550e8400-...\", email: \"user@example.com\", ... }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "update-user",
+          "mcpName": "mcp__supabase__update_user",
+          "apiEndpoint": "{SUPABASE_URL}/auth/v1/admin/users/{id}",
+          "description": "Update a user (email, password, metadata, ban status) using service role key",
+          "tags": [
+            "auth",
+            "admin",
+            "users",
+            "update",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "Update user email",
+              "input": {
+                "id": "550e8400-e29b-41d4-a716-446655440000",
+                "email": "newemail@example.com"
+              },
+              "expectedOutput": "{ id: \"550e8400-...\", email: \"newemail@example.com\", ... }"
+            },
+            {
+              "description": "Ban user for 24 hours",
+              "input": {
+                "id": "550e8400-e29b-41d4-a716-446655440000",
+                "ban_duration": "24h"
+              },
+              "expectedOutput": "{ id: \"550e8400-...\", banned_until: \"2025-12-02T...\", ... }"
+            },
+            {
+              "description": "Unban user",
+              "input": {
+                "id": "550e8400-e29b-41d4-a716-446655440000",
+                "ban_duration": "none"
+              },
+              "expectedOutput": "{ id: \"550e8400-...\", banned_until: null, ... }"
+            },
+            {
+              "description": "Update user metadata",
+              "input": {
+                "id": "550e8400-e29b-41d4-a716-446655440000",
+                "user_metadata": {
+                  "phone": "+1234567890"
+                }
+              },
+              "expectedOutput": "{ id: \"550e8400-...\", user_metadata: { phone: \"+1234567890\" }, ... }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "delete-user",
+          "mcpName": "mcp__supabase__delete_user",
+          "apiEndpoint": "{SUPABASE_URL}/auth/v1/admin/users/{id}",
+          "description": "Delete a user permanently (uses service role key)",
+          "tags": [
+            "auth",
+            "admin",
+            "users",
+            "delete",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "Delete user by ID",
+              "input": {
+                "id": "550e8400-e29b-41d4-a716-446655440000"
+              },
+              "expectedOutput": "{ message: \"User deleted successfully\" }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "run-sql",
+          "mcpName": "mcp__supabase__run_sql",
+          "apiEndpoint": "https://api.supabase.com/v1/projects/{ref}/database/query",
+          "description": "Execute SQL query via Management API. Requires SUPABASE_ACCESS_TOKEN.",
+          "tags": [
+            "database",
+            "sql",
+            "query",
+            "management",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "Create a table",
+              "input": {
+                "query": "CREATE TABLE test (id serial PRIMARY KEY, name text)"
+              },
+              "expectedOutput": "[]"
+            },
+            {
+              "description": "Select data",
+              "input": {
+                "query": "SELECT * FROM profiles LIMIT 5"
+              },
+              "expectedOutput": "[{ id: \"...\", ... }]"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "generate-types-api",
+          "mcpName": "mcp__supabase__generate_types_api",
+          "apiEndpoint": "https://api.supabase.com/v1/projects/{ref}/types/typescript",
+          "description": "Generate TypeScript types from database schema via Management API. Requires SUPABASE_ACCESS_TOKEN. Works without Docker or local Supabase.",
+          "tags": [
+            "types",
+            "typescript",
+            "schema",
+            "codegen",
+            "management",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "Generate types to console",
+              "input": {},
+              "expectedOutput": "{ types: \"export type Json = ... export interface Database { ... }\" }"
+            },
+            {
+              "description": "Generate types to file",
+              "input": {
+                "outputPath": "src/types/database.ts"
+              },
+              "expectedOutput": "{ saved: true, path: \"src/types/database.ts\" }"
+            },
+            {
+              "description": "Include multiple schemas",
+              "input": {
+                "includedSchemas": [
+                  "public",
+                  "auth"
+                ],
+                "outputPath": "src/types/database.ts"
+              },
+              "expectedOutput": "{ saved: true, path: \"src/types/database.ts\" }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "list-tables",
+          "mcpName": "mcp__supabase__list_tables",
+          "cliCommand": "supabase db dump --schema <schemas>",
+          "description": "Lists all tables in one or more schemas with columns, constraints, and RLS status",
+          "tags": [
+            "database",
+            "schema",
+            "tables",
+            "rls",
+            "introspection"
+          ],
+          "examples": [
+            {
+              "description": "List all public tables",
+              "input": {
+                "schemas": [
+                  "public"
+                ]
+              },
+              "expectedOutput": "[{ schema: \"public\", name: \"profiles\", rls_enabled: true, ... }]"
+            },
+            {
+              "description": "List tables from multiple schemas",
+              "input": {
+                "schemas": [
+                  "public",
+                  "auth"
+                ]
+              },
+              "expectedOutput": "[...]"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "execute-sql",
+          "mcpName": "mcp__supabase__execute_sql",
+          "cliCommand": "supabase db query \"<sql>\"",
+          "description": "Executes raw SQL in the Postgres database. Use apply-migration for DDL operations.",
+          "tags": [
+            "database",
+            "sql",
+            "query",
+            "select",
+            "data"
+          ],
+          "examples": [
+            {
+              "description": "Select rows from a table",
+              "input": {
+                "query": "SELECT * FROM profiles LIMIT 10"
+              },
+              "expectedOutput": "[{ id: \"...\", name: \"...\", ... }]"
+            },
+            {
+              "description": "Count rows with condition",
+              "input": {
+                "query": "SELECT count(*) FROM transactions WHERE status = 'active'"
+              },
+              "expectedOutput": "[{ count: 42 }]"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "apply-migration",
+          "mcpName": "mcp__supabase__apply_migration",
+          "cliCommand": "supabase migration new <name> && supabase db push",
+          "description": "Applies a migration to the database. Use for DDL operations (CREATE, ALTER, etc.)",
+          "tags": [
+            "database",
+            "migration",
+            "ddl",
+            "schema",
+            "create",
+            "alter"
+          ],
+          "examples": [
+            {
+              "description": "Create a new table",
+              "input": {
+                "name": "create_users_table",
+                "query": "CREATE TABLE users (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), email text UNIQUE NOT NULL)"
+              },
+              "expectedOutput": "{ success: true, migration_name: \"create_users_table\" }"
+            },
+            {
+              "description": "Add a column to existing table",
+              "input": {
+                "name": "add_avatar_to_profiles",
+                "query": "ALTER TABLE profiles ADD COLUMN avatar_url text"
+              },
+              "expectedOutput": "{ success: true, migration_name: \"add_avatar_to_profiles\" }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "get-logs",
+          "mcpName": "mcp__supabase__get_logs",
+          "cliCommand": "supabase logs --type <service>",
+          "description": "Gets logs for a Supabase project by service type. Returns logs within the last 24 hours.",
+          "tags": [
+            "logs",
+            "debugging",
+            "monitoring",
+            "api",
+            "auth",
+            "edge-function"
+          ],
+          "examples": [
+            {
+              "description": "Get API logs",
+              "input": {
+                "service": "api"
+              },
+              "expectedOutput": "[{ timestamp: \"...\", event_message: \"...\", ... }]"
+            },
+            {
+              "description": "Get edge function logs",
+              "input": {
+                "service": "edge-function"
+              },
+              "expectedOutput": "[{ timestamp: \"...\", event_message: \"...\", ... }]"
+            },
+            {
+              "description": "Get auth logs",
+              "input": {
+                "service": "auth"
+              },
+              "expectedOutput": "[{ timestamp: \"...\", event_message: \"...\", ... }]"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "get-advisors",
+          "mcpName": "mcp__supabase__get_advisors",
+          "apiEndpoint": "https://api.supabase.com/v1/projects/{ref}/advisors/{type}",
+          "description": "Gets advisory notices for security vulnerabilities or performance improvements. Run after DDL changes.",
+          "tags": [
+            "security",
+            "performance",
+            "rls",
+            "advisors",
+            "audit"
+          ],
+          "examples": [
+            {
+              "description": "Get security advisors (check for missing RLS)",
+              "input": {
+                "type": "security"
+              },
+              "expectedOutput": "[{ id: \"...\", title: \"Missing RLS policy\", remediation: \"...\" }]"
+            },
+            {
+              "description": "Get performance advisors",
+              "input": {
+                "type": "performance"
+              },
+              "expectedOutput": "[{ id: \"...\", title: \"Missing index\", remediation: \"...\" }]"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "generate-types",
+          "mcpName": "mcp__supabase__generate_typescript_types",
+          "cliCommand": "supabase gen types typescript --local",
+          "description": "Generates TypeScript types for the project database schema for type-safe queries",
+          "tags": [
+            "types",
+            "typescript",
+            "codegen",
+            "schema",
+            "database"
+          ],
+          "examples": [
+            {
+              "description": "Generate types for the database",
+              "input": {},
+              "expectedOutput": "export interface Database { public: { Tables: { ... } } }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        }
+      ],
+      "documentation": "Docs/Supabase/README.md"
+    },
+    "shadcn": {
+      "name": "shadcn",
+      "description": "shadcn/ui component registry - search, view, and install UI components",
+      "version": "1.0.0",
+      "cliPrefix": "npx shadcn@latest",
+      "tools": [
+        {
+          "name": "search-items",
+          "mcpName": "mcp__shadcn__search_items_in_registries",
+          "apiEndpoint": "https://ui.shadcn.com/r/index.json",
+          "description": "Search for components in the shadcn/ui registry using fuzzy matching. Use view-items to see component code.",
+          "tags": [
+            "search",
+            "components",
+            "ui",
+            "registry",
+            "shadcn",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "Search for button components",
+              "input": {
+                "registries": [
+                  "@shadcn"
+                ],
+                "query": "button"
+              },
+              "expectedOutput": "[{ name: \"button\", type: \"registry:ui\", ... }]"
+            },
+            {
+              "description": "Search with limit",
+              "input": {
+                "registries": [
+                  "@shadcn"
+                ],
+                "query": "form",
+                "limit": 5
+              },
+              "expectedOutput": "[{ name: \"form\", ... }, ...]"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "view-items",
+          "mcpName": "mcp__shadcn__view_items_in_registries",
+          "apiEndpoint": "https://ui.shadcn.com/r/styles/default/{component}.json",
+          "description": "View component details including source code from the shadcn/ui registry.",
+          "tags": [
+            "view",
+            "details",
+            "components",
+            "files",
+            "shadcn",
+            "code",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "View button component",
+              "input": {
+                "items": [
+                  "@shadcn/button"
+                ]
+              },
+              "expectedOutput": "[{ name: \"button\", type: \"registry:ui\", files: [...], dependencies: [...] }]"
+            },
+            {
+              "description": "View multiple components",
+              "input": {
+                "items": [
+                  "@shadcn/button",
+                  "@shadcn/card",
+                  "@shadcn/dialog"
+                ]
+              },
+              "expectedOutput": "[...]"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "get-examples",
+          "mcpName": "mcp__shadcn__get_item_examples_from_registries",
+          "apiEndpoint": "https://ui.shadcn.com/r/index.json",
+          "description": "Find usage examples and demos with complete code from the shadcn/ui registry.",
+          "tags": [
+            "examples",
+            "demo",
+            "usage",
+            "code",
+            "shadcn",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "Get button examples",
+              "input": {
+                "registries": [
+                  "@shadcn"
+                ],
+                "query": "button"
+              },
+              "expectedOutput": "[{ name: \"button-demo\", files: [{ content: \"...\" }] }]"
+            },
+            {
+              "description": "Get form examples",
+              "input": {
+                "registries": [
+                  "@shadcn"
+                ],
+                "query": "form"
+              },
+              "expectedOutput": "[{ name: \"form-demo\", ... }]"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "get-add-command",
+          "mcpName": "mcp__shadcn__get_add_command_for_items",
+          "cliCommand": "npx shadcn@latest add <components>",
+          "description": "Get the shadcn CLI add command for specific items. Use for installing components.",
+          "tags": [
+            "add",
+            "install",
+            "cli",
+            "command",
+            "shadcn"
+          ],
+          "examples": [
+            {
+              "description": "Get command for single component",
+              "input": {
+                "items": [
+                  "@shadcn/button"
+                ]
+              },
+              "expectedOutput": "{ command: \"npx shadcn@latest add button\", items: [\"button\"] }"
+            },
+            {
+              "description": "Get command for multiple components",
+              "input": {
+                "items": [
+                  "@shadcn/button",
+                  "@shadcn/card",
+                  "@shadcn/dialog"
+                ]
+              },
+              "expectedOutput": "{ command: \"npx shadcn@latest add button card dialog\", items: [\"button\", \"card\", \"dialog\"] }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        }
+      ],
+      "documentation": "https://ui.shadcn.com/docs"
+    },
+    "boldsign": {
+      "name": "boldsign",
+      "description": "BoldSign e-signature API for documents, templates, webhooks, and audit trails",
+      "version": "1.0.0",
+      "apiBaseUrl": "https://api.boldsign.com/v1",
+      "tools": [
+        {
+          "name": "list-documents",
+          "mcpName": "mcp__boldsign__list_documents",
+          "apiEndpoint": "/v1/document/list",
+          "description": "List and search BoldSign documents with pagination, filtering by status, and date ranges.",
+          "tags": [
+            "documents",
+            "list",
+            "search",
+            "boldsign",
+            "e-signature",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "List all sent documents",
+              "input": {
+                "status": "sent",
+                "pageSize": 10
+              },
+              "expectedOutput": "{ documents: [...], pagination: { page: 1, totalCount: 50 } }"
+            },
+            {
+              "description": "Search for contracts",
+              "input": {
+                "searchTerm": "contract",
+                "status": "completed"
+              },
+              "expectedOutput": "{ documents: [...] }"
+            },
+            {
+              "description": "List documents from last week",
+              "input": {
+                "startDate": "2025-01-24",
+                "endDate": "2025-01-31"
+              },
+              "expectedOutput": "{ documents: [...] }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "get-document-status",
+          "mcpName": "mcp__boldsign__get_document_status",
+          "apiEndpoint": "/v1/document/{documentId}",
+          "description": "Get detailed status of a BoldSign document including signer progress, audit events, and download links.",
+          "tags": [
+            "documents",
+            "status",
+            "signers",
+            "audit",
+            "boldsign",
+            "debugging",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "Get document status by ID",
+              "input": {
+                "documentId": "abc-123-def-456"
+              },
+              "expectedOutput": "{ document: { status: \"in_progress\", signers: [...] }, downloadLinks: {...} }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "send-reminder",
+          "mcpName": "mcp__boldsign__send_reminder",
+          "apiEndpoint": "/v1/document/remind",
+          "description": "Send reminder emails to pending signers on a BoldSign document.",
+          "tags": [
+            "documents",
+            "reminder",
+            "signers",
+            "boldsign",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "Remind all pending signers",
+              "input": {
+                "documentId": "abc-123"
+              },
+              "expectedOutput": "{ success: true, remindersSent: 2 }"
+            },
+            {
+              "description": "Remind specific signer",
+              "input": {
+                "documentId": "abc-123",
+                "signerEmail": "buyer@example.com"
+              },
+              "expectedOutput": "{ success: true, remindersSent: 1 }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "extend-expiry",
+          "mcpName": "mcp__boldsign__extend_expiry",
+          "apiEndpoint": "/v1/document/extendExpiry",
+          "description": "Extend the expiration date of a BoldSign document.",
+          "tags": [
+            "documents",
+            "expiry",
+            "deadline",
+            "boldsign",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "Extend by 30 days",
+              "input": {
+                "documentId": "abc-123",
+                "additionalDays": 30
+              },
+              "expectedOutput": "{ success: true, newExpiryDate: \"2025-02-28T...\" }"
+            },
+            {
+              "description": "Set specific date",
+              "input": {
+                "documentId": "abc-123",
+                "newExpiryDate": "2025-03-15T00:00:00Z"
+              },
+              "expectedOutput": "{ success: true, newExpiryDate: \"2025-03-15T00:00:00Z\" }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "get-audit-trail",
+          "mcpName": "mcp__boldsign__get_audit_trail",
+          "apiEndpoint": "/v1/document/{documentId}",
+          "description": "Get the audit trail for a BoldSign document with all signing events and timestamps.",
+          "tags": [
+            "documents",
+            "audit",
+            "compliance",
+            "trail",
+            "boldsign",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "Get audit trail as JSON",
+              "input": {
+                "documentId": "abc-123",
+                "format": "json"
+              },
+              "expectedOutput": "{ documentId: \"abc-123\", events: [...], certificateOfCompletion: {...} }"
+            },
+            {
+              "description": "Get audit trail PDF link",
+              "input": {
+                "documentId": "abc-123",
+                "format": "pdf"
+              },
+              "expectedOutput": "{ pdfUrl: \"/v1/document/.../download/audit\" }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "revoke-document",
+          "mcpName": "mcp__boldsign__revoke_document",
+          "apiEndpoint": "/v1/document/revoke",
+          "description": "Revoke/cancel a BoldSign document that is still pending signatures.",
+          "tags": [
+            "documents",
+            "revoke",
+            "cancel",
+            "boldsign",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "Revoke a document",
+              "input": {
+                "documentId": "abc-123",
+                "reason": "Terms changed"
+              },
+              "expectedOutput": "{ success: true, previousStatus: \"sent\", newStatus: \"revoked\" }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "download-document",
+          "mcpName": "mcp__boldsign__download_document",
+          "apiEndpoint": "/v1/document/download",
+          "description": "Download signed, original, combined, or audit trail PDF from a BoldSign document. Returns base64 encoded content.",
+          "tags": [
+            "documents",
+            "download",
+            "pdf",
+            "signed",
+            "audit-trail",
+            "boldsign",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "Download signed PDF as base64",
+              "input": {
+                "documentId": "abc-123",
+                "type": "signed",
+                "format": "base64"
+              },
+              "expectedOutput": "{ documentId: \"abc-123\", type: \"signed\", content: \"JVBERi0xLjQ...\", sizeBytes: 45000 }"
+            },
+            {
+              "description": "Download audit trail PDF",
+              "input": {
+                "documentId": "abc-123",
+                "type": "audit-trail",
+                "format": "base64"
+              },
+              "expectedOutput": "{ documentId: \"abc-123\", type: \"audit-trail\", content: \"JVBERi0xLjQ...\", sizeBytes: 12000 }"
+            },
+            {
+              "description": "Download original (unsigned) PDF",
+              "input": {
+                "documentId": "abc-123",
+                "type": "original",
+                "format": "base64"
+              },
+              "expectedOutput": "{ documentId: \"abc-123\", type: \"original\", content: \"JVBERi0xLjQ...\", sizeBytes: 38000 }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "get-embedded-sign-link",
+          "mcpName": "mcp__boldsign__get_embedded_sign_link",
+          "apiEndpoint": "/v1/document/getEmbeddedSignLink",
+          "description": "Generate an embedded signing link for in-app document signing. The link can be used in an iframe or opened in a new window.",
+          "tags": [
+            "documents",
+            "embedded",
+            "signing",
+            "iframe",
+            "boldsign",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "Generate embedded signing link with 30-minute expiry",
+              "input": {
+                "documentId": "abc-123",
+                "signerEmail": "buyer@example.com",
+                "linkExpiryMinutes": 30
+              },
+              "expectedOutput": "{ signUrl: \"https://app.boldsign.com/document/sign/...\", expiresAt: \"2025-12-01T12:30:00Z\" }"
+            },
+            {
+              "description": "Generate link with custom redirect URL",
+              "input": {
+                "documentId": "abc-123",
+                "signerEmail": "buyer@example.com",
+                "redirectUrl": "https://myapp.com/signing-complete",
+                "linkExpiryMinutes": 60
+              },
+              "expectedOutput": "{ signUrl: \"https://app.boldsign.com/document/sign/...\", expiresAt: \"2025-12-01T13:00:00Z\" }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "prefill-fields",
+          "mcpName": "mcp__boldsign__prefill_fields",
+          "apiEndpoint": "/v1/document/prefillFields",
+          "description": "Pre-fill form field values in a BoldSign document. Document must be in draft state. Useful for populating buyer/seller names, addresses, and transaction details.",
+          "tags": [
+            "documents",
+            "fields",
+            "prefill",
+            "forms",
+            "automation",
+            "boldsign",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "Prefill buyer and seller names in purchase agreement",
+              "input": {
+                "documentId": "abc-123",
+                "fields": [
+                  {
+                    "fieldId": "buyer_name",
+                    "value": "John Doe"
+                  },
+                  {
+                    "fieldId": "seller_name",
+                    "value": "Jane Smith"
+                  },
+                  {
+                    "fieldId": "property_address",
+                    "value": "123 Main St, Austin TX 78701"
+                  }
+                ]
+              },
+              "expectedOutput": "{ success: true, fieldsUpdated: 3, fieldResults: [...] }"
+            },
+            {
+              "description": "Prefill transaction details",
+              "input": {
+                "documentId": "abc-123",
+                "fields": [
+                  {
+                    "fieldId": "purchase_price",
+                    "value": "$350,000"
+                  },
+                  {
+                    "fieldId": "closing_date",
+                    "value": "2025-12-15"
+                  },
+                  {
+                    "fieldId": "earnest_money",
+                    "value": "$10,000"
+                  }
+                ]
+              },
+              "expectedOutput": "{ success: true, fieldsUpdated: 3 }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "change-recipient",
+          "mcpName": "mcp__boldsign__change_recipient",
+          "apiEndpoint": "/v1/document/changeRecipient",
+          "description": "Replace a signer/recipient on an existing BoldSign document.",
+          "tags": [
+            "documents",
+            "signer",
+            "recipient",
+            "change",
+            "boldsign",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "Change buyer to new email",
+              "input": {
+                "documentId": "abc-123",
+                "oldSignerEmail": "old-buyer@example.com",
+                "newSignerEmail": "new-buyer@example.com",
+                "newSignerName": "New Buyer Name",
+                "reason": "Buyer changed email address"
+              },
+              "expectedOutput": "{ success: true, previousSigner: { email: \"old-buyer@example.com\" }, newSigner: { email: \"new-buyer@example.com\" } }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "void-and-resend",
+          "mcpName": "mcp__boldsign__void_and_resend",
+          "apiEndpoint": "Composite: /v1/document/revoke + /v1/template/send",
+          "description": "Void an existing document and send a corrected version from the same template. Composite operation that revokes the original and creates a new document with corrections.",
+          "tags": [
+            "documents",
+            "void",
+            "resend",
+            "revoke",
+            "correction",
+            "boldsign",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "Void and resend with corrected signer",
+              "input": {
+                "originalDocumentId": "doc-abc-123",
+                "voidReason": "Incorrect buyer email address",
+                "corrections": {
+                  "roles": [
+                    {
+                      "roleId": "buyer",
+                      "signerEmail": "correct-buyer@example.com",
+                      "signerName": "Correct Buyer"
+                    }
+                  ]
+                }
+              },
+              "expectedOutput": "{ success: true, voidedDocumentId: \"doc-abc-123\", newDocumentId: \"doc-xyz-456\" }"
+            },
+            {
+              "description": "Void and resend with corrected field values",
+              "input": {
+                "originalDocumentId": "doc-abc-123",
+                "voidReason": "Incorrect purchase price",
+                "corrections": {
+                  "prefillFields": [
+                    {
+                      "fieldId": "purchase_price",
+                      "value": "$350,000"
+                    }
+                  ]
+                }
+              },
+              "expectedOutput": "{ success: true, newDocumentId: \"doc-xyz-456\" }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "list-templates",
+          "mcpName": "mcp__boldsign__list_templates",
+          "apiEndpoint": "/v1/template/list",
+          "description": "List available BoldSign document templates with search and pagination.",
+          "tags": [
+            "templates",
+            "list",
+            "search",
+            "boldsign",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "List all templates",
+              "input": {
+                "pageSize": 10
+              },
+              "expectedOutput": "{ templates: [...], pagination: { totalCount: 5 } }"
+            },
+            {
+              "description": "Search for purchase agreement",
+              "input": {
+                "searchTerm": "purchase agreement"
+              },
+              "expectedOutput": "{ templates: [...] }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "get-template",
+          "mcpName": "mcp__boldsign__get_template",
+          "apiEndpoint": "/v1/template/{templateId}",
+          "description": "Get detailed information about a BoldSign template including roles and form fields.",
+          "tags": [
+            "templates",
+            "details",
+            "roles",
+            "fields",
+            "boldsign",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "Get template details",
+              "input": {
+                "templateId": "abc-123"
+              },
+              "expectedOutput": "{ template: { title: \"Purchase Agreement\", roles: [...], formFields: [...] } }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "send-from-template",
+          "mcpName": "mcp__boldsign__send_from_template",
+          "apiEndpoint": "/v1/template/send",
+          "description": "Send a document for signature using a BoldSign template.",
+          "tags": [
+            "templates",
+            "send",
+            "documents",
+            "boldsign",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "Send purchase agreement from template",
+              "input": {
+                "templateId": "abc-123",
+                "roles": [
+                  {
+                    "roleId": "buyer",
+                    "signerEmail": "buyer@example.com",
+                    "signerName": "John Buyer"
+                  },
+                  {
+                    "roleId": "seller",
+                    "signerEmail": "seller@example.com",
+                    "signerName": "Jane Seller"
+                  }
+                ]
+              },
+              "expectedOutput": "{ success: true, documentId: \"doc-xyz-123\" }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "merge-and-send",
+          "mcpName": "mcp__boldsign__merge_and_send",
+          "apiEndpoint": "/v1/template/mergeAndSend",
+          "description": "Merge multiple BoldSign templates into a single document and send for signing. Useful for combining disclosure packages or multi-document workflows.",
+          "tags": [
+            "templates",
+            "merge",
+            "bulk",
+            "send",
+            "documents",
+            "boldsign",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "Merge purchase agreement with disclosures",
+              "input": {
+                "templates": [
+                  {
+                    "templateId": "purchase-agreement-template",
+                    "roles": [
+                      {
+                        "roleId": "buyer",
+                        "signerEmail": "buyer@example.com",
+                        "signerName": "John Buyer"
+                      },
+                      {
+                        "roleId": "seller",
+                        "signerEmail": "seller@example.com",
+                        "signerName": "Jane Seller"
+                      }
+                    ]
+                  },
+                  {
+                    "templateId": "disclosure-package-template",
+                    "roles": [
+                      {
+                        "roleId": "buyer",
+                        "signerEmail": "buyer@example.com",
+                        "signerName": "John Buyer"
+                      },
+                      {
+                        "roleId": "seller",
+                        "signerEmail": "seller@example.com",
+                        "signerName": "Jane Seller"
+                      }
+                    ]
+                  }
+                ],
+                "title": "Purchase Agreement with Disclosures - 123 Main St",
+                "expiryDays": 7
+              },
+              "expectedOutput": "{ success: true, documentId: \"merged-doc-123\", mergedFromTemplates: [\"purchase-agreement-template\", \"disclosure-package-template\"] }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "bulk-send-reminder",
+          "mcpName": "mcp__boldsign__bulk_send_reminder",
+          "apiEndpoint": "/v1/document/remind (bulk)",
+          "description": "Send reminder emails to multiple documents at once. Supports single document mode, explicit document ID list, or automatic \"all pending\" mode with optional age filtering.",
+          "tags": [
+            "documents",
+            "reminder",
+            "bulk",
+            "signers",
+            "boldsign",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "Send reminder to single document (backward compatible)",
+              "input": {
+                "documentId": "doc-123",
+                "message": "Please sign soon"
+              },
+              "expectedOutput": "{ success: true, totalDocuments: 1, totalReminders: 2 }"
+            },
+            {
+              "description": "Send reminders to specific documents",
+              "input": {
+                "bulkMode": {
+                  "documentIds": [
+                    "doc-123",
+                    "doc-456",
+                    "doc-789"
+                  ]
+                }
+              },
+              "expectedOutput": "{ success: true, totalDocuments: 3, totalReminders: 8 }"
+            },
+            {
+              "description": "Send reminders to all pending documents older than 3 days",
+              "input": {
+                "bulkMode": {
+                  "status": "all_pending",
+                  "olderThanDays": 3
+                },
+                "message": "Reminder: Please complete your signature"
+              },
+              "expectedOutput": "{ success: true, totalDocuments: 12, totalReminders: 24 }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "list-webhook-events",
+          "mcpName": "mcp__boldsign__list_webhook_events",
+          "apiEndpoint": "/rest/v1/bold_sign_events",
+          "description": "List and filter BoldSign webhook events from the database for debugging and audit purposes.",
+          "tags": [
+            "webhooks",
+            "events",
+            "debugging",
+            "audit",
+            "boldsign",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "List recent events for a document",
+              "input": {
+                "documentId": "abc-123",
+                "limit": 10
+              },
+              "expectedOutput": "{ events: [...], summary: { total: 5, processed: 4, failed: 1 } }"
+            },
+            {
+              "description": "List failed webhook events",
+              "input": {
+                "processed": false,
+                "limit": 20
+              },
+              "expectedOutput": "{ events: [...] }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "webhook-health",
+          "mcpName": "mcp__boldsign__webhook_health",
+          "apiEndpoint": "/rest/v1/webhook_metrics",
+          "description": "Check BoldSign webhook processing health including success rates, latency, recent errors, and configurable alert thresholds.",
+          "tags": [
+            "webhooks",
+            "health",
+            "monitoring",
+            "debugging",
+            "alerts",
+            "boldsign",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "Check last 24 hours",
+              "input": {
+                "hours": 24
+              },
+              "expectedOutput": "{ status: \"healthy\", metrics: { successRate: 99.5, ... }, recommendations: [] }"
+            },
+            {
+              "description": "Check last week",
+              "input": {
+                "hours": 168
+              },
+              "expectedOutput": "{ status: \"degraded\", recommendations: [\"...\"] }"
+            },
+            {
+              "description": "Check with alert thresholds",
+              "input": {
+                "hours": 24,
+                "alertThresholds": {
+                  "errorRatePercent": 5,
+                  "processingTimeMs": 2000,
+                  "backlogCount": 10
+                }
+              },
+              "expectedOutput": "{ status: \"healthy\", metrics: {...}, alerts: [{ type: \"latency\", severity: \"warning\", ... }] }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "test-webhook",
+          "mcpName": "mcp__boldsign__test_webhook",
+          "apiEndpoint": "https://tlwzpacimgfnziccqnox.supabase.co/functions/v1/boldsign-webhooks",
+          "description": "Send a test webhook payload to verify webhook handler is working correctly.",
+          "tags": [
+            "webhooks",
+            "testing",
+            "debugging",
+            "boldsign",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "Test document.completed event",
+              "input": {
+                "eventType": "document.completed"
+              },
+              "expectedOutput": "{ success: true, responseStatus: 200 }"
+            },
+            {
+              "description": "Test signer.signed event",
+              "input": {
+                "eventType": "signer.signed",
+                "signerEmail": "test@example.com"
+              },
+              "expectedOutput": "{ success: true, responseStatus: 200 }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "get-config-status",
+          "mcpName": "mcp__boldsign__get_config_status",
+          "description": "Check BoldSign and Supabase configuration status for debugging connectivity issues.",
+          "tags": [
+            "config",
+            "debugging",
+            "status",
+            "boldsign"
+          ],
+          "examples": [
+            {
+              "description": "Check configuration",
+              "input": {},
+              "expectedOutput": "{ boldsignConfigured: true, supabaseConfigured: true, hasOAuthCredentials: true }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "replay-webhook",
+          "mcpName": "mcp__boldsign__replay_webhook",
+          "apiEndpoint": "/rest/v1/bold_sign_events",
+          "description": "Re-process failed webhook events by resending them to the webhook handler.",
+          "tags": [
+            "webhooks",
+            "debugging",
+            "retry",
+            "recovery",
+            "boldsign",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "Replay specific event",
+              "input": {
+                "eventId": "evt_123"
+              },
+              "expectedOutput": "{ replayedCount: 1, successCount: 1, failedCount: 0 }"
+            },
+            {
+              "description": "Replay all failed events for a document",
+              "input": {
+                "documentId": "doc_abc",
+                "limit": 10
+              },
+              "expectedOutput": "{ replayedCount: 3, successCount: 2, failedCount: 1 }"
+            },
+            {
+              "description": "Replay failed document.completed events",
+              "input": {
+                "eventType": "document.completed",
+                "limit": 5
+              },
+              "expectedOutput": "{ replayedCount: 2, successCount: 2, results: [...] }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "get-api-credits",
+          "mcpName": "mcp__boldsign__get_api_credits",
+          "apiEndpoint": "/v1/plan/apiCreditsCount",
+          "description": "Check BoldSign API credit usage, quota, and remaining credits for monitoring.",
+          "tags": [
+            "api",
+            "credits",
+            "usage",
+            "quota",
+            "monitoring",
+            "boldsign"
+          ],
+          "examples": [
+            {
+              "description": "Get current API credit usage",
+              "input": {},
+              "expectedOutput": "{ totalCredits: 1000, usedCredits: 450, remainingCredits: 550, usagePercentage: 45 }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "debug-document-timeline",
+          "mcpName": "mcp__boldsign__debug_document_timeline",
+          "apiEndpoint": "/v1/document/{documentId}",
+          "description": "Visualize document signing timeline with event durations and identify signing bottlenecks.",
+          "tags": [
+            "debugging",
+            "timeline",
+            "performance",
+            "analytics",
+            "boldsign",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "Debug document timeline",
+              "input": {
+                "documentId": "doc_abc123"
+              },
+              "expectedOutput": "{ timeline: [...events], metrics: { totalDurationMs: 86400000, bottlenecks: [...] } }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "list-sender-identities",
+          "mcpName": "mcp__boldsign__list_sender_identities",
+          "apiEndpoint": "/v1/senderIdentities/list",
+          "description": "List all BoldSign sender identities with their verification status.",
+          "tags": [
+            "sender",
+            "identity",
+            "list",
+            "boldsign",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "List all sender identities",
+              "input": {
+                "pageSize": 25
+              },
+              "expectedOutput": "{ identities: [...], pagination: { totalCount: 3 } }"
+            },
+            {
+              "description": "Search for specific identity",
+              "input": {
+                "searchTerm": "agent@company.com"
+              },
+              "expectedOutput": "{ identities: [{ email: \"agent@company.com\", status: \"Verified\" }] }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        }
+      ],
+      "documentation": "Docs/Boldsign/README.md"
+    },
+    "stripe": {
+      "name": "stripe",
+      "description": "Stripe payment API for customers, payments, subscriptions, invoices, webhooks, and financial data",
+      "version": "1.0.0",
+      "apiBaseUrl": "https://api.stripe.com/v1",
+      "tools": [
+        {
+          "name": "list-customers",
+          "mcpName": "mcp__stripe__list_customers",
+          "apiEndpoint": "/v1/customers",
+          "description": "List and search Stripe customers with pagination and filtering by email or creation date.",
+          "tags": [
+            "customers",
+            "list",
+            "search",
+            "stripe",
+            "payments",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "List recent customers",
+              "input": {
+                "limit": 10
+              },
+              "expectedOutput": "{ customers: [...], hasMore: true }"
+            },
+            {
+              "description": "Search by email",
+              "input": {
+                "email": "customer@example.com"
+              },
+              "expectedOutput": "{ customers: [...] }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "get-customer",
+          "mcpName": "mcp__stripe__get_customer",
+          "apiEndpoint": "/v1/customers/:id",
+          "description": "Get detailed customer information including payment methods and subscriptions.",
+          "tags": [
+            "customers",
+            "details",
+            "stripe",
+            "payments",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "Get customer details",
+              "input": {
+                "customerId": "cus_abc123"
+              },
+              "expectedOutput": "{ customer: { id: \"cus_abc123\", email: \"...\" } }"
+            },
+            {
+              "description": "Get customer with payment methods",
+              "input": {
+                "customerId": "cus_abc123",
+                "includePaymentMethods": true
+              },
+              "expectedOutput": "{ customer: {...}, paymentMethods: [...] }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "list-payments",
+          "mcpName": "mcp__stripe__list_payments",
+          "apiEndpoint": "/v1/payment_intents",
+          "description": "List PaymentIntents with filters for customer, status, and date range.",
+          "tags": [
+            "payments",
+            "list",
+            "payment_intents",
+            "stripe",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "List recent payments",
+              "input": {
+                "limit": 10
+              },
+              "expectedOutput": "{ payments: [...], hasMore: true }"
+            },
+            {
+              "description": "List successful payments for customer",
+              "input": {
+                "customerId": "cus_abc123",
+                "status": "succeeded"
+              },
+              "expectedOutput": "{ payments: [...] }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "get-payment",
+          "mcpName": "mcp__stripe__get_payment",
+          "apiEndpoint": "/v1/payment_intents/:id",
+          "description": "Get detailed PaymentIntent information including charges and failure details.",
+          "tags": [
+            "payments",
+            "details",
+            "payment_intents",
+            "debugging",
+            "stripe",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "Get payment details",
+              "input": {
+                "paymentIntentId": "pi_abc123"
+              },
+              "expectedOutput": "{ payment: {...}, timeline: [...] }"
+            },
+            {
+              "description": "Debug failed payment",
+              "input": {
+                "paymentIntentId": "pi_abc123",
+                "includeCharges": true
+              },
+              "expectedOutput": "{ payment: {...}, timeline: [...] }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "list-subscriptions",
+          "mcpName": "mcp__stripe__list_subscriptions",
+          "apiEndpoint": "/v1/subscriptions",
+          "description": "List subscriptions with filters for customer, status, and price.",
+          "tags": [
+            "subscriptions",
+            "list",
+            "billing",
+            "stripe",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "List active subscriptions",
+              "input": {
+                "status": "active",
+                "limit": 10
+              },
+              "expectedOutput": "{ subscriptions: [...], hasMore: true }"
+            },
+            {
+              "description": "List customer subscriptions",
+              "input": {
+                "customerId": "cus_abc123"
+              },
+              "expectedOutput": "{ subscriptions: [...] }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "get-subscription",
+          "mcpName": "mcp__stripe__get_subscription",
+          "apiEndpoint": "/v1/subscriptions/:id",
+          "description": "Get detailed subscription information including billing history and upcoming invoice.",
+          "tags": [
+            "subscriptions",
+            "details",
+            "billing",
+            "stripe",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "Get subscription details",
+              "input": {
+                "subscriptionId": "sub_abc123"
+              },
+              "expectedOutput": "{ subscription: {...}, billingHistory: [...] }"
+            },
+            {
+              "description": "Get subscription with upcoming invoice",
+              "input": {
+                "subscriptionId": "sub_abc123",
+                "includeUpcomingInvoice": true
+              },
+              "expectedOutput": "{ subscription: {...}, upcomingInvoice: {...} }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "list-products",
+          "mcpName": "mcp__stripe__list_products",
+          "apiEndpoint": "/v1/products",
+          "description": "List Stripe products (subscription plans, one-time purchases) with optional active filter.",
+          "tags": [
+            "products",
+            "list",
+            "catalog",
+            "subscriptions",
+            "stripe",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "List all active products",
+              "input": {
+                "active": true,
+                "limit": 10
+              },
+              "expectedOutput": "{ products: [...], hasMore: false }"
+            },
+            {
+              "description": "List all products",
+              "input": {
+                "limit": 20
+              },
+              "expectedOutput": "{ products: [...] }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "list-prices",
+          "mcpName": "mcp__stripe__list_prices",
+          "apiEndpoint": "/v1/prices",
+          "description": "List Stripe prices (pricing plans) with filters for product, type (recurring/one-time), and currency.",
+          "tags": [
+            "prices",
+            "list",
+            "pricing",
+            "subscriptions",
+            "stripe",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "List all active recurring prices",
+              "input": {
+                "active": true,
+                "type": "recurring",
+                "limit": 10
+              },
+              "expectedOutput": "{ prices: [...], hasMore: false }"
+            },
+            {
+              "description": "List prices for a specific product",
+              "input": {
+                "productId": "prod_abc123"
+              },
+              "expectedOutput": "{ prices: [...] }"
+            },
+            {
+              "description": "List USD prices",
+              "input": {
+                "currency": "usd",
+                "active": true
+              },
+              "expectedOutput": "{ prices: [...] }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "list-invoices",
+          "mcpName": "mcp__stripe__list_invoices",
+          "apiEndpoint": "/v1/invoices",
+          "description": "List invoices with filters for customer, subscription, status, and date range.",
+          "tags": [
+            "invoices",
+            "list",
+            "billing",
+            "stripe",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "List recent invoices",
+              "input": {
+                "limit": 10
+              },
+              "expectedOutput": "{ invoices: [...], hasMore: true }"
+            },
+            {
+              "description": "List paid invoices for customer",
+              "input": {
+                "customerId": "cus_abc123",
+                "status": "paid"
+              },
+              "expectedOutput": "{ invoices: [...] }"
+            },
+            {
+              "description": "List invoices for subscription",
+              "input": {
+                "subscriptionId": "sub_abc123"
+              },
+              "expectedOutput": "{ invoices: [...] }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "list-webhook-events",
+          "mcpName": "mcp__stripe__list_webhook_events",
+          "apiEndpoint": "/v1/events",
+          "description": "Query Stripe events for webhook debugging with type and date filters.",
+          "tags": [
+            "webhooks",
+            "events",
+            "debugging",
+            "stripe",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "List recent events",
+              "input": {
+                "limit": 10
+              },
+              "expectedOutput": "{ events: [...], hasMore: true, summary: {...} }"
+            },
+            {
+              "description": "List payment events",
+              "input": {
+                "type": "payment_intent.succeeded",
+                "limit": 20
+              },
+              "expectedOutput": "{ events: [...] }"
+            },
+            {
+              "description": "List failed deliveries",
+              "input": {
+                "deliverySuccess": false
+              },
+              "expectedOutput": "{ events: [...] }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "webhook-health",
+          "mcpName": "mcp__stripe__webhook_health",
+          "description": "Check webhook processing health and metrics over a time period.",
+          "tags": [
+            "webhooks",
+            "health",
+            "monitoring",
+            "debugging",
+            "stripe",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "Check last 24 hours",
+              "input": {
+                "hours": 24
+              },
+              "expectedOutput": "{ status: \"healthy\", metrics: {...}, recommendations: [] }"
+            },
+            {
+              "description": "Check last week",
+              "input": {
+                "hours": 168
+              },
+              "expectedOutput": "{ status: \"healthy\", metrics: {...} }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "get-balance",
+          "mcpName": "mcp__stripe__get_balance",
+          "apiEndpoint": "/v1/balance",
+          "description": "Get Stripe account balance including available and pending funds.",
+          "tags": [
+            "balance",
+            "account",
+            "financial",
+            "stripe",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "Get current balance",
+              "input": {},
+              "expectedOutput": "{ balance: {...}, summary: { totalAvailable: 1000.50, totalPending: 250.00, currency: \"USD\" } }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "list-disputes",
+          "mcpName": "mcp__stripe__list_disputes",
+          "apiEndpoint": "/v1/disputes",
+          "description": "List payment disputes (chargebacks) with filters and summary statistics.",
+          "tags": [
+            "disputes",
+            "chargebacks",
+            "list",
+            "stripe",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "List recent disputes",
+              "input": {
+                "limit": 10
+              },
+              "expectedOutput": "{ disputes: [...], hasMore: false, summary: {...} }"
+            },
+            {
+              "description": "List disputes for specific charge",
+              "input": {
+                "chargeId": "ch_abc123"
+              },
+              "expectedOutput": "{ disputes: [...] }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "create-test-customer",
+          "mcpName": "mcp__stripe__create_test_customer",
+          "apiEndpoint": "/v1/customers",
+          "description": "Create a test customer in test mode with optional test payment method.",
+          "tags": [
+            "testing",
+            "customers",
+            "development",
+            "stripe",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "Create basic test customer",
+              "input": {
+                "email": "test@example.com"
+              },
+              "expectedOutput": "{ customer: {...}, message: \"Test customer created: cus_...\" }"
+            },
+            {
+              "description": "Create test customer with payment method",
+              "input": {
+                "email": "test@example.com",
+                "name": "Test User",
+                "addTestPaymentMethod": true
+              },
+              "expectedOutput": "{ customer: {...}, testPaymentMethod: {...}, message: \"...\" }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        },
+        {
+          "name": "get-config-status",
+          "mcpName": "mcp__stripe__get_config_status",
+          "description": "Check Stripe API configuration status for debugging connectivity issues.",
+          "tags": [
+            "config",
+            "debugging",
+            "status",
+            "stripe",
+            "api"
+          ],
+          "examples": [
+            {
+              "description": "Check configuration",
+              "input": {},
+              "expectedOutput": "{ stripeConfigured: true, isTestMode: true, hasSecretKey: true }"
+            }
+          ],
+          "inputSchemaDescription": "See tool file for details"
+        }
+      ],
+      "documentation": "Docs/Stripe/README.md"
+    }
+  }
+}

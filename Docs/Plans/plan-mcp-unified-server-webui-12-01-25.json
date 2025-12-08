@@ -1,0 +1,655 @@
+{
+  "metadata": {
+    "created": "2025-12-01T12:00:00-06:00",
+    "created_by": "claude-opus-4-5-20251101",
+    "plan_id": "f8a2c3d4-e5b6-7890-abcd-ef1234567890",
+    "version": "2.1",
+    "last_updated": "2025-12-01T12:00:00-06:00",
+    "template_version": "2.1",
+    "status": "active"
+  },
+  "phase_index": {
+    "total": 5,
+    "current_in_progress": null,
+    "completed": [],
+    "blocked": [],
+    "not_started": [1, 2, 3, 4, 5],
+    "next_available": 1
+  },
+  "planning": {
+    "goal": "Build a unified MCP Bridge server with WebUI for tool discovery, execution, monitoring, and debugging",
+    "reason": "Replace per-call CLI overhead (~800ms) with persistent server (~50ms), support growing toolset (Supabase, BoldSign, Stripe), provide visibility into tool execution",
+    "scope": "Includes: HTTP server, WebUI dashboard, hot reload, logging, single-instance protection. Excludes: WebSocket streaming (future), authentication (internal tool), external deployment",
+    "success_metrics": [
+      "Server starts and stays running until manually stopped",
+      "All 34 existing tools accessible via HTTP API",
+      "WebUI displays server status, tools, and execution history",
+      "Hot reload detects new tools without restart",
+      "Only one server instance can run at a time"
+    ],
+    "estimated_timeline": "16 hours",
+    "priority": "High"
+  },
+  "exploration_summary": {
+    "similar_features_found": [
+      "scripts/mcp/cli/mcp-tool.ts - CLI tool execution pattern (dynamic imports, kebab-to-camel conversion)",
+      "scripts/mcp/core/discovery.ts - Registry loading and search functions",
+      "scripts/mcp/core/executor.ts - CLI command execution with timeout and error handling",
+      "scripts/mcp/core/api-executor.ts - API call execution pattern"
+    ],
+    "reusable_components": [
+      "loadRegistry() - Load tool registry from JSON",
+      "listServers(), listTools(), getToolDefinition() - Discovery functions",
+      "searchTools() - Full-text search with filters",
+      "executeCliCommand(), executeApiCall() - Execution functions",
+      "kebabToCamel() - Name conversion utility",
+      "MCPToolResult<T> - Structured result type",
+      "validateConfig() - Configuration validation pattern"
+    ],
+    "existing_tables": [],
+    "patterns_to_follow": [
+      "Manifest-based server registration (servers/index.ts exports manifests)",
+      "Dynamic module imports for tool functions",
+      "Zod schema validation at tool entry points",
+      "Structured MCPToolResult<T> for all responses",
+      "Environment variable loading with VITE_ prefix support"
+    ],
+    "new_code_required": [
+      "HTTP server framework (Fastify recommended)",
+      "API route handlers for tool discovery and execution",
+      "WebUI React components (dashboard, tool browser, execution panel)",
+      "File watcher for hot reload",
+      "Lock file / port-based single-instance protection",
+      "Structured logging system",
+      "Server lifecycle management (start, stop, health check)"
+    ]
+  },
+  "files_impacted": [
+    {
+      "path": "scripts/mcp/server/index.ts",
+      "type": "created",
+      "reason": "Main server entry point with lifecycle management",
+      "estimated_changes": "+200 lines"
+    },
+    {
+      "path": "scripts/mcp/server/routes.ts",
+      "type": "created",
+      "reason": "HTTP route definitions for API endpoints",
+      "estimated_changes": "+150 lines"
+    },
+    {
+      "path": "scripts/mcp/server/handlers.ts",
+      "type": "created",
+      "reason": "Request handlers for tool discovery and execution",
+      "estimated_changes": "+200 lines"
+    },
+    {
+      "path": "scripts/mcp/server/watcher.ts",
+      "type": "created",
+      "reason": "File watcher for hot reload of tools and registry",
+      "estimated_changes": "+100 lines"
+    },
+    {
+      "path": "scripts/mcp/server/logger.ts",
+      "type": "created",
+      "reason": "Structured logging with levels and formatting",
+      "estimated_changes": "+80 lines"
+    },
+    {
+      "path": "scripts/mcp/server/lock.ts",
+      "type": "created",
+      "reason": "Single-instance protection via lock file and port check",
+      "estimated_changes": "+60 lines"
+    },
+    {
+      "path": "scripts/mcp/server/webui/index.html",
+      "type": "created",
+      "reason": "WebUI entry point with embedded React app",
+      "estimated_changes": "+50 lines"
+    },
+    {
+      "path": "scripts/mcp/server/webui/app.tsx",
+      "type": "created",
+      "reason": "Main WebUI React application",
+      "estimated_changes": "+300 lines"
+    },
+    {
+      "path": "scripts/mcp/server/webui/components/Dashboard.tsx",
+      "type": "created",
+      "reason": "Server status and statistics dashboard",
+      "estimated_changes": "+150 lines"
+    },
+    {
+      "path": "scripts/mcp/server/webui/components/ToolBrowser.tsx",
+      "type": "created",
+      "reason": "Tool discovery and search interface",
+      "estimated_changes": "+200 lines"
+    },
+    {
+      "path": "scripts/mcp/server/webui/components/ExecutionPanel.tsx",
+      "type": "created",
+      "reason": "Tool execution form and result display",
+      "estimated_changes": "+250 lines"
+    },
+    {
+      "path": "scripts/mcp/server/webui/components/LogViewer.tsx",
+      "type": "created",
+      "reason": "Real-time log display for debugging",
+      "estimated_changes": "+100 lines"
+    },
+    {
+      "path": "package.json",
+      "type": "modified",
+      "reason": "Add mcp:server script and server dependencies",
+      "estimated_changes": "+10 lines"
+    },
+    {
+      "path": "scripts/mcp/package.json",
+      "type": "modified",
+      "reason": "Add Fastify and related dependencies",
+      "estimated_changes": "+15 lines"
+    },
+    {
+      "path": "scripts/mcp/cli/mcp-tool.ts",
+      "type": "modified",
+      "reason": "Add server auto-start detection (optional enhancement)",
+      "estimated_changes": "+30 lines"
+    }
+  ],
+  "phases": [
+    {
+      "number": 1,
+      "name": "Core Server Infrastructure",
+      "description": "Set up Fastify HTTP server with health check, single-instance protection, and structured logging",
+      "status": "not_started",
+      "completion_percentage": 0,
+      "estimated_effort": "3",
+      "actual_effort": null,
+      "completion_notes": null,
+      "assigned_subagent": "script-writer-specialist",
+      "steps": [
+        {
+          "number": 1,
+          "task": "Add Fastify and dependencies to scripts/mcp/package.json",
+          "status": "not_started",
+          "details": "Add fastify, @fastify/cors, @fastify/static, pino (logging), chokidar (file watching)"
+        },
+        {
+          "number": 2,
+          "task": "Create logger.ts with structured logging",
+          "status": "not_started",
+          "details": "Use pino for JSON logging with levels (debug, info, warn, error), request ID tracking, and formatted console output"
+        },
+        {
+          "number": 3,
+          "task": "Create lock.ts for single-instance protection",
+          "status": "not_started",
+          "details": "Lock file at .mcp-server.lock with PID, port binding check, cleanup on exit (SIGINT, SIGTERM)"
+        },
+        {
+          "number": 4,
+          "task": "Create server/index.ts with Fastify setup",
+          "status": "not_started",
+          "details": "Initialize Fastify, configure CORS, add health endpoint at /mcp/health, graceful shutdown handling"
+        },
+        {
+          "number": 5,
+          "task": "Add npm scripts to package.json",
+          "status": "not_started",
+          "details": "Add mcp:server (start server), mcp:server:stop (stop via API call), update existing scripts if needed"
+        }
+      ],
+      "dependencies": [],
+      "blockers": [],
+      "deliverables": [
+        "scripts/mcp/server/index.ts - Server entry point",
+        "scripts/mcp/server/logger.ts - Logging utility",
+        "scripts/mcp/server/lock.ts - Instance protection",
+        "Updated package.json with mcp:server script"
+      ]
+    },
+    {
+      "number": 2,
+      "name": "API Routes and Handlers",
+      "description": "Implement HTTP API endpoints for tool discovery and execution, reusing existing core modules",
+      "status": "not_started",
+      "completion_percentage": 0,
+      "estimated_effort": "4",
+      "actual_effort": null,
+      "completion_notes": null,
+      "assigned_subagent": "script-writer-specialist",
+      "steps": [
+        {
+          "number": 1,
+          "task": "Create routes.ts with API route definitions",
+          "status": "not_started",
+          "details": "Define routes: GET /mcp/servers, /mcp/servers/:server, /mcp/servers/:server/tools, /mcp/servers/:server/tools/:tool, /mcp/tools/search, /mcp/stats, POST /mcp/servers/:server/tools/:tool/run"
+        },
+        {
+          "number": 2,
+          "task": "Create handlers.ts with request handlers",
+          "status": "not_started",
+          "details": "Implement handlers that wrap existing discovery.ts functions (listServers, listTools, searchTools, etc.)"
+        },
+        {
+          "number": 3,
+          "task": "Implement tool execution handler",
+          "status": "not_started",
+          "details": "Dynamic import of server module, kebab-to-camel conversion, Zod validation, execute and return MCPToolResult"
+        },
+        {
+          "number": 4,
+          "task": "Add request/response logging middleware",
+          "status": "not_started",
+          "details": "Log all requests with method, path, duration, status code; log errors with stack traces"
+        },
+        {
+          "number": 5,
+          "task": "Add execution history tracking",
+          "status": "not_started",
+          "details": "In-memory array of recent executions (last 100) with timestamp, tool, input, result, duration"
+        }
+      ],
+      "dependencies": ["Phase 1"],
+      "blockers": [],
+      "deliverables": [
+        "scripts/mcp/server/routes.ts - Route definitions",
+        "scripts/mcp/server/handlers.ts - Request handlers",
+        "All 34 tools accessible via HTTP API"
+      ]
+    },
+    {
+      "number": 3,
+      "name": "Hot Reload and Registry Watching",
+      "description": "Implement file watching to detect new tools and automatically reload the registry without restart",
+      "status": "not_started",
+      "completion_percentage": 0,
+      "estimated_effort": "2",
+      "actual_effort": null,
+      "completion_notes": null,
+      "assigned_subagent": "script-writer-specialist",
+      "steps": [
+        {
+          "number": 1,
+          "task": "Create watcher.ts with chokidar file watching",
+          "status": "not_started",
+          "details": "Watch scripts/mcp/servers/**/*.ts and scripts/mcp/registry.json for changes"
+        },
+        {
+          "number": 2,
+          "task": "Implement registry reload on change",
+          "status": "not_started",
+          "details": "When registry.json changes, reload it and update in-memory cache; debounce to avoid rapid reloads"
+        },
+        {
+          "number": 3,
+          "task": "Implement module cache invalidation",
+          "status": "not_started",
+          "details": "When tool files change, clear Node module cache for that file to pick up changes on next execution"
+        },
+        {
+          "number": 4,
+          "task": "Add reload event logging",
+          "status": "not_started",
+          "details": "Log when files change and registry reloads, include file path and timestamp"
+        }
+      ],
+      "dependencies": ["Phase 1"],
+      "blockers": [],
+      "deliverables": [
+        "scripts/mcp/server/watcher.ts - File watcher",
+        "Hot reload working for new tools"
+      ]
+    },
+    {
+      "number": 4,
+      "name": "WebUI Dashboard",
+      "description": "Build React-based WebUI for server monitoring, tool browsing, and execution",
+      "status": "not_started",
+      "completion_percentage": 0,
+      "estimated_effort": "5",
+      "actual_effort": null,
+      "completion_notes": null,
+      "assigned_subagent": "shadcn-ui-designer",
+      "steps": [
+        {
+          "number": 1,
+          "task": "Set up WebUI structure with index.html and bundled React",
+          "status": "not_started",
+          "details": "Use esbuild or vite for simple bundling, serve static files via @fastify/static at /ui"
+        },
+        {
+          "number": 2,
+          "task": "Create Dashboard component",
+          "status": "not_started",
+          "details": "Show server status (uptime, port), tool count by server, recent execution summary, health indicator"
+        },
+        {
+          "number": 3,
+          "task": "Create ToolBrowser component",
+          "status": "not_started",
+          "details": "Server selector dropdown, tool list with search/filter, tool detail view with schema and examples"
+        },
+        {
+          "number": 4,
+          "task": "Create ExecutionPanel component",
+          "status": "not_started",
+          "details": "JSON input editor (or form generated from Zod schema), execute button, result display with syntax highlighting"
+        },
+        {
+          "number": 5,
+          "task": "Create LogViewer component",
+          "status": "not_started",
+          "details": "Display recent logs with level filtering, auto-scroll, timestamp formatting, search"
+        },
+        {
+          "number": 6,
+          "task": "Add execution history view",
+          "status": "not_started",
+          "details": "Table of recent executions with tool name, status, duration; click to view details"
+        }
+      ],
+      "dependencies": ["Phase 2"],
+      "blockers": [
+        {
+          "issue": "WebUI bundling adds complexity",
+          "mitigation": "Use simple esbuild script or serve pre-built bundle; avoid full Vite setup",
+          "severity": "Low"
+        }
+      ],
+      "deliverables": [
+        "scripts/mcp/server/webui/ - Complete WebUI application",
+        "Dashboard with server status",
+        "Tool browser with search",
+        "Execution panel with JSON editor",
+        "Log viewer for debugging"
+      ]
+    },
+    {
+      "number": 5,
+      "name": "Integration and Documentation",
+      "description": "Connect all components, update CLI for server detection, write documentation",
+      "status": "not_started",
+      "completion_percentage": 0,
+      "estimated_effort": "2",
+      "actual_effort": null,
+      "completion_notes": null,
+      "assigned_subagent": "script-writer-specialist",
+      "steps": [
+        {
+          "number": 1,
+          "task": "Add server auto-start option to CLI",
+          "status": "not_started",
+          "details": "Optional: CLI checks if server running, uses HTTP instead of direct execution for faster calls"
+        },
+        {
+          "number": 2,
+          "task": "Add /mcp/shutdown endpoint",
+          "status": "not_started",
+          "details": "POST /mcp/shutdown triggers graceful shutdown; only accessible from localhost"
+        },
+        {
+          "number": 3,
+          "task": "Update SKILL.md with server usage",
+          "status": "not_started",
+          "details": "Document npm run mcp:server, WebUI URL, API endpoints, hot reload behavior"
+        },
+        {
+          "number": 4,
+          "task": "Test all tools via server",
+          "status": "not_started",
+          "details": "Verify all 34 tools work via HTTP API, test hot reload, test single-instance protection"
+        }
+      ],
+      "dependencies": ["Phase 2", "Phase 3", "Phase 4"],
+      "blockers": [],
+      "deliverables": [
+        "Updated SKILL.md documentation",
+        "Working end-to-end server with WebUI",
+        "All tools tested via HTTP"
+      ]
+    }
+  ],
+  "subagent_assignments": [
+    {
+      "subagent": "script-writer-specialist",
+      "domain": "TypeScript automation scripts, server development",
+      "responsibilities": "Build Fastify server infrastructure, API routes, handlers, file watching, logging",
+      "phases_involved": [1, 2, 3, 5],
+      "estimated_effort": "11",
+      "key_deliverables": [
+        "Server entry point with lifecycle management",
+        "HTTP API routes and handlers",
+        "Hot reload file watcher",
+        "Logging and instance protection"
+      ]
+    },
+    {
+      "subagent": "shadcn-ui-designer",
+      "domain": "UI component design, React development",
+      "responsibilities": "Build WebUI dashboard with tool browser, execution panel, and log viewer",
+      "phases_involved": [4],
+      "estimated_effort": "5",
+      "key_deliverables": [
+        "Dashboard component",
+        "ToolBrowser component",
+        "ExecutionPanel component",
+        "LogViewer component"
+      ]
+    }
+  ],
+  "reference_documents": [
+    {
+      "path": "scripts/mcp/README.md",
+      "relevance": "Current MCP bridge documentation",
+      "status": "update",
+      "sections": "Add server mode section"
+    },
+    {
+      "path": ".claude/skills/mcp-bridge/SKILL.md",
+      "relevance": "Skill documentation for Claude Code",
+      "status": "update",
+      "sections": "Add server usage instructions"
+    },
+    {
+      "path": "scripts/mcp/core/discovery.ts",
+      "relevance": "Existing discovery functions to reuse",
+      "status": "reference"
+    },
+    {
+      "path": "scripts/mcp/cli/mcp-tool.ts",
+      "relevance": "CLI execution pattern to mirror in server",
+      "status": "reference"
+    }
+  ],
+  "potential_blockers": [
+    {
+      "issue": "ESM module cache invalidation for hot reload",
+      "likelihood": "Medium",
+      "impact": "Medium",
+      "risk_score": 4,
+      "priority_rank": "High",
+      "mitigation_strategy": "Use dynamic import with cache-busting query param, or restart server for major changes",
+      "fallback_plan": "Document that server restart required for new tools (still better than CLI)"
+    },
+    {
+      "issue": "WebUI bundling complexity",
+      "likelihood": "Low",
+      "impact": "Medium",
+      "risk_score": 2,
+      "priority_rank": "Low",
+      "mitigation_strategy": "Use simple esbuild one-liner or serve vanilla JS/HTML if React too complex",
+      "fallback_plan": "Start with minimal HTML dashboard, enhance later"
+    },
+    {
+      "issue": "Port conflict with other services",
+      "likelihood": "Low",
+      "impact": "Low",
+      "risk_score": 1,
+      "priority_rank": "Low",
+      "mitigation_strategy": "Make port configurable via MCP_SERVER_PORT env var, default to 3456 (unlikely to conflict)"
+    }
+  ],
+  "success_criteria": [
+    {
+      "criterion": "Server starts with single command and stays running",
+      "how_to_verify": "Run npm run mcp:server, verify process stays alive, check health endpoint",
+      "priority": "Critical",
+      "acceptance_test": "Given server not running, when npm run mcp:server executed, then server listens on port 3456 and /mcp/health returns 200"
+    },
+    {
+      "criterion": "All tools accessible via HTTP API",
+      "how_to_verify": "Call POST /mcp/servers/supabase/tools/list-users/run with {}, verify response matches CLI output",
+      "priority": "Critical",
+      "acceptance_test": "Given server running, when POST to any tool endpoint with valid input, then MCPToolResult returned with correct data"
+    },
+    {
+      "criterion": "WebUI displays server status and allows tool execution",
+      "how_to_verify": "Open http://localhost:3456/ui, browse tools, execute a tool, view result",
+      "priority": "High",
+      "acceptance_test": "Given server running, when user opens /ui in browser, then dashboard shows server status and tools are browsable"
+    },
+    {
+      "criterion": "Hot reload detects new tools",
+      "how_to_verify": "Run npm run mcp:registry while server running, verify new tools appear without restart",
+      "priority": "High",
+      "acceptance_test": "Given server running, when registry.json updated, then GET /mcp/stats shows updated tool count within 5 seconds"
+    },
+    {
+      "criterion": "Only one server instance can run",
+      "how_to_verify": "Start server, try to start another, verify second fails with clear message",
+      "priority": "High",
+      "acceptance_test": "Given server running on port 3456, when second instance started, then error message shown and process exits"
+    }
+  ],
+  "technical_approach": {
+    "architecture": "HTTP server wrapping existing MCP core modules, serving both API and static WebUI",
+    "key_decisions": [
+      {
+        "decision": "Use Fastify over Express",
+        "rationale": "Faster, better TypeScript support, built-in JSON schema validation, lower overhead",
+        "alternatives_considered": ["Express", "Hono", "Native http module"],
+        "trade_offs": "Slightly less familiar than Express, but better performance and DX"
+      },
+      {
+        "decision": "In-memory execution history instead of database",
+        "rationale": "Simple, no external dependencies, sufficient for debugging (last 100 executions)",
+        "alternatives_considered": ["SQLite", "Log file parsing"],
+        "trade_offs": "History lost on restart, but this is acceptable for development tool"
+      },
+      {
+        "decision": "Embedded WebUI served by same server",
+        "rationale": "Single process, no CORS issues, simple deployment",
+        "alternatives_considered": ["Separate Vite dev server", "No WebUI (API only)"],
+        "trade_offs": "Bundling adds build step, but avoids running multiple processes"
+      }
+    ],
+    "tech_stack": [
+      "Fastify - HTTP server framework",
+      "@fastify/cors - CORS handling",
+      "@fastify/static - Static file serving for WebUI",
+      "pino - Structured logging",
+      "chokidar - File watching for hot reload",
+      "React - WebUI framework",
+      "esbuild - WebUI bundling"
+    ],
+    "integration_points": [
+      {
+        "system": "Existing MCP core modules",
+        "interaction": "Import and use discovery.ts, executor.ts, api-executor.ts",
+        "authentication": "None (internal tool)"
+      },
+      {
+        "system": "File system",
+        "interaction": "Watch for registry.json changes, lock file for instance protection",
+        "authentication": "None"
+      }
+    ]
+  },
+  "dependency_graph": {
+    "ascii": "Phase 1 (Server Infrastructure)\n    │\n    ├──→ Phase 2 (API Routes) ──────────┐\n    │                                   │\n    └──→ Phase 3 (Hot Reload) ──────────┼──→ Phase 5 (Integration)\n                                        │\n         Phase 4 (WebUI) ◄──────────────┘",
+    "critical_path": ["Phase 1", "Phase 2", "Phase 5"],
+    "parallelizable": [["Phase 2", "Phase 3"], ["Phase 3", "Phase 4"]],
+    "bottlenecks": ["Phase 1 blocks all other phases"]
+  },
+  "effort_estimation": {
+    "base_hours": 10,
+    "multipliers_applied": [
+      {
+        "factor": "File watching / hot reload",
+        "multiplier": 1.3,
+        "reason": "ESM cache invalidation can be tricky"
+      },
+      {
+        "factor": "WebUI development",
+        "multiplier": 1.2,
+        "reason": "Bundling and styling add overhead"
+      }
+    ],
+    "calculated_hours": 15.6,
+    "final_estimate": 16,
+    "confidence": "Medium",
+    "assumptions": [
+      "Fastify familiar or quick to learn",
+      "Existing MCP modules work without modification",
+      "Simple WebUI sufficient (no complex state management)"
+    ]
+  },
+  "testing_strategy": {
+    "unit_tests": "Test handlers with mock registry data",
+    "integration_tests": "Test full server with actual tool execution",
+    "manual_tests": [
+      {
+        "test_case": "Start server and verify health",
+        "steps": "1. npm run mcp:server, 2. curl http://localhost:3456/mcp/health",
+        "expected_result": "{ status: 'ok', uptime: N }"
+      },
+      {
+        "test_case": "Execute tool via API",
+        "steps": "1. Start server, 2. POST to /mcp/servers/supabase/tools/list-users/run with {}",
+        "expected_result": "MCPToolResult with users array"
+      },
+      {
+        "test_case": "Test single instance protection",
+        "steps": "1. Start server, 2. Try to start another in new terminal",
+        "expected_result": "Second instance fails with error message"
+      },
+      {
+        "test_case": "Test hot reload",
+        "steps": "1. Start server, 2. Run npm run mcp:registry, 3. Check /mcp/stats",
+        "expected_result": "Tool count updates without restart"
+      }
+    ],
+    "edge_cases": [
+      "Server started when port already in use",
+      "Tool execution timeout",
+      "Invalid JSON input to tool",
+      "Registry file corrupted or missing"
+    ]
+  },
+  "rollback_strategy": {
+    "database": {
+      "approach": "N/A - No database changes",
+      "scripts": [],
+      "data_impact": "None"
+    },
+    "code": {
+      "approach": "Git revert or delete scripts/mcp/server/ directory",
+      "commits_to_revert": "All commits adding server functionality",
+      "feature_flags": []
+    },
+    "external_services": {
+      "stripe": "N/A",
+      "boldsign": "N/A",
+      "other": "N/A"
+    },
+    "estimated_rollback_time": "5 minutes",
+    "rollback_risks": ["None - server is additive, CLI still works independently"]
+  },
+  "context_integration": {
+    "created_in_session": null,
+    "related_contexts": [],
+    "continuation_notes": "This server builds on the MCP Bridge UX improvements completed earlier today (--quiet flag, --input-file, shortcuts). The server is an alternative execution mode, not a replacement for CLI."
+  },
+  "notes": "The unified server approach provides significant performance benefits for repeated tool calls while maintaining the simple CLI for one-off operations. The WebUI adds visibility that will be valuable as more integrations (BoldSign, Stripe) are added. Hot reload ensures the server stays useful during active development."
+}

@@ -9,7 +9,8 @@ export type TransactionStatus =
   | 'appraisal'
   | 'closing'
   | 'closed'
-  | 'cancelled';
+  | 'cancelled'
+  | 'archived';
 export type TransactionSide = 'buyer' | 'seller' | 'both';
 export type ContactType =
   | 'buyer'

@@ -54,12 +54,34 @@ BLUE = "\033[94m"
 RESET = "\033[0m"
 BOLD = "\033[1m"
 
+# Cross-platform symbols (ASCII fallback for Windows)
+if os.name == 'nt':
+    # Windows: use ASCII symbols
+    SYM_ARROW = "->"
+    SYM_CHECK = "[OK]"
+    SYM_WARN = "[!]"
+    SYM_CIRCLE = "[ ]"
+    SYM_SPIN = "[~]"
+    SYM_BLOCK = "[X]"
+    SYM_READY = "[>]"
+    SYM_INFO = "[i]"
+else:
+    # Unix/macOS: use Unicode symbols
+    SYM_ARROW = "→"
+    SYM_CHECK = "✓"
+    SYM_WARN = "⚠"
+    SYM_CIRCLE = "○"
+    SYM_SPIN = "⟳"
+    SYM_BLOCK = "⊘"
+    SYM_READY = "→"
+    SYM_INFO = "ℹ"
+
 # Constants
 VALID_STATUSES = ["not_started", "in_progress", "completed", "blocked"]
 STATUS_TRANSITIONS = {
-    "not_started": ["in_progress", "blocked"],
+    "not_started": ["in_progress", "blocked", "completed"],  # Allow direct completion for retroactive updates
     "in_progress": ["completed", "blocked"],
-    "blocked": ["in_progress"],
+    "blocked": ["in_progress", "completed"],  # Allow completing blocked items after resolution
     "completed": [],
 }
 BACKUP_DIR = ".plan-backups"
@@ -82,7 +104,7 @@ class PlanUpdater:
 
         # Load plan data
         try:
-            with open(self.plan_file, 'r') as f:
+            with open(self.plan_file, 'r', encoding='utf-8') as f:
                 self.original_content = f.read()
                 self.data = json.loads(self.original_content)
         except json.JSONDecodeError as e:
@@ -97,15 +119,15 @@ class PlanUpdater:
 
     def warning(self, message: str) -> None:
         """Print warning"""
-        print(f"{YELLOW}⚠ {message}{RESET}", file=sys.stderr)
+        print(f"{YELLOW}{SYM_WARN} {message}{RESET}", file=sys.stderr)
 
     def success(self, message: str) -> None:
         """Print success"""
-        print(f"{GREEN}✓ {message}{RESET}", file=sys.stderr)
+        print(f"{GREEN}{SYM_CHECK} {message}{RESET}", file=sys.stderr)
 
     def info(self, message: str) -> None:
         """Print info"""
-        print(f"{BLUE}ℹ {message}{RESET}", file=sys.stderr)
+        print(f"{BLUE}{SYM_INFO} {message}{RESET}", file=sys.stderr)
 
     def create_backup(self) -> None:
         """Create daily backup if one doesn't exist yet"""
@@ -405,7 +427,7 @@ class PlanUpdater:
             print(f"\n{BOLD}Next Available:{RESET}")
             for p in not_started[:3]:  # Show up to 3
                 satisfied, blocking = self._check_dependencies_satisfied(p)
-                status_icon = "→" if satisfied else "⊘"
+                status_icon = SYM_READY if satisfied else SYM_BLOCK
                 print(f"  {status_icon} Phase {p.get('number')}: {p.get('name')} [{p.get('assigned_subagent', 'unassigned')}]")
                 if not satisfied:
                     print(f"    Blocked by: {', '.join(blocking)}")
@@ -414,7 +436,7 @@ class PlanUpdater:
         if blocked:
             print(f"\n{BOLD}Blocked:{RESET}")
             for p in blocked:
-                print(f"  ⚠ Phase {p.get('number')}: {p.get('name')}")
+                print(f"  {SYM_WARN} Phase {p.get('number')}: {p.get('name')}")
                 blockers = p.get("blockers", [])
                 for b in blockers[:2]:
                     print(f"    - {b.get('issue', 'Unknown issue')}")
@@ -452,10 +474,10 @@ class PlanUpdater:
         for p in my_phases:
             status = p.get("status", "not_started")
             status_icon = {
-                "not_started": "○",
-                "in_progress": "⟳",
-                "completed": "✓",
-                "blocked": "⚠"
+                "not_started": SYM_CIRCLE,
+                "in_progress": SYM_SPIN,
+                "completed": SYM_CHECK,
+                "blocked": SYM_WARN
             }.get(status, "?")
 
             print(f"\n  {status_icon} Phase {p.get('number')}: {p.get('name')}")
@@ -502,7 +524,7 @@ class PlanUpdater:
             phase["completion_percentage"] = 0
             self.info(f"Auto-set completion to 0% (status = not_started)")
 
-        self.success(f"Updated Phase {phase_num} status: {current_status} → {status}")
+        self.success(f"Updated Phase {phase_num} status: {current_status} {SYM_ARROW} {status}")
 
     def update_phase_completion(self, phase_num: int, completion: int) -> None:
         """Update phase completion percentage"""
@@ -513,7 +535,7 @@ class PlanUpdater:
         old_completion = phase.get("completion_percentage", 0)
         phase["completion_percentage"] = completion
 
-        self.success(f"Updated Phase {phase_num} completion: {old_completion}% → {completion}%")
+        self.success(f"Updated Phase {phase_num} completion: {old_completion}% {SYM_ARROW} {completion}%")
 
     def update_phase_effort(self, phase_num: int, effort: float) -> None:
         """Update phase actual effort"""
@@ -525,7 +547,7 @@ class PlanUpdater:
         phase["actual_effort"] = str(effort)
 
         if old_effort:
-            self.success(f"Updated Phase {phase_num} actual effort: {old_effort}h → {effort}h")
+            self.success(f"Updated Phase {phase_num} actual effort: {old_effort}h {SYM_ARROW} {effort}h")
         else:
             self.success(f"Set Phase {phase_num} actual effort: {effort}h")
 
@@ -540,7 +562,7 @@ class PlanUpdater:
         self.validate_status_transition(current_status, status)
 
         step["status"] = status
-        self.success(f"Updated Phase {phase_num}, Step {step_num} status: {current_status} → {status}")
+        self.success(f"Updated Phase {phase_num}, Step {step_num} status: {current_status} {SYM_ARROW} {status}")
 
         # Update phase completion based on step completion
         phase = self.get_phase(phase_num)
@@ -552,7 +574,7 @@ class PlanUpdater:
             old_completion = phase.get("completion_percentage", 0)
             if new_completion != old_completion:
                 phase["completion_percentage"] = new_completion
-                self.info(f"Auto-updated Phase {phase_num} completion: {old_completion}% → {new_completion}% ({completed_steps}/{total_steps} steps)")
+                self.info(f"Auto-updated Phase {phase_num} completion: {old_completion}% {SYM_ARROW} {new_completion}% ({completed_steps}/{total_steps} steps)")
 
     def add_execution_history(self, context_file: str, notes: str) -> None:
         """Add entry to execution_history"""
@@ -613,8 +635,8 @@ class PlanUpdater:
         )
 
         try:
-            with os.fdopen(temp_fd, 'w') as f:
-                json.dump(self.data, f, indent=2)
+            with os.fdopen(temp_fd, 'w', encoding='utf-8') as f:
+                json.dump(self.data, f, indent=2, ensure_ascii=False)
                 f.write('\n')  # Trailing newline
 
             # Atomic rename
@@ -691,10 +713,10 @@ class PlanUpdater:
 
             # Status icon
             status_icon = {
-                "not_started": "○",
-                "in_progress": "⟳",
-                "completed": "✓",
-                "blocked": "⚠"
+                "not_started": SYM_CIRCLE,
+                "in_progress": SYM_SPIN,
+                "completed": SYM_CHECK,
+                "blocked": SYM_WARN
             }.get(status, "?")
 
             print(f"\n{BOLD}Phase {num}: {name}{RESET}")

@@ -1,0 +1,792 @@
+{
+  "metadata": {
+    "created": "2025-12-01T14:30:00-08:00",
+    "created_by": "claude-opus-4-5-20251101",
+    "plan_id": "d8f3a5c2-7b1e-4d9a-b6c8-3e2f1a9d5c7b",
+    "version": "2.1",
+    "last_updated": "2025-12-01T15:24:06.757941",
+    "template_version": "2.1",
+    "status": "completed",
+    "completed_at": "2025-12-01T15:24:06.757927",
+    "total_actual_effort": "6.25"
+  },
+  "phase_index": {
+    "total": 5,
+    "current_in_progress": null,
+    "completed": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "blocked": [],
+    "not_started": [],
+    "next_available": null
+  },
+  "planning": {
+    "goal": "Enhance BoldSign MCP bridge tools with 10 new high-value tools for document downloads, embedded signing, field prefilling, debugging enhancements, and document modification capabilities",
+    "reason": "The current 13 BoldSign MCP tools cover basic operations but lack critical features for real estate workflows: downloading signed PDFs, embedded signing links for in-app signing, pre-filling form fields from transaction data, webhook replay for debugging, and API usage tracking. These gaps require manual BoldSign dashboard usage instead of automated workflows.",
+    "scope": "INCLUDED: 10 new MCP tools (download-document, get-embedded-sign-link, prefill-fields, replay-webhook, get-api-credits, debug-document-timeline, change-recipient, void-and-resend, merge-and-send, bulk-send-reminder). EXCLUDED: BoldSign branding API, contact management API, team management API, identity verification (can be added later).",
+    "success_metrics": [
+      "All 10 new tools pass validation and execute successfully against BoldSign API",
+      "download-document returns signed PDF as base64 or download URL",
+      "get-embedded-sign-link generates valid signing URLs for in-app signing",
+      "prefill-fields successfully updates form fields before document is sent",
+      "webhook-health tool shows enhanced metrics with alert thresholds",
+      "npm run mcp -- run boldsign <new-tool> works for all new tools"
+    ],
+    "estimated_timeline": "24 hours",
+    "priority": "High"
+  },
+  "exploration_summary": {
+    "similar_features_found": [
+      "scripts/mcp/servers/boldsign/document-actions.ts - existing action patterns (send-reminder, revoke-document)",
+      "scripts/mcp/servers/boldsign/config.ts - OAuth token caching, callBoldSignAPI helper",
+      "supabase/functions/boldsign-api/index.ts - downloadDocument action with PDF binary handling",
+      "supabase/functions/boldsign-api/index.ts - generateSigningLink for embedded URLs"
+    ],
+    "reusable_components": [
+      "callBoldSignAPI() - authenticated API calls with token refresh",
+      "MCPToolResult<T> pattern - standardized return format",
+      "Zod validation schemas - input validation pattern",
+      "MCPToolDefinition - tool metadata structure",
+      "Error handling pattern with JSON parsing fallback"
+    ],
+    "existing_tables": [
+      "bold_sign_events - webhook event storage with processed status",
+      "webhook_metrics - processing time and success rate metrics",
+      "documents - document storage with transaction relationships"
+    ],
+    "patterns_to_follow": [
+      "Tool file organization: one file per functional group",
+      "Export pattern: function + definition object",
+      "Metadata pattern: tool name, server, execution time, timestamp",
+      "Tags pattern: searchable keywords for discovery",
+      "Examples pattern: input/output samples for documentation"
+    ],
+    "new_code_required": [
+      "download-tools.ts - PDF download and base64 encoding",
+      "embedded-signing-tools.ts - embedded URL generation",
+      "field-tools.ts - prefill fields functionality",
+      "enhanced-debugging-tools.ts - replay, timeline, credits",
+      "document-modification-tools.ts - change recipient, void-and-resend",
+      "bulk-tools.ts - merge-and-send, bulk-send-reminder",
+      "New type definitions in boldsign.types.ts"
+    ]
+  },
+  "files_impacted": [
+    {
+      "path": "scripts/mcp/types/boldsign.types.ts",
+      "type": "modified",
+      "reason": "Add type definitions for 10 new tools (input/output interfaces)",
+      "estimated_changes": "+200 lines"
+    },
+    {
+      "path": "scripts/mcp/servers/boldsign/download-tools.ts",
+      "type": "created",
+      "reason": "New file for download-document tool",
+      "estimated_changes": "+150 lines"
+    },
+    {
+      "path": "scripts/mcp/servers/boldsign/embedded-signing-tools.ts",
+      "type": "created",
+      "reason": "New file for get-embedded-sign-link tool",
+      "estimated_changes": "+120 lines"
+    },
+    {
+      "path": "scripts/mcp/servers/boldsign/field-tools.ts",
+      "type": "created",
+      "reason": "New file for prefill-fields tool",
+      "estimated_changes": "+130 lines"
+    },
+    {
+      "path": "scripts/mcp/servers/boldsign/enhanced-debugging-tools.ts",
+      "type": "created",
+      "reason": "New file for replay-webhook, get-api-credits, debug-document-timeline tools",
+      "estimated_changes": "+350 lines"
+    },
+    {
+      "path": "scripts/mcp/servers/boldsign/document-modification-tools.ts",
+      "type": "created",
+      "reason": "New file for change-recipient, void-and-resend tools",
+      "estimated_changes": "+250 lines"
+    },
+    {
+      "path": "scripts/mcp/servers/boldsign/bulk-tools.ts",
+      "type": "created",
+      "reason": "New file for merge-and-send, bulk-send-reminder tools",
+      "estimated_changes": "+280 lines"
+    },
+    {
+      "path": "scripts/mcp/servers/boldsign/index.ts",
+      "type": "modified",
+      "reason": "Export new tools and add to server manifest",
+      "estimated_changes": "+50 lines"
+    },
+    {
+      "path": "scripts/mcp/servers/boldsign/webhook-tools.ts",
+      "type": "modified",
+      "reason": "Enhance webhook-health with alert thresholds",
+      "estimated_changes": "+40 lines"
+    },
+    {
+      "path": "scripts/mcp/servers/boldsign/document-actions.ts",
+      "type": "modified",
+      "reason": "Add bulk mode to send-reminder",
+      "estimated_changes": "+60 lines"
+    }
+  ],
+  "phases": [
+    {
+      "number": 1,
+      "name": "Type Definitions & Core Infrastructure",
+      "description": "Add comprehensive TypeScript type definitions for all 10 new tools and update shared configuration patterns",
+      "status": "completed",
+      "completion_percentage": 100,
+      "estimated_effort": "3",
+      "actual_effort": "1.0",
+      "completion_notes": "Added 323 lines of type definitions for all 10 new tools",
+      "assigned_subagent": "boldsign-specialist",
+      "steps": [
+        {
+          "number": 1,
+          "task": "Add type definitions for download tools (DownloadDocumentInput/Output)",
+          "status": "not_started",
+          "details": "Define interfaces for documentId, type (signed/original/audit), format (pdf/base64), output with downloadUrl or base64Content"
+        },
+        {
+          "number": 2,
+          "task": "Add type definitions for embedded signing (GetEmbeddedSignLinkInput/Output)",
+          "status": "not_started",
+          "details": "Define interfaces for documentId, signerEmail, redirectUrl, linkExpiryMinutes, output with signUrl and expiresAt"
+        },
+        {
+          "number": 3,
+          "task": "Add type definitions for field prefilling (PrefillFieldsInput/Output)",
+          "status": "not_started",
+          "details": "Define interfaces for documentId, fields array with fieldId/value, output with success and fieldsUpdated count"
+        },
+        {
+          "number": 4,
+          "task": "Add type definitions for enhanced debugging tools",
+          "status": "not_started",
+          "details": "ReplayWebhookInput/Output, GetApiCreditsInput/Output, DebugDocumentTimelineInput/Output with timeline events and metrics"
+        },
+        {
+          "number": 5,
+          "task": "Add type definitions for document modification tools",
+          "status": "not_started",
+          "details": "ChangeRecipientInput/Output, VoidAndResendInput/Output with corrections object"
+        },
+        {
+          "number": 6,
+          "task": "Add type definitions for bulk tools",
+          "status": "not_started",
+          "details": "MergeAndSendInput/Output with template array, BulkSendReminderInput/Output with bulkMode options"
+        }
+      ],
+      "dependencies": [],
+      "blockers": [],
+      "deliverables": [
+        "Updated scripts/mcp/types/boldsign.types.ts with all new interfaces",
+        "Type exports for all 10 new tools"
+      ]
+    },
+    {
+      "number": 2,
+      "name": "Priority 1 Tools: Download & Embedded Signing",
+      "description": "Implement the highest-value tools: download-document for getting signed PDFs and get-embedded-sign-link for in-app signing workflows",
+      "status": "completed",
+      "completion_percentage": 100,
+      "estimated_effort": "5",
+      "actual_effort": "1.5",
+      "completion_notes": "Implemented download-document, get-embedded-sign-link, prefill-fields",
+      "assigned_subagent": "boldsign-specialist",
+      "steps": [
+        {
+          "number": 1,
+          "task": "Create download-tools.ts with download-document implementation",
+          "status": "not_started",
+          "details": "Implement GET /v1/document/{documentId}/download endpoint call, handle binary PDF response, return as base64 or generate download URL. Support types: signed, original, combined, audit-trail."
+        },
+        {
+          "number": 2,
+          "task": "Create embedded-signing-tools.ts with get-embedded-sign-link",
+          "status": "not_started",
+          "details": "Implement POST /v1/document/{documentId}/embeddedSigningLink with signerEmail, redirectUrl, linkExpiryMinutes. Return signUrl and expiresAt timestamp."
+        },
+        {
+          "number": 3,
+          "task": "Create prefill-fields tool in field-tools.ts",
+          "status": "not_started",
+          "details": "Implement PUT /v1/document/{documentId}/prefill with fields array. Each field has fieldId and value. Return success and fieldsUpdated count."
+        },
+        {
+          "number": 4,
+          "task": "Add tool definitions and exports to index.ts",
+          "status": "not_started",
+          "details": "Export downloadDocument, getEmbeddedSignLink, prefillFields functions and definitions. Add to manifest.tools array."
+        },
+        {
+          "number": 5,
+          "task": "Test all three tools with BoldSign API",
+          "status": "not_started",
+          "details": "Run npm run mcp -- run boldsign download-document, get-embedded-sign-link, prefill-fields with test data. Verify API responses."
+        }
+      ],
+      "dependencies": [
+        "Phase 1"
+      ],
+      "blockers": [
+        {
+          "issue": "BoldSign API rate limits may affect testing",
+          "mitigation": "Use test/sandbox environment, space out API calls",
+          "severity": "Low"
+        },
+        {
+          "issue": "Document must exist and be in correct state for downloads",
+          "mitigation": "Create test document in BoldSign or use existing document IDs",
+          "severity": "Medium"
+        }
+      ],
+      "deliverables": [
+        "scripts/mcp/servers/boldsign/download-tools.ts",
+        "scripts/mcp/servers/boldsign/embedded-signing-tools.ts",
+        "scripts/mcp/servers/boldsign/field-tools.ts",
+        "3 working MCP tools: download-document, get-embedded-sign-link, prefill-fields"
+      ]
+    },
+    {
+      "number": 3,
+      "name": "Enhanced Debugging & Monitoring Tools",
+      "description": "Implement debugging tools: replay-webhook, get-api-credits, debug-document-timeline, and enhance webhook-health with alert thresholds",
+      "status": "completed",
+      "completion_percentage": 100,
+      "estimated_effort": "6",
+      "actual_effort": "1.5",
+      "completion_notes": "Implemented replay-webhook, get-api-credits, debug-document-timeline, enhanced webhook-health",
+      "assigned_subagent": "boldsign-specialist",
+      "steps": [
+        {
+          "number": 1,
+          "task": "Create enhanced-debugging-tools.ts with replay-webhook",
+          "status": "not_started",
+          "details": "Query bold_sign_events for failed events by eventId or documentId, re-send to webhook handler, track replay results. Support filtering by eventType."
+        },
+        {
+          "number": 2,
+          "task": "Implement get-api-credits tool",
+          "status": "not_started",
+          "details": "Call BoldSign /v1/plan/apiCreditsCount endpoint to get total, used, remaining credits and reset date. Include usageByOperation breakdown if available."
+        },
+        {
+          "number": 3,
+          "task": "Implement debug-document-timeline tool",
+          "status": "not_started",
+          "details": "Fetch document details and audit trail, calculate timing metrics: totalDurationMs, timeToFirstViewMs, timeToCompletionMs. Identify bottlenecks per signer."
+        },
+        {
+          "number": 4,
+          "task": "Enhance webhook-health with alert thresholds",
+          "status": "not_started",
+          "details": "Add alertThresholds input (errorRatePercent, processingTimeMs, backlogCount). Add alerts array to output with type, threshold, actual, severity."
+        },
+        {
+          "number": 5,
+          "task": "Test debugging tools",
+          "status": "not_started",
+          "details": "Run all 4 debugging tools via CLI, verify outputs match expected format, check alert generation."
+        }
+      ],
+      "dependencies": [
+        "Phase 1"
+      ],
+      "blockers": [
+        {
+          "issue": "replay-webhook requires existing failed events in database",
+          "mitigation": "Use test-webhook to generate failed events first, or create mock data",
+          "severity": "Low"
+        },
+        {
+          "issue": "get-api-credits endpoint may require specific BoldSign plan",
+          "mitigation": "Handle 404/403 gracefully with informative error message",
+          "severity": "Medium"
+        }
+      ],
+      "deliverables": [
+        "scripts/mcp/servers/boldsign/enhanced-debugging-tools.ts",
+        "Enhanced webhook-tools.ts with alert thresholds",
+        "4 working tools: replay-webhook, get-api-credits, debug-document-timeline, enhanced webhook-health"
+      ]
+    },
+    {
+      "number": 4,
+      "name": "Document Modification & Bulk Tools",
+      "description": "Implement document modification tools (change-recipient, void-and-resend) and bulk operation tools (merge-and-send, bulk-send-reminder)",
+      "status": "completed",
+      "completion_percentage": 100,
+      "estimated_effort": "7",
+      "actual_effort": "1.5",
+      "completion_notes": "Implemented change-recipient, void-and-resend, merge-and-send, bulk-send-reminder",
+      "assigned_subagent": "boldsign-specialist",
+      "steps": [
+        {
+          "number": 1,
+          "task": "Create document-modification-tools.ts with change-recipient",
+          "status": "not_started",
+          "details": "Implement PUT /v1/document/{documentId}/changeRecipient with oldSignerEmail, newSignerEmail, newSignerName. Support resendNotification option."
+        },
+        {
+          "number": 2,
+          "task": "Implement void-and-resend composite tool",
+          "status": "not_started",
+          "details": "Orchestrate: 1) revoke original document, 2) send new document from template with corrections. Return both documentIds and status."
+        },
+        {
+          "number": 3,
+          "task": "Create bulk-tools.ts with merge-and-send",
+          "status": "not_started",
+          "details": "Implement POST /v1/template/mergeAndSend with array of templates and roles. Combine multiple templates into single document. Real estate package use case."
+        },
+        {
+          "number": 4,
+          "task": "Implement bulk-send-reminder tool",
+          "status": "not_started",
+          "details": "Add bulkMode to send-reminder: documentIds array, status filter ('all_pending'), olderThanDays filter. Return bulkResults with per-document status."
+        },
+        {
+          "number": 5,
+          "task": "Test modification and bulk tools",
+          "status": "not_started",
+          "details": "Test change-recipient with real document, void-and-resend workflow, merge-and-send with multiple templates, bulk-send-reminder with filters."
+        }
+      ],
+      "dependencies": [
+        "Phase 1",
+        "Phase 2"
+      ],
+      "blockers": [
+        {
+          "issue": "void-and-resend requires both revoke and send-from-template permissions",
+          "mitigation": "Verify OAuth scopes include both document and template permissions",
+          "severity": "Medium"
+        },
+        {
+          "issue": "merge-and-send may have complex template role mapping",
+          "mitigation": "Start with simple two-template merge, document role mapping requirements",
+          "severity": "High"
+        }
+      ],
+      "deliverables": [
+        "scripts/mcp/servers/boldsign/document-modification-tools.ts",
+        "scripts/mcp/servers/boldsign/bulk-tools.ts",
+        "Enhanced send-reminder with bulk mode",
+        "4 working tools: change-recipient, void-and-resend, merge-and-send, bulk-send-reminder"
+      ]
+    },
+    {
+      "number": 5,
+      "name": "Integration, Testing & Documentation",
+      "description": "Integrate all new tools into server manifest, regenerate registry, comprehensive testing, and documentation updates",
+      "status": "completed",
+      "completion_percentage": 100,
+      "estimated_effort": "3",
+      "actual_effort": "0.75",
+      "completion_notes": "Verified all exports, regenerated registry with 23 BoldSign tools, updated CLAUDE.md",
+      "assigned_subagent": "boldsign-specialist",
+      "steps": [
+        {
+          "number": 1,
+          "task": "Update index.ts with all new exports and manifest entries",
+          "status": "not_started",
+          "details": "Import all new tool files, add function exports, add all definitions to manifest.tools array. Update manifest description and version."
+        },
+        {
+          "number": 2,
+          "task": "Regenerate MCP registry",
+          "status": "not_started",
+          "details": "Run npm run mcp:registry to update registry.json with all 23 BoldSign tools (13 existing + 10 new)."
+        },
+        {
+          "number": 3,
+          "task": "End-to-end testing of all 10 new tools",
+          "status": "not_started",
+          "details": "Run each tool via CLI with valid inputs, verify outputs, test error handling with invalid inputs."
+        },
+        {
+          "number": 4,
+          "task": "Update CLAUDE.md MCP section",
+          "status": "not_started",
+          "details": "Add new tool count (23 tools), document key new capabilities (download, embedded signing, prefill)."
+        },
+        {
+          "number": 5,
+          "task": "Create tool usage examples documentation",
+          "status": "not_started",
+          "details": "Add examples to Docs/Boldsign/ showing common workflows with new tools: download signed PDFs, embedded signing integration, prefill from transaction data."
+        }
+      ],
+      "dependencies": [
+        "Phase 1",
+        "Phase 2",
+        "Phase 3",
+        "Phase 4"
+      ],
+      "blockers": [],
+      "deliverables": [
+        "Updated scripts/mcp/servers/boldsign/index.ts with 23 tools",
+        "Regenerated scripts/mcp/registry.json",
+        "All 10 new tools tested and working",
+        "Updated CLAUDE.md documentation",
+        "Tool usage examples in Docs/Boldsign/"
+      ]
+    }
+  ],
+  "subagent_assignments": [
+    {
+      "subagent": "boldsign-specialist",
+      "domain": "BoldSign e-signature API, embedded signing, webhook handling, real estate workflows",
+      "responsibilities": "Implement all 10 new MCP tools following established patterns, ensure OAuth authentication works, handle BoldSign API responses correctly, integrate with existing webhook and document tracking infrastructure",
+      "phases_involved": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "estimated_effort": "24",
+      "key_deliverables": [
+        "10 new MCP tools for BoldSign integration",
+        "Type definitions for all tools",
+        "Enhanced webhook-health with alerts",
+        "Bulk operations support",
+        "Comprehensive testing"
+      ]
+    }
+  ],
+  "reference_documents": [
+    {
+      "path": "Docs/Boldsign/README.md",
+      "relevance": "Existing BoldSign integration documentation",
+      "status": "update",
+      "sections": "Add new tools section"
+    },
+    {
+      "path": "scripts/mcp/README.md",
+      "relevance": "MCP bridge documentation with tool counts",
+      "status": "update",
+      "sections": "Update BoldSign tool count"
+    },
+    {
+      "path": "CLAUDE.md",
+      "relevance": "Main project documentation with MCP section",
+      "status": "update",
+      "sections": "MCP Code Execution Bridge section"
+    },
+    {
+      "path": "https://github.com/boldsign/boldsign-node-sdk",
+      "relevance": "Official BoldSign API reference for endpoint details",
+      "status": "reference",
+      "sections": "DocumentApi, TemplateApi methods"
+    }
+  ],
+  "potential_blockers": [
+    {
+      "issue": "BoldSign API endpoints may have changed since SDK documentation",
+      "likelihood": "Low",
+      "impact": "Medium",
+      "risk_score": 2,
+      "priority_rank": "Low",
+      "mitigation_strategy": "Test each endpoint individually, fall back to SDK patterns if REST fails",
+      "fallback_plan": "Use BoldSign Node SDK directly in Edge Functions if REST doesn't work"
+    },
+    {
+      "issue": "OAuth token may not have all required scopes for new operations",
+      "likelihood": "Medium",
+      "impact": "High",
+      "risk_score": 6,
+      "priority_rank": "High",
+      "mitigation_strategy": "Verify OAuth scopes in config.ts cover: BoldSign.Documents.All, BoldSign.Templates.All, BoldSign.SenderIdentity.All",
+      "fallback_plan": "Update OAuth scope configuration and request new token"
+    },
+    {
+      "issue": "merge-and-send may require specific template configurations",
+      "likelihood": "High",
+      "impact": "Medium",
+      "risk_score": 6,
+      "priority_rank": "High",
+      "mitigation_strategy": "Start with simple two-template merge, document role mapping requirements thoroughly",
+      "fallback_plan": "Implement as sequential send-from-template calls if merge API is complex"
+    },
+    {
+      "issue": "Download endpoints may return different content types (binary vs base64)",
+      "likelihood": "Medium",
+      "impact": "Medium",
+      "risk_score": 4,
+      "priority_rank": "High",
+      "mitigation_strategy": "Check Content-Type header, handle both binary and base64 responses",
+      "fallback_plan": "Convert binary to base64 client-side if needed"
+    },
+    {
+      "issue": "get-api-credits may require enterprise BoldSign plan",
+      "likelihood": "Medium",
+      "impact": "Low",
+      "risk_score": 2,
+      "priority_rank": "Low",
+      "mitigation_strategy": "Handle 404/403 gracefully, return informative message about plan requirements",
+      "fallback_plan": "Mark tool as 'enterprise only' in documentation"
+    }
+  ],
+  "success_criteria": [
+    {
+      "criterion": "All 10 new tools are executable via npm run mcp -- run boldsign <tool>",
+      "how_to_verify": "Run each tool with valid input JSON and verify MCPToolResult success",
+      "priority": "Critical",
+      "acceptance_test": "Given valid documentId, when running download-document, then receive base64 PDF or download URL"
+    },
+    {
+      "criterion": "download-document successfully retrieves signed PDFs from completed documents",
+      "how_to_verify": "Test with completed document, verify PDF content is valid",
+      "priority": "Critical",
+      "acceptance_test": "Given completed document ID, when running download-document with type='signed', then base64 content decodes to valid PDF"
+    },
+    {
+      "criterion": "get-embedded-sign-link generates valid signing URLs that open BoldSign UI",
+      "how_to_verify": "Generate URL, open in browser, verify signing interface loads",
+      "priority": "Critical",
+      "acceptance_test": "Given pending document and signer email, when running get-embedded-sign-link, then URL opens BoldSign signing interface"
+    },
+    {
+      "criterion": "prefill-fields successfully updates form field values before sending",
+      "how_to_verify": "Prefill fields on draft document, send document, verify fields contain prefilled values",
+      "priority": "High",
+      "acceptance_test": "Given draft document with text fields, when running prefill-fields with field values, then document shows prefilled values when opened"
+    },
+    {
+      "criterion": "webhook-health alerts trigger when thresholds are exceeded",
+      "how_to_verify": "Set low thresholds, verify alerts array contains appropriate warnings",
+      "priority": "High",
+      "acceptance_test": "Given alertThresholds.errorRatePercent=1 and actual error rate of 5%, then alerts array contains error_rate alert with severity=warning"
+    },
+    {
+      "criterion": "BoldSign tool count increases from 13 to 23 in registry",
+      "how_to_verify": "Run npm run mcp:registry, check boldsign server has 23 tools",
+      "priority": "High",
+      "acceptance_test": "Given npm run mcp:registry completes, when checking registry.json, then boldsign server shows 23 tools"
+    }
+  ],
+  "risks_and_assumptions": [
+    {
+      "type": "assumption",
+      "description": "BoldSign OAuth credentials are configured and have sufficient scopes",
+      "impact": "Tools will fail authentication if credentials missing or scopes insufficient",
+      "owner": "human"
+    },
+    {
+      "type": "assumption",
+      "description": "BoldSign API v1 endpoints match documented SDK methods",
+      "impact": "May need to adjust endpoint paths if API differs from SDK",
+      "owner": "boldsign-specialist"
+    },
+    {
+      "type": "risk",
+      "description": "Some BoldSign features may require specific subscription plans",
+      "impact": "get-api-credits and advanced features may return 403",
+      "owner": "boldsign-specialist"
+    },
+    {
+      "type": "assumption",
+      "description": "Test documents exist in BoldSign account for testing",
+      "impact": "Need to create test documents if none exist",
+      "owner": "human"
+    }
+  ],
+  "technical_approach": {
+    "architecture": "Extend existing MCP bridge pattern with new tool files organized by functional group. All tools use callBoldSignAPI() for authenticated requests. Tools return standardized MCPToolResult<T> with metadata.",
+    "key_decisions": [
+      {
+        "decision": "Organize new tools into functional group files rather than single monolithic file",
+        "rationale": "Matches existing pattern (document-actions.ts, template-tools.ts), improves maintainability and code organization",
+        "alternatives_considered": [
+          "Add all tools to existing files",
+          "One file per tool"
+        ],
+        "trade_offs": "More files to manage but better separation of concerns"
+      },
+      {
+        "decision": "Return base64 for downloaded PDFs rather than file paths",
+        "rationale": "MCP tools run in Node.js context without guaranteed file system access. Base64 is portable and can be used directly or saved by caller.",
+        "alternatives_considered": [
+          "Save to temp file and return path",
+          "Return stream"
+        ],
+        "trade_offs": "Larger response size for big PDFs but more portable"
+      },
+      {
+        "decision": "Implement void-and-resend as composite tool orchestrating existing tools",
+        "rationale": "Reuses proven revoke-document and send-from-template logic, reduces code duplication",
+        "alternatives_considered": [
+          "Single BoldSign API call if available",
+          "Separate manual steps"
+        ],
+        "trade_offs": "Two API calls instead of one but more reliable"
+      }
+    ],
+    "tech_stack": [
+      "TypeScript with strict mode",
+      "Zod for input validation",
+      "BoldSign REST API v1",
+      "OAuth 2.0 client credentials flow",
+      "Node.js fetch for HTTP requests",
+      "Base64 encoding for binary responses"
+    ],
+    "integration_points": [
+      {
+        "system": "BoldSign API",
+        "interaction": "REST API calls for document operations, template operations, embedded signing",
+        "authentication": "OAuth 2.0 Bearer token (cached with auto-refresh)"
+      },
+      {
+        "system": "Supabase Database",
+        "interaction": "Query bold_sign_events and webhook_metrics for debugging tools",
+        "authentication": "Service Role Key for server-side access"
+      },
+      {
+        "system": "MCP Registry",
+        "interaction": "Auto-generated tool registry for discovery",
+        "authentication": "None (local file)"
+      }
+    ]
+  },
+  "execution_history": [],
+  "testing_strategy": {
+    "unit_tests": "Validate Zod schemas accept valid inputs and reject invalid inputs for all 10 new tools",
+    "integration_tests": "Run each tool via npm run mcp -- run boldsign <tool> with test data against BoldSign sandbox/test environment",
+    "manual_tests": [
+      {
+        "test_case": "Download signed PDF",
+        "steps": "1. Find completed document ID, 2. Run download-document, 3. Decode base64, 4. Open PDF",
+        "expected_result": "Valid PDF file opens with signed content"
+      },
+      {
+        "test_case": "Generate embedded signing link",
+        "steps": "1. Create pending document, 2. Run get-embedded-sign-link with signer email, 3. Open URL in browser",
+        "expected_result": "BoldSign signing interface loads for the specified signer"
+      },
+      {
+        "test_case": "Prefill form fields",
+        "steps": "1. Create draft document with text fields, 2. Run prefill-fields, 3. Open document in BoldSign",
+        "expected_result": "Fields show prefilled values"
+      },
+      {
+        "test_case": "Webhook health with alerts",
+        "steps": "1. Set low alert thresholds, 2. Run webhook-health, 3. Check alerts array",
+        "expected_result": "Alerts generated when thresholds exceeded"
+      }
+    ],
+    "edge_cases": [
+      "Document not found (404 response)",
+      "Document in wrong state for operation (e.g., download draft)",
+      "Invalid signer email for embedded link",
+      "Empty fields array for prefill",
+      "OAuth token expired mid-operation",
+      "Rate limit exceeded",
+      "Large PDF (>10MB) download"
+    ]
+  },
+  "rollout_plan": {
+    "deployment_phases": [
+      {
+        "phase": "Development",
+        "when": "During implementation (Phases 1-4)",
+        "verification": "Run tools locally, verify API responses",
+        "rollback_plan": "Revert file changes, tools remain unavailable"
+      },
+      {
+        "phase": "Integration",
+        "when": "Phase 5 completion",
+        "verification": "Regenerate registry, verify all 23 tools appear",
+        "rollback_plan": "Revert index.ts changes, regenerate registry with 13 tools"
+      },
+      {
+        "phase": "Production",
+        "when": "After all tests pass",
+        "verification": "Test in production environment with real documents",
+        "rollback_plan": "Remove new tool files, revert index.ts, regenerate registry"
+      }
+    ],
+    "feature_flags": "None required - tools are opt-in via CLI invocation",
+    "monitoring": "Monitor BoldSign API rate limits, check for increased 4xx/5xx errors in API responses"
+  },
+  "rollback_strategy": {
+    "database": {
+      "approach": "No database changes required for MCP tools",
+      "scripts": [],
+      "data_impact": "None - tools only read from existing tables"
+    },
+    "code": {
+      "approach": "Delete new tool files, revert index.ts and type changes",
+      "commits_to_revert": "All commits in feature/boldsign-mcp-enhancement branch",
+      "feature_flags": []
+    },
+    "external_services": {
+      "stripe": "N/A",
+      "boldsign": "No BoldSign configuration changes required",
+      "other": "Regenerate MCP registry to remove tool entries"
+    },
+    "estimated_rollback_time": "15 minutes",
+    "rollback_risks": [
+      "Any workflows depending on new tools will break",
+      "Documentation may reference non-existent tools"
+    ]
+  },
+  "dependency_graph": {
+    "ascii": "Phase 1 (Types)\n    │\n    ├──→ Phase 2 (Download/Embedded/Prefill) ──┐\n    │                                          │\n    ├──→ Phase 3 (Debugging Tools) ────────────┤\n    │                                          │\n    └──→ Phase 4 (Modification/Bulk) ──────────┘\n                                               │\n                                               ▼\n                                    Phase 5 (Integration & Testing)",
+    "critical_path": [
+      "Phase 1",
+      "Phase 2",
+      "Phase 5"
+    ],
+    "parallelizable": [
+      [
+        "Phase 2",
+        "Phase 3",
+        "Phase 4"
+      ]
+    ],
+    "bottlenecks": [
+      "Phase 1 blocks all other phases",
+      "Phase 5 requires all phases complete"
+    ]
+  },
+  "effort_estimation": {
+    "base_hours": 16,
+    "multipliers_applied": [
+      {
+        "factor": "External API integration",
+        "multiplier": 1.3,
+        "reason": "BoldSign REST API calls with OAuth authentication"
+      },
+      {
+        "factor": "Existing pattern",
+        "multiplier": 0.85,
+        "reason": "Following established MCP tool patterns reduces effort"
+      }
+    ],
+    "calculated_hours": 17.68,
+    "final_estimate": 24,
+    "confidence": "High",
+    "assumptions": [
+      "BoldSign credentials already configured",
+      "Existing tool patterns are well-established",
+      "Test documents available in BoldSign account"
+    ]
+  },
+  "context_integration": {
+    "created_in_session": null,
+    "related_contexts": [],
+    "continuation_notes": "This plan implements 10 new BoldSign MCP tools to enhance document management capabilities. Priority tools are download-document and get-embedded-sign-link for core signing workflows. Use boldsign-specialist for all phases."
+  },
+  "notes": "This plan addresses the gap analysis from reviewing the BoldSign Node SDK capabilities versus current MCP tool coverage. The 10 new tools prioritize: (1) Core workflow tools (download, embedded signing, prefill), (2) Enhanced debugging (replay, credits, timeline), (3) Document modification and bulk operations. All tools follow established patterns from existing boldsign MCP server implementation."
+}

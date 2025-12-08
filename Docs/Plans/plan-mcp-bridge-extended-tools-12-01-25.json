@@ -1,0 +1,517 @@
+{
+  "metadata": {
+    "created": "2025-12-01T16:35:00-08:00",
+    "created_by": "claude-opus-4-5-20251101",
+    "plan_id": "e7f3c8a2-4b9d-4e6f-8c1a-9d2b3e4f5a6b",
+    "version": "2.1",
+    "last_updated": "2025-12-01T17:05:00-08:00",
+    "template_version": "2.1 - Added phase_index for quick lookups, auto-archive on completion",
+    "status": "completed",
+    "completed_at": "2025-12-01T17:05:00-08:00",
+    "total_actual_effort": "~2 hours"
+  },
+  "phase_index": {
+    "total": 4,
+    "current_in_progress": null,
+    "completed": [1, 2, 3, 4],
+    "blocked": [],
+    "not_started": [],
+    "next_available": null
+  },
+  "planning": {
+    "goal": "Extend MCP Code Execution Bridge with Auth Admin API, Storage Upload, Edge Function Invocation, and TypeScript Type Generation tools",
+    "reason": "Complete the MCP bridge to provide full Supabase management capabilities without requiring MCP servers enabled or Docker running locally",
+    "scope": "Includes: Auth Admin (create/list/delete/update users), Storage Upload, Edge Function invoke, Type generation. Excludes: Realtime management (no REST API), Edge Function deployment (CLI-only), Webhook management (lower priority)",
+    "success_metrics": [
+      "All new Auth Admin tools work via CLI (create-user, list-users, delete-user, update-user)",
+      "File upload tool successfully uploads files to storage buckets",
+      "Edge Function invocation tool calls functions and returns results",
+      "Type generation tool outputs TypeScript definitions",
+      "Skill documentation updated with all new tools and examples"
+    ],
+    "estimated_timeline": "8 hours",
+    "priority": "High"
+  },
+  "exploration_summary": {
+    "similar_features_found": [
+      "scripts/mcp/servers/supabase/storage-buckets.ts - Existing bucket management tools",
+      "scripts/mcp/servers/supabase/storage-files.ts - Existing file list/delete/move tools",
+      "scripts/mcp/servers/supabase/management-api.ts - run-sql tool pattern for Management API",
+      "scripts/mcp/servers/supabase/config.ts - Credential loading and REST header helpers"
+    ],
+    "reusable_components": [
+      "executeApiCall() from core/api-executor.ts - API execution with error handling",
+      "getRestHeaders() from config.ts - Service role key header generation",
+      "getManagementHeaders() from management-api.ts - Access token header generation",
+      "MCPToolDefinition type and createSuccessResult/createErrorResult helpers"
+    ],
+    "existing_tables": [],
+    "patterns_to_follow": [
+      "Zod schema validation for input parameters",
+      "Structured MCPToolResult<T> return type with success/error/metadata",
+      "Tool definition export with mcpName, description, tags, examples",
+      "Config validation at start of each tool function"
+    ],
+    "new_code_required": [
+      "scripts/mcp/servers/supabase/auth-admin.ts - User management tools",
+      "scripts/mcp/servers/supabase/storage-upload.ts - File upload tool",
+      "scripts/mcp/servers/supabase/edge-functions.ts - Function invocation tool",
+      "scripts/mcp/servers/supabase/generate-types-api.ts - Type generation via Management API"
+    ]
+  },
+  "files_impacted": [
+    {
+      "path": "scripts/mcp/servers/supabase/auth-admin.ts",
+      "type": "created",
+      "reason": "New Auth Admin API tools for user management",
+      "estimated_changes": "+200 lines"
+    },
+    {
+      "path": "scripts/mcp/servers/supabase/storage-upload.ts",
+      "type": "created",
+      "reason": "File upload tool using Storage API",
+      "estimated_changes": "+80 lines"
+    },
+    {
+      "path": "scripts/mcp/servers/supabase/edge-functions.ts",
+      "type": "created",
+      "reason": "Edge Function invocation tool",
+      "estimated_changes": "+100 lines"
+    },
+    {
+      "path": "scripts/mcp/servers/supabase/generate-types-api.ts",
+      "type": "created",
+      "reason": "TypeScript type generation via Management API",
+      "estimated_changes": "+60 lines"
+    },
+    {
+      "path": "scripts/mcp/servers/supabase/index.ts",
+      "type": "modified",
+      "reason": "Export new tools and update manifest",
+      "estimated_changes": "+30 lines"
+    },
+    {
+      "path": ".claude/skills/mcp-bridge/SKILL.md",
+      "type": "modified",
+      "reason": "Document new tools with examples",
+      "estimated_changes": "+100 lines"
+    },
+    {
+      "path": ".claude/skills/mcp-bridge/REFERENCE.md",
+      "type": "modified",
+      "reason": "Add API reference for new tools",
+      "estimated_changes": "+150 lines"
+    }
+  ],
+  "phases": [
+    {
+      "number": 1,
+      "name": "Auth Admin API Tools",
+      "description": "Implement user management tools using Supabase Auth Admin API with service role key",
+      "status": "not_started",
+      "completion_percentage": 0,
+      "estimated_effort": "3",
+      "actual_effort": null,
+      "completion_notes": null,
+      "assigned_subagent": "supabase-backend-specialist",
+      "steps": [
+        {
+          "number": 1,
+          "task": "Create auth-admin.ts with createUser tool",
+          "status": "not_started",
+          "details": "Implement POST /auth/v1/admin/users with email, password, email_confirm, user_metadata, app_metadata params"
+        },
+        {
+          "number": 2,
+          "task": "Add listUsers tool with pagination",
+          "status": "not_started",
+          "details": "Implement GET /auth/v1/admin/users with page and per_page params"
+        },
+        {
+          "number": 3,
+          "task": "Add getUser tool",
+          "status": "not_started",
+          "details": "Implement GET /auth/v1/admin/users/{id}"
+        },
+        {
+          "number": 4,
+          "task": "Add updateUser tool",
+          "status": "not_started",
+          "details": "Implement PUT /auth/v1/admin/users/{id} with email, password, user_metadata, app_metadata"
+        },
+        {
+          "number": 5,
+          "task": "Add deleteUser tool",
+          "status": "not_started",
+          "details": "Implement DELETE /auth/v1/admin/users/{id}"
+        },
+        {
+          "number": 6,
+          "task": "Export tools from index.ts and regenerate registry",
+          "status": "not_started",
+          "details": "Update manifest with new tools, run npm run mcp:registry"
+        }
+      ],
+      "dependencies": [],
+      "blockers": [],
+      "deliverables": [
+        "scripts/mcp/servers/supabase/auth-admin.ts with 5 tools",
+        "Updated index.ts exports",
+        "Regenerated registry.json"
+      ]
+    },
+    {
+      "number": 2,
+      "name": "Storage Upload & Edge Function Tools",
+      "description": "Implement file upload and Edge Function invocation tools",
+      "status": "not_started",
+      "completion_percentage": 0,
+      "estimated_effort": "2",
+      "actual_effort": null,
+      "completion_notes": null,
+      "assigned_subagent": "supabase-backend-specialist",
+      "steps": [
+        {
+          "number": 1,
+          "task": "Create storage-upload.ts with uploadFile tool",
+          "status": "not_started",
+          "details": "Implement POST /storage/v1/object/{bucket}/{path} with file content (base64 encoded for CLI use)"
+        },
+        {
+          "number": 2,
+          "task": "Add downloadFile tool",
+          "status": "not_started",
+          "details": "Implement GET /storage/v1/object/{bucket}/{path} returning file as base64 or saving to disk"
+        },
+        {
+          "number": 3,
+          "task": "Create edge-functions.ts with invokeFunction tool",
+          "status": "not_started",
+          "details": "Implement POST /functions/v1/{function-name} with JSON payload support"
+        },
+        {
+          "number": 4,
+          "task": "Add listFunctions tool via Management API",
+          "status": "not_started",
+          "details": "Implement GET /v1/projects/{ref}/functions (requires access token)"
+        },
+        {
+          "number": 5,
+          "task": "Export tools and update manifest",
+          "status": "not_started",
+          "details": "Update index.ts exports and run registry regeneration"
+        }
+      ],
+      "dependencies": [],
+      "blockers": [],
+      "deliverables": [
+        "scripts/mcp/servers/supabase/storage-upload.ts with 2 tools",
+        "scripts/mcp/servers/supabase/edge-functions.ts with 2 tools",
+        "Updated registry.json"
+      ]
+    },
+    {
+      "number": 3,
+      "name": "TypeScript Type Generation Tool",
+      "description": "Implement type generation via Management API",
+      "status": "not_started",
+      "completion_percentage": 0,
+      "estimated_effort": "1",
+      "actual_effort": null,
+      "completion_notes": null,
+      "assigned_subagent": "supabase-backend-specialist",
+      "steps": [
+        {
+          "number": 1,
+          "task": "Create generate-types-api.ts",
+          "status": "not_started",
+          "details": "Implement GET /v1/projects/{ref}/types/typescript using Management API"
+        },
+        {
+          "number": 2,
+          "task": "Add output options (console, file)",
+          "status": "not_started",
+          "details": "Support outputPath parameter to save types to file"
+        },
+        {
+          "number": 3,
+          "task": "Export and update registry",
+          "status": "not_started",
+          "details": "Update index.ts, regenerate registry"
+        }
+      ],
+      "dependencies": [],
+      "blockers": [
+        {
+          "issue": "Requires SUPABASE_ACCESS_TOKEN",
+          "mitigation": "Document token requirement, show helpful error message if missing",
+          "severity": "Low"
+        }
+      ],
+      "deliverables": [
+        "scripts/mcp/servers/supabase/generate-types-api.ts",
+        "Updated registry with type generation tool"
+      ]
+    },
+    {
+      "number": 4,
+      "name": "Documentation & Testing",
+      "description": "Update skill documentation and test all new tools",
+      "status": "not_started",
+      "completion_percentage": 0,
+      "estimated_effort": "2",
+      "actual_effort": null,
+      "completion_notes": null,
+      "assigned_subagent": "human",
+      "steps": [
+        {
+          "number": 1,
+          "task": "Update SKILL.md with new tool sections",
+          "status": "not_started",
+          "details": "Add Auth Admin, Storage Upload, Edge Functions, Type Generation sections with examples"
+        },
+        {
+          "number": 2,
+          "task": "Update REFERENCE.md with API details",
+          "status": "not_started",
+          "details": "Document all new tool parameters, response formats, error codes"
+        },
+        {
+          "number": 3,
+          "task": "Test Auth Admin tools",
+          "status": "not_started",
+          "details": "Create test user, list users, update user, delete test user"
+        },
+        {
+          "number": 4,
+          "task": "Test Storage upload/download",
+          "status": "not_started",
+          "details": "Upload test file, download it back, verify contents"
+        },
+        {
+          "number": 5,
+          "task": "Test Edge Function invocation",
+          "status": "not_started",
+          "details": "Invoke existing Edge Function and verify response"
+        },
+        {
+          "number": 6,
+          "task": "Test type generation",
+          "status": "not_started",
+          "details": "Generate types and verify output matches schema"
+        }
+      ],
+      "dependencies": [1, 2, 3],
+      "blockers": [],
+      "deliverables": [
+        "Updated SKILL.md with complete documentation",
+        "Updated REFERENCE.md with API reference",
+        "All tools tested and verified working"
+      ]
+    }
+  ],
+  "subagent_assignments": [
+    {
+      "subagent": "supabase-backend-specialist",
+      "domain": "Supabase API integration and backend development",
+      "responsibilities": "Implement all new API tools following existing patterns, ensure proper error handling and type safety",
+      "phases_involved": [1, 2, 3],
+      "estimated_effort": "6",
+      "key_deliverables": [
+        "auth-admin.ts with 5 user management tools",
+        "storage-upload.ts with upload/download tools",
+        "edge-functions.ts with invoke/list tools",
+        "generate-types-api.ts with type generation"
+      ]
+    }
+  ],
+  "reference_documents": [
+    {
+      "path": "scripts/mcp/servers/supabase/management-api.ts",
+      "relevance": "Pattern for Management API authentication with access token",
+      "status": "reference",
+      "sections": "getManagementHeaders(), MANAGEMENT_API_BASE"
+    },
+    {
+      "path": "scripts/mcp/servers/supabase/storage-files.ts",
+      "relevance": "Pattern for Storage API operations",
+      "status": "reference",
+      "sections": "All file operations"
+    },
+    {
+      "path": ".claude/skills/mcp-bridge/SKILL.md",
+      "relevance": "Current skill documentation to be extended",
+      "status": "update"
+    }
+  ],
+  "potential_blockers": [
+    {
+      "issue": "File upload size limits via CLI (base64 encoding increases size)",
+      "likelihood": "Medium",
+      "impact": "Low",
+      "risk_score": 2,
+      "priority_rank": "Low",
+      "mitigation_strategy": "Document size limits, recommend direct SDK for large files",
+      "fallback_plan": "Support file path input for local files"
+    },
+    {
+      "issue": "Access token missing for Management API tools",
+      "likelihood": "Medium",
+      "impact": "Medium",
+      "risk_score": 4,
+      "priority_rank": "High",
+      "mitigation_strategy": "Check token presence early, return helpful error message with setup instructions",
+      "fallback_plan": "Type generation can fall back to CLI-based tool if Docker available"
+    }
+  ],
+  "success_criteria": [
+    {
+      "criterion": "User can create and manage Supabase Auth users via CLI",
+      "how_to_verify": "Run create-user, list-users, update-user, delete-user commands successfully",
+      "priority": "Critical",
+      "acceptance_test": "Given service role key configured, when running create-user with email/password, then user appears in Auth dashboard"
+    },
+    {
+      "criterion": "User can upload files to storage buckets via CLI",
+      "how_to_verify": "Run upload-file command with test file, verify file appears in bucket",
+      "priority": "High",
+      "acceptance_test": "Given bucket exists, when uploading file via CLI, then file accessible via get-public-url"
+    },
+    {
+      "criterion": "User can invoke Edge Functions via CLI",
+      "how_to_verify": "Run invoke-function command with JSON payload, verify response matches expected",
+      "priority": "High",
+      "acceptance_test": "Given Edge Function deployed, when invoking with payload, then function executes and returns result"
+    },
+    {
+      "criterion": "User can generate TypeScript types via CLI",
+      "how_to_verify": "Run generate-types command, verify output contains table definitions",
+      "priority": "Medium",
+      "acceptance_test": "Given access token configured, when running generate-types, then TypeScript interfaces output"
+    },
+    {
+      "criterion": "Skill documentation is complete with all new tools",
+      "how_to_verify": "Review SKILL.md has sections for all new tool categories with working examples",
+      "priority": "High",
+      "acceptance_test": "Documentation includes Auth Admin, Storage Upload, Edge Functions, Type Generation with copy-paste examples"
+    }
+  ],
+  "technical_approach": {
+    "architecture": "REST API wrappers following existing MCP bridge pattern - Zod validation, executeApiCall helper, structured results",
+    "key_decisions": [
+      {
+        "decision": "Use service role key for Auth Admin API instead of Management API",
+        "rationale": "Auth Admin API works with service role key, avoiding need for separate access token for user management",
+        "alternatives_considered": ["Management API user endpoints"],
+        "trade_offs": "Service role key already configured, simpler auth flow"
+      },
+      {
+        "decision": "Base64 encode file content for upload tool",
+        "rationale": "CLI tools receive JSON input, binary files need encoding for JSON transport",
+        "alternatives_considered": ["File path input with fs.readFile"],
+        "trade_offs": "Size overhead but simpler API, can add file path support later"
+      }
+    ],
+    "tech_stack": [
+      "TypeScript with Zod validation",
+      "Supabase REST APIs (Auth Admin, Storage, Functions)",
+      "Supabase Management API (type generation)",
+      "Node.js fetch for HTTP requests"
+    ],
+    "integration_points": [
+      {
+        "system": "Supabase Auth Admin API",
+        "interaction": "User CRUD operations",
+        "authentication": "Service role key in Authorization header"
+      },
+      {
+        "system": "Supabase Storage API",
+        "interaction": "File upload/download",
+        "authentication": "Service role key in Authorization header"
+      },
+      {
+        "system": "Supabase Edge Functions",
+        "interaction": "Function invocation",
+        "authentication": "Service role key or anon key in Authorization header"
+      },
+      {
+        "system": "Supabase Management API",
+        "interaction": "Type generation",
+        "authentication": "Access token in Authorization header"
+      }
+    ]
+  },
+  "dependency_graph": {
+    "ascii": "Phase 1 (Auth Admin) ──┐\nPhase 2 (Storage/Functions) ──┼──→ Phase 4 (Documentation & Testing)\nPhase 3 (Type Generation) ──┘",
+    "critical_path": ["Phase 1", "Phase 4"],
+    "parallelizable": [["Phase 1", "Phase 2", "Phase 3"]],
+    "bottlenecks": ["Phase 4 requires all implementation phases complete"]
+  },
+  "effort_estimation": {
+    "base_hours": 6,
+    "multipliers_applied": [
+      {"factor": "Existing pattern", "multiplier": 0.8, "reason": "Following established MCP bridge patterns"},
+      {"factor": "External API integration", "multiplier": 1.3, "reason": "Multiple Supabase API endpoints"}
+    ],
+    "calculated_hours": 6.24,
+    "final_estimate": 8,
+    "confidence": "High",
+    "assumptions": [
+      "Service role key and access token already configured",
+      "Existing tool patterns are well-established",
+      "No major API changes needed"
+    ]
+  },
+  "testing_strategy": {
+    "unit_tests": "Manual testing via CLI commands for each tool",
+    "integration_tests": "End-to-end tests: create user → verify in dashboard → delete user",
+    "manual_tests": [
+      {
+        "test_case": "Auth Admin flow",
+        "steps": "1. Create test user, 2. List users (verify new user), 3. Update user metadata, 4. Delete user, 5. List users (verify deleted)",
+        "expected_result": "All operations succeed, user lifecycle complete"
+      },
+      {
+        "test_case": "Storage upload flow",
+        "steps": "1. Upload test.txt to documents bucket, 2. List files (verify present), 3. Download file, 4. Delete file",
+        "expected_result": "File round-trips successfully"
+      },
+      {
+        "test_case": "Edge Function invocation",
+        "steps": "1. Invoke existing function with test payload, 2. Verify response format",
+        "expected_result": "Function executes and returns expected response"
+      }
+    ],
+    "edge_cases": [
+      "Create user with existing email (should error)",
+      "Upload to non-existent bucket (should error)",
+      "Invoke non-existent function (should error)",
+      "Missing access token for type generation (helpful error message)"
+    ]
+  },
+  "rollback_strategy": {
+    "database": {
+      "approach": "No database changes required",
+      "scripts": [],
+      "data_impact": "None"
+    },
+    "code": {
+      "approach": "Git revert new tool files",
+      "commits_to_revert": "Single commit with all new tools",
+      "feature_flags": []
+    },
+    "external_services": {
+      "stripe": "N/A",
+      "boldsign": "N/A",
+      "other": "No external service configuration required"
+    },
+    "estimated_rollback_time": "5 minutes",
+    "rollback_risks": ["None - additive changes only, no breaking changes to existing tools"]
+  },
+  "context_integration": {
+    "created_in_session": null,
+    "related_contexts": [],
+    "continuation_notes": "This plan extends the MCP Code Execution Bridge created in previous session. Reference existing tool implementations in scripts/mcp/servers/supabase/ for patterns."
+  },
+  "notes": "This plan completes the MCP bridge to cover all feasible Supabase API operations. Realtime management is excluded as there's no REST API for it. Edge Function deployment is excluded as CLI is more appropriate than REST API for that."
+}
